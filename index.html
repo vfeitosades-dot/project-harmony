@@ -135,6 +135,107 @@ img{max-width:100%;display:block}
 .palm.p2{right:-6%;transform:scaleX(-1) rotate(-4deg)}
 .palm.p3{left:28%;bottom:-33%;transform:scale(.7) rotate(12deg);opacity:.55}
 
+
+.hero-model{
+  position:absolute;
+  z-index:2;
+  right:2%;
+  top:50%;
+  width:min(58vw,760px);
+  height:min(84vh,820px);
+  transform:translate3d(0,-46%,0) scale(1.02);
+  transform-origin:center;
+  will-change:transform,opacity,filter;
+  filter:drop-shadow(0 40px 55px rgba(0,0,0,.52));
+  opacity:.98;
+  transition:filter .35s ease;
+}
+.hero-model:before{
+  content:"";
+  position:absolute;inset:5% 6% 0;
+  background:
+    radial-gradient(ellipse at 50% 45%,rgba(255,70,148,.28),transparent 35%),
+    radial-gradient(ellipse at 55% 84%,rgba(255,174,91,.18),transparent 30%);
+  filter:blur(26px);
+  z-index:-1;
+}
+.hero-model .hero-model-frame{
+  position:absolute;inset:0;
+  overflow:hidden;
+  border-radius:36px;
+  mask-image:linear-gradient(90deg,transparent 0,black 14%,black 88%,transparent 100%);
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,black 14%,black 88%,transparent 100%);
+}
+.hero-model iframe{
+  width:100%;height:100%;border:0;display:block;
+  background:transparent;
+  transform:scale(1.04);
+}
+.hero-model .model-fade{
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(90deg,#08070d 0%,transparent 16%,transparent 85%,rgba(8,7,13,.25) 100%),
+    linear-gradient(0deg,#08070d 0%,transparent 16%,transparent 86%,rgba(8,7,13,.15) 100%);
+}
+.hero-model .model-label{
+  position:absolute;right:28px;bottom:28px;
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;border:1px solid rgba(255,255,255,.18);
+  background:rgba(0,0,0,.25);backdrop-filter:blur(14px);
+  font:9px "DM Mono";letter-spacing:.14em;color:#d9d1d2;
+  text-transform:uppercase;border-radius:99px;
+}
+.hero-model .model-label i{
+  width:6px;height:6px;border-radius:50%;background:#ff65ad;
+  box-shadow:0 0 14px #ff65ad;animation:pulse 1.7s infinite;
+}
+.hero-model .model-credit{
+  position:absolute;left:28px;bottom:28px;
+  color:#81797b;font:8px "DM Mono";letter-spacing:.05em;
+}
+.hero-kicker{
+  display:inline-flex;align-items:center;gap:10px;
+  margin-bottom:17px;padding:8px 11px;border:1px solid rgba(255,255,255,.2);
+  border-radius:99px;background:rgba(0,0,0,.18);backdrop-filter:blur(12px);
+  font:9px "DM Mono";letter-spacing:.16em;color:#d7cece;text-transform:uppercase;
+}
+.hero-kicker b{font-weight:500;color:#fff}
+.hero-copy{max-width:760px}
+.hero-copy:before{
+  content:"";
+  position:absolute;left:-24px;top:36%;
+  width:2px;height:120px;background:linear-gradient(var(--pink),transparent);
+  box-shadow:0 0 22px rgba(255,63,154,.45);
+  opacity:.7;
+}
+.hero-title .vi-mark{
+  display:inline-block;position:relative;top:-.08em;margin-left:.04em;
+  font-size:.28em;line-height:1;color:#ff5b9f;
+  letter-spacing:-.03em;text-shadow:0 0 30px rgba(255,91,159,.32);
+}
+.hero-title .outline{
+  -webkit-text-stroke:1px rgba(255,255,255,.7);
+  color:transparent;
+}
+.hero-sub{max-width:500px}
+.hero-actions{position:relative;z-index:5}
+.hero-scroll-reveal{
+  position:absolute;left:4%;right:4%;bottom:72px;height:1px;
+  background:linear-gradient(90deg,rgba(255,255,255,.18),transparent 75%);
+  opacity:.55;
+}
+.hero-scroll-reveal:after{
+  content:"";
+  position:absolute;left:0;top:-2px;width:4px;height:4px;background:#fff;border-radius:50%;
+  box-shadow:0 0 15px #fff;animation:scrollDot 1.7s infinite;
+}
+.hero-badge{
+  position:absolute;right:4%;top:17%;z-index:4;
+  writing-mode:vertical-rl;
+  font:9px "DM Mono";letter-spacing:.18em;color:#bdb5b6;text-transform:uppercase;
+  opacity:.72;
+}
+
 .hero-copy{
   position:relative;z-index:3;width:min(1240px,92%);padding-top:clamp(70px,10vh,120px);
 }
@@ -300,7 +401,7 @@ img{max-width:100%;display:block}
 .pv3{grid-column:span 5;grid-row:span 5;background:
   radial-gradient(circle at 30% 32%,#f8b26e,transparent 18%),
   linear-gradient(145deg,#2a1521,#85505f 46%,#e8a05e)}
-.pv4{grid-column:span 3;grid-row:span 3;background:
+.pv5{grid-column:span 3;grid-row:span 3;background:
   radial-gradient(circle at 50% 30%,#98fff2,transparent 13%),
   linear-gradient(145deg,#0a2732,#268385 48%,#f7a66e)}
 .pv5{grid-column:span 4;grid-row:span 3;background:
@@ -368,6 +469,27 @@ img{max-width:100%;display:block}
 @keyframes gridDrift{to{transform:perspective(500px) rotateX(62deg) translateY(22%)}}
 @keyframes marquee{to{transform:translateX(-50%)}}
 @keyframes rotate{to{transform:rotate(360deg)}}
+
+@media(max-width:1000px){
+  .hero-model{width:58vw;height:70vh;right:-4%;top:54%;opacity:.74}
+  .hero-copy{max-width:720px}
+  .hero-copy:before{left:-16px}
+}
+@media(max-width:650px){
+  .hero{min-height:910px}
+  .hero-model{width:108vw;height:58vh;right:-13%;top:69%;opacity:.62;transform:translate3d(0,-50%,0) scale(.98)!important}
+  .hero-model .model-label{right:18px;bottom:18px;font-size:8px}
+  .hero-model .model-credit{left:18px;bottom:18px;font-size:7px}
+  .hero-copy:before{display:none}
+  .hero-title .line:nth-child(3){margin-top:4px}
+  .hero-sub{max-width:84vw}
+  .hero-footer{bottom:20px}
+  .hero-badge{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .hero-model{transform:translate3d(0,-46%,0) scale(1.02)!important;opacity:1!important}
+}
+
 @media(max-width:1000px){
   .navlinks{display:none}
   .hero-title{font-size:clamp(68px,17vw,150px)}
@@ -421,7 +543,7 @@ img{max-width:100%;display:block}
 </div>
 
 <header class="nav">
-  <a class="brand" href="#top">GTAVI <span class="pill">FAN EXPERIENCE</span></a>
+  <a class="brand" href="#top">GTAVI <span class="pill">V5 / FAN EXPERIENCE</span></a>
   <nav class="navlinks">
     <a href="#model-section">3D</a>
     <a href="#leonida">LEONIDA</a>
@@ -439,20 +561,20 @@ img{max-width:100%;display:block}
   <div class="palms"><div class="palm p1"></div><div class="palm p2"></div><div class="palm p3"></div></div>
 
   <div class="hero-copy">
-    <div class="hero-topline">
+    <div class="hero-topline"><span class="hero-kicker">ROCKSTAR GAMES <b>PRESENTS</b></span>
       <span class="live-dot"><i></i> VICE CITY, USA</span>
       <span>ROCKSTAR GAMES / LEONIDA</span>
     </div>
 
     <h1 class="hero-title" aria-label="Grand Theft Auto VI">
       <span class="line"><span><small class="gta">GRAND<br>THEFT</small></span></span>
-      <span class="line"><span>AUTO</span></span>
-      <span class="line"><span class="six">VI</span></span>
+      <span class="line"><span>AUTO <i class="vi-mark">VI</i></span></span>
+      <span class="line"><span class="outline">VICE CITY</span></span>
     </h1>
 
     <p class="hero-sub">
-      Uma experiência de fã criada para capturar a energia de Vice City: tipografia brutal,
-      cor tropical, movimento contínuo, parallax e um personagem 3D interativo.
+      Uma fan experience inspirada no material oficial de Grand Theft Auto VI, com Jason Duval em 3D,
+      atmosfera tropical, direção editorial e transições cinematográficas.
     </p>
 
     <div class="hero-actions">
@@ -461,7 +583,23 @@ img{max-width:100%;display:block}
     </div>
   </div>
 
-  <div class="side-marker">SUNNY PLACE / DARK SIDE</div>
+  
+<div class="hero-model" id="heroModel" aria-label="Jason Duval — modelo 3D interativo">
+  <div class="hero-model-frame">
+    <iframe
+      title="Jason Duval — GTA VI 3D model"
+      src="https://sketchfab.com/models/43ae0a8fe4df424eaf9c920e67b74b00/embed?autospin=0.12&autostart=1&ui_theme=dark&ui_infos=0&ui_watermark=1&transparent=1&camera=0"
+      allow="autoplay; fullscreen; xr-spatial-tracking"
+      loading="eager">
+    </iframe>
+    <div class="model-fade"></div>
+  </div>
+  <div class="model-label"><i></i> JASON DUVAL / REALTIME 3D</div>
+  <div class="model-credit">MODEL BY MUKALOKO73 · SKETCHFAB · CC BY-NC</div>
+</div>
+<div class="hero-badge">VICE CITY / 26°12'N · 80°08'W / LEONIDA</div>
+
+<div class="side-marker">SUNNY PLACE / DARK SIDE</div>
   <div class="hero-footer wrap">
     <span>JASON + LUCIA / LEONIDA</span>
     <span class="scroll-cue"><i></i> SCROLL</span>
@@ -474,14 +612,14 @@ img{max-width:100%;display:block}
       <div class="kicker reveal">01 / 3D CHARACTER</div>
       <h2 class="display reveal delay1">JASON<br><em>DUVAL.</em></h2>
       <p class="reveal delay2">
-        O centro da nova experiência é um modelo 3D de Jason incorporado diretamente na página.
-        Ele fica dentro de um palco escuro com iluminação neon e controles do visualizador.
+        Jason agora é o foco visual da abertura e também aparece aqui em um palco 3D dedicado.
+        O visualizador mantém rotação, zoom e a identidade escura inspirada pela apresentação oficial.
       </p>
       <div class="model-specs reveal delay3">
         <div class="spec"><b>213K+</b><span>triângulos do modelo</span></div>
         <div class="spec"><b>3D</b><span>viewer interativo</span></div>
         <div class="spec"><b>360°</b><span>rotação e zoom</span></div>
-        <div class="spec"><b>V4.0</b><span>nova direção visual</span></div>
+        <div class="spec"><b>V5.0</b><span>nova direção visual</span></div>
       </div>
       <a class="btn magnetic reveal delay3" href="https://sketchfab.com/3d-models/jason-gta-vi-43ae0a8fe4df424eaf9c920e67b74b00" target="_blank" rel="noopener">ABRIR MODELO ↗</a>
     </div>
@@ -609,12 +747,35 @@ img{max-width:100%;display:block}
         Grand Theft Auto VI, seus personagens e materiais oficiais pertencem a seus respectivos detentores de direitos.
         Modelo 3D incorporado por licença indicada pelo autor no Sketchfab.
       </span>
-      <span>VERSION 4.0</span>
+      <span>VERSION 5.0</span>
     </div>
   </div>
 </footer>
 
 <script>
+
+const heroModel=document.getElementById('heroModel');
+const hero=document.querySelector('.hero');
+let heroScrollY=0, heroX=0, heroY=0, heroScale=1, heroOpacity=1;
+function animateHero(){
+  const limit=Math.max(1,hero.offsetHeight);
+  const p=Math.min(1.2,window.scrollY/limit);
+  heroScrollY=p;
+  if(heroModel){
+    const tx=p*70;
+    const ty=-46 + p*8;
+    const s=1.02 - p*.16;
+    heroModel.style.transform='translate3d('+tx+'px,'+ty+'%,0) scale('+s+')';
+    heroModel.style.opacity=String(Math.max(0,1-p*.92));
+    heroModel.style.filter='drop-shadow(0 '+(40+p*30)+'px '+(55+p*30)+'px rgba(0,0,0,'+(.52+p*.18)+'))';
+  }
+  if(hero){
+    hero.style.setProperty('--hero-shift',(-p*18)+'px');
+  }
+  requestAnimationFrame(animateHero);
+}
+animateHero();
+
 const root=document.documentElement;
 const loader=document.getElementById('loader');
 window.addEventListener('load',()=>setTimeout(()=>loader.classList.add('hide'),900));
@@ -648,7 +809,9 @@ document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
 function updateProgress(){
   const d=document.documentElement;
   const max=d.scrollHeight-innerHeight;
-  root.style.setProperty('--scroll',max>0?scrollY/max:0);
+  const p=max>0?scrollY/max:0;
+  root.style.setProperty('--scroll',p);
+  document.body.classList.toggle('past-hero',scrollY>innerHeight*.72);
 }
 window.addEventListener('scroll',updateProgress,{passive:true});
 updateProgress();
