@@ -69,6 +69,7 @@ function Portfolio() {
   }, []);
 
   const heroProgress = Math.min(scrollY / 620, 1);
+  const presentationProgress = Math.min(Math.max((scrollY - 80) / 430, 0), 1);
   const closeMenu = () => setMenuOpen(false);
 
   return (
@@ -111,6 +112,16 @@ function Portfolio() {
           <p className="portfolio-kicker">Olá, eu sou Vinícius.</p>
           <h1>Eu transformo<span>ideias em</span><em>experiências.</em></h1>
           <p className="portfolio-hero-description">Desenvolvedor e criador de projetos digitais, com foco em web, games e experiências interativas que têm personalidade.</p>
+          <div
+            className="portfolio-intro-reveal"
+            style={{
+              opacity: presentationProgress,
+              transform: "translate3d(0, " + (1 - presentationProgress) * 28 + "px, 0)",
+            }}
+          >
+            <span>UMA BREVE APRESENTAÇÃO</span>
+            <strong>Eu sou Vinícius — gosto de transformar código em experiências que parecem vivas.</strong>
+          </div>
           <div className="portfolio-hero-actions">
             <a href="#projetos" className="portfolio-primary-btn">Explorar projetos <ArrowUpRight size={17} /></a>
             <a href="#sobre" className="portfolio-secondary-btn">Conhecer meu trabalho</a>
@@ -118,6 +129,15 @@ function Portfolio() {
         </div>
 
         <div className="portfolio-scene" aria-hidden="true">
+          <div
+            className="scene-photo"
+            style={{
+              transform: "translate3d(" + mouse.x * 15 + "px, " + (mouse.y * 12 + scrollY * -0.14) + "px, 0) rotateX(" + mouse.y * -3 + "deg) rotateY(" + mouse.x * 5 + "deg)",
+            }}
+          >
+            <div className="scene-photo-shine" />
+            <span>ABSTRACT / 3D</span>
+          </div>
           <div className="scene-halo" style={{ transform: "translate3d(" + mouse.x * 22 + "px, " + (mouse.y * 18 + scrollY * -0.08) + "px, 0)" }} />
           <div
             className="scene-orb"
@@ -148,6 +168,7 @@ function Portfolio() {
             <span /><span /><span /><span /><span /><span />
           </div>
           <div className="scene-mini-card"><span>BUILD / CREATE</span><strong>01—03</strong></div>
+          <div className="scene-data"><span>01</span><i /><span>SCROLL / EXPLORE</span></div>
         </div>
 
         <div className="portfolio-scroll-hint" style={{ opacity: Math.max(0, 1 - heroProgress * 2.2) }}>
