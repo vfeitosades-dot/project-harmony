@@ -301,6 +301,7 @@
   z-index: 10;
   width: min(740px, 62vw);
   will-change: transform, opacity, filter;
+  transition: transform .12s linear;
 }
 
 .portfolio-eyebrow,
@@ -368,6 +369,31 @@
   color: rgba(255,255,255,.48);
 }
 
+.portfolio-intro-reveal {
+  width: min(560px, 100%);
+  display: grid;
+  gap: .55rem;
+  margin-top: 1.8rem;
+  padding: 1rem 0 0 1rem;
+  border-left: 1px solid rgba(255,255,255,.18);
+  will-change: transform, opacity;
+}
+
+.portfolio-intro-reveal span {
+  color: rgba(255,255,255,.28);
+  font-size: .58rem;
+  letter-spacing: .22em;
+  font-weight: 700;
+}
+
+.portfolio-intro-reveal strong {
+  max-width: 510px;
+  color: rgba(255,255,255,.72);
+  font-size: .92rem;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
 .portfolio-hero-actions,
 .portfolio-contact-actions {
   display: flex;
@@ -422,6 +448,73 @@
   transform: translateY(-50%);
   perspective: 1300px;
   pointer-events: none;
+}
+
+.scene-photo {
+  position: absolute;
+  z-index: 1;
+  width: 43%;
+  aspect-ratio: .9;
+  right: 9%;
+  top: 9%;
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 24px;
+  background-image:
+    linear-gradient(180deg, rgba(7,8,10,.08), rgba(7,8,10,.72)),
+    url("https://images.unsplash.com/photo-1739826488378-e521f3ba0caa?auto=format&fit=crop&w=1400&q=82");
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 40px 120px rgba(0,0,0,.56), inset 0 0 0 1px rgba(255,255,255,.05);
+  transform-style: preserve-3d;
+  opacity: .62;
+  overflow: hidden;
+  filter: saturate(.72) contrast(1.08);
+  transition: transform .18s ease-out;
+}
+
+.scene-photo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.18), transparent 28%, transparent 68%, rgba(0,0,0,.3));
+  mix-blend-mode: screen;
+}
+
+.scene-photo::after {
+  content: "";
+  position: absolute;
+  left: 13%;
+  right: 13%;
+  bottom: 11%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent);
+  box-shadow: 0 0 30px rgba(255,255,255,.25);
+}
+
+.scene-photo-shine {
+  position: absolute;
+  width: 45%;
+  height: 140%;
+  left: -30%;
+  top: -20%;
+  transform: rotate(20deg);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.20), transparent);
+  filter: blur(18px);
+  animation: photoShine 6s ease-in-out infinite;
+}
+
+.scene-photo span {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  padding: .4rem .55rem;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 8px;
+  color: rgba(255,255,255,.46);
+  background: rgba(7,8,10,.35);
+  backdrop-filter: blur(8px);
+  font-size: .52rem;
+  letter-spacing: .18em;
 }
 
 .scene-halo {
@@ -515,6 +608,39 @@
 .scene-cube span:nth-child(4) { transform: rotateY(-90deg) translateZ(46px); }
 .scene-cube span:nth-child(5) { transform: rotateX(90deg) translateZ(46px); }
 .scene-cube span:nth-child(6) { transform: rotateX(-90deg) translateZ(46px); }
+
+.scene-data {
+  position: absolute;
+  left: 8%;
+  bottom: 16%;
+  z-index: 7;
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  color: rgba(255,255,255,.28);
+  font-size: .53rem;
+  letter-spacing: .16em;
+}
+
+.scene-data i {
+  display: block;
+  width: 36px;
+  height: 1px;
+  background: rgba(255,255,255,.28);
+  position: relative;
+}
+
+.scene-data i::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: -2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.75);
+  box-shadow: 0 0 15px rgba(255,255,255,.45);
+}
 
 .scene-mini-card {
   position: absolute;
@@ -923,6 +1049,12 @@
   to { transform: translateX(-50%); }
 }
 
+@keyframes photoShine {
+  0%, 100% { transform: translateX(0) rotate(20deg); opacity: 0; }
+  35% { opacity: .65; }
+  65% { transform: translateX(360%) rotate(20deg); opacity: .06; }
+}
+
 @media (max-width: 900px) {
   .portfolio-hero {
     padding: 8.5rem 1.5rem 5rem;
@@ -937,6 +1069,11 @@
     top: 52%;
     width: 72vw;
     opacity: .48;
+  }
+
+  .scene-photo {
+    right: 5%;
+    width: 47%;
   }
 
   .portfolio-scroll-hint {
@@ -1003,6 +1140,11 @@
   .scene-mini-card {
     right: 13%;
     top: 16%;
+  }
+
+  .scene-data {
+    left: 2%;
+    bottom: 12%;
   }
 
   .portfolio-scroll-hint {
