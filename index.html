@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Portfólio de Vinícius Feitosa — desenvolvimento web, jogos e experiências interativas.">
+<title>Vinícius Feitosa — Creative Developer</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+:root{--bg:#06070b;--text:#f4f5f7;--muted:#9297a6;--line:rgba(255,255,255,.1);--accent:#8b5cf6;--accent2:#22d3ee;--card:rgba(255,255,255,.045)}
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{background:var(--bg);color:var(--text);font-family:Inter,sans-serif;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;z-index:-3;background:radial-gradient(circle at 15% 15%,rgba(139,92,246,.16),transparent 30%),radial-gradient(circle at 85% 35%,rgba(34,211,238,.12),transparent 28%),linear-gradient(#06070b,#08090f)}
+body:after{content:"";position:fixed;inset:0;z-index:-2;opacity:.25;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:70px 70px;mask-image:linear-gradient(to bottom,black,transparent 85%)}
+a{color:inherit;text-decoration:none}.wrap{width:min(1180px,92%);margin:auto}.nav{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:20;width:min(850px,92%);display:flex;align-items:center;justify-content:space-between;padding:12px 15px 12px 20px;border:1px solid var(--line);background:rgba(8,9,14,.62);backdrop-filter:blur(20px);border-radius:18px;box-shadow:0 15px 50px rgba(0,0,0,.25)}.logo{font-family:"Space Grotesk";font-weight:700;letter-spacing:-.04em}.logo b{color:var(--accent2)}.links{display:flex;gap:7px}.links a{padding:9px 13px;border-radius:11px;color:#b8bbc5;font-size:13px;transition:.25s}.links a:hover{background:rgba(255,255,255,.07);color:white}
+.hero{min-height:100vh;display:grid;place-items:center;position:relative;padding:130px 0 90px}.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:55px;align-items:center}.eyebrow{display:inline-flex;gap:8px;align-items:center;padding:7px 11px;border:1px solid var(--line);border-radius:999px;color:#b8bdc9;font-size:12px;background:rgba(255,255,255,.03);margin-bottom:22px}.dot{width:7px;height:7px;border-radius:50%;background:#55e6a5;box-shadow:0 0 16px #55e6a5}.hero h1{font-family:"Space Grotesk";font-size:clamp(52px,8vw,100px);line-height:.91;letter-spacing:-.075em;max-width:850px}.gradient{background:linear-gradient(110deg,#fff 10%,#a78bfa 48%,#67e8f9 90%);-webkit-background-clip:text;background-clip:text;color:transparent}.hero p{max-width:590px;margin:28px 0;color:var(--muted);font-size:17px;line-height:1.75}.actions{display:flex;gap:12px;flex-wrap:wrap}.btn{padding:13px 18px;border-radius:13px;border:1px solid var(--line);font-weight:600;font-size:14px;transition:.3s;display:inline-flex;align-items:center;gap:8px}.btn.primary{background:#f4f4f5;color:#08090c;border-color:#fff}.btn:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.28)}
+.visual{height:500px;position:relative;perspective:1000px}.orb{position:absolute;width:320px;height:320px;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff 0 2%,#b9a1ff 7%,#6941c6 30%,#21133f 64%,#09090d 75%);box-shadow:0 0 80px rgba(139,92,246,.28),inset -40px -40px 70px #000;animation:float 7s ease-in-out infinite}.ring{position:absolute;inset:60px;border:1px solid rgba(255,255,255,.2);border-radius:50%;transform:rotateX(65deg) rotateZ(-18deg);box-shadow:0 0 50px rgba(34,211,238,.09);animation:spin 14s linear infinite}.ring.r2{inset:25px;transform:rotateY(65deg) rotateZ(18deg);animation-duration:18s;animation-direction:reverse}.code-card{position:absolute;right:2%;bottom:9%;width:220px;padding:15px;border:1px solid var(--line);background:rgba(10,11,17,.7);backdrop-filter:blur(16px);border-radius:16px;box-shadow:0 20px 60px #0008;font:12px monospace;color:#b6bac8}.code-card span{color:#67e8f9}.mini{position:absolute;left:0;top:12%;padding:12px 14px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.04);font-size:11px;color:#aaa;animation:float 6s 1s ease-in-out infinite}
+@keyframes float{50%{transform:translate(-50%,-56%) rotate(4deg)}}@keyframes spin{to{transform:rotateX(65deg) rotateZ(342deg)}}section{padding:110px 0}.section-head{display:flex;justify-content:space-between;gap:30px;align-items:end;margin-bottom:42px}.kicker{color:#8f96a8;font-size:12px;text-transform:uppercase;letter-spacing:.18em}.section-head h2{font-family:"Space Grotesk";font-size:clamp(35px,5vw,58px);letter-spacing:-.055em;margin-top:10px}.section-head p{max-width:410px;color:var(--muted);line-height:1.7;font-size:14px}
+.projects{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}.project{min-height:340px;border:1px solid var(--line);border-radius:24px;padding:25px;position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(255,255,255,.065),rgba(255,255,255,.018));transition:.45s}.project:hover{transform:translateY(-7px);border-color:rgba(255,255,255,.22)}.project:before{content:"";position:absolute;width:260px;height:260px;border-radius:50%;right:-80px;top:-100px;background:var(--glow);filter:blur(2px);opacity:.18}.project:nth-child(1){--glow:#8b5cf6}.project:nth-child(2){--glow:#22d3ee}.project:nth-child(3){--glow:#ec4899}.project:nth-child(4){--glow:#f59e0b}.tag{display:inline-block;font-size:10px;color:#b9bdc9;border:1px solid var(--line);padding:6px 9px;border-radius:999px}.project h3{font-family:"Space Grotesk";font-size:29px;margin:85px 0 10px;letter-spacing:-.04em}.project p{color:var(--muted);font-size:13px;line-height:1.65;max-width:450px}.arrow{position:absolute;right:23px;bottom:22px;font-size:22px}
+.about{display:grid;grid-template-columns:.8fr 1.2fr;gap:80px}.about h2{font-family:"Space Grotesk";font-size:clamp(38px,5vw,65px);letter-spacing:-.06em}.about-copy p{color:var(--muted);line-height:1.85;margin-bottom:18px}.skills{display:flex;flex-wrap:wrap;gap:8px;margin-top:25px}.skill{border:1px solid var(--line);padding:9px 12px;border-radius:10px;color:#c5c8d1;font-size:12px;background:rgba(255,255,255,.025)}
+.contact{border:1px solid var(--line);border-radius:28px;padding:60px;background:radial-gradient(circle at 90% 20%,rgba(34,211,238,.12),transparent 30%),radial-gradient(circle at 10% 90%,rgba(139,92,246,.13),transparent 35%),rgba(255,255,255,.025);text-align:center}.contact h2{font-family:"Space Grotesk";font-size:clamp(40px,6vw,76px);letter-spacing:-.065em}.contact p{color:var(--muted);max-width:550px;margin:16px auto 27px;line-height:1.7}footer{padding:35px 0 55px;color:#686d7b;font-size:12px;display:flex;justify-content:space-between}
+.reveal{opacity:0;transform:translateY(35px);transition:opacity .8s ease,transform .8s ease}.reveal.show{opacity:1;transform:none}.parallax{transition:transform .15s ease-out}
+@media(max-width:800px){.links a{display:none}.hero-grid,.about{grid-template-columns:1fr}.visual{height:390px}.orb{width:250px;height:250px}.projects{grid-template-columns:1fr}.section-head{display:block}.section-head p{margin-top:15px}.contact{padding:45px 25px}}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a class="logo" href="#">VF<span>•</span></a>
+  <div class="links"><a href="#projetos">Projetos</a><a href="#sobre">Sobre</a><a href="#contato">Contato</a></div>
+  <a class="btn" href="#contato">Vamos conversar ↗</a>
+</nav>
+
+<main>
+<section class="hero">
+ <div class="wrap hero-grid">
+  <div class="reveal">
+   <div class="eyebrow"><i class="dot"></i> disponível para novos projetos</div>
+   <h1>Ideias que<br><span class="gradient">viram experiências.</span></h1>
+   <p>Sou Vinícius Feitosa, desenvolvedor criativo focado em web, jogos e experiências interativas. Gosto de transformar conceitos em produtos digitais com personalidade.</p>
+   <div class="actions"><a class="btn primary" href="#projetos">Ver projetos ↓</a><a class="btn" href="#contato">Entrar em contato ↗</a></div>
+  </div>
+  <div class="visual parallax reveal">
+   <div class="mini">/creative_developer<br><span style="color:#55e6a5">● online</span></div>
+   <div class="orb"></div><div class="ring"></div><div class="ring r2"></div>
+   <div class="code-card"><span>const</span> idea = {<br>&nbsp;design: <span>"bold"</span>,<br>&nbsp;motion: <span>true</span>,<br>&nbsp;detail: <span>"high"</span><br>};</div>
+  </div>
+ </div>
+</section>
+
+<section id="projetos">
+ <div class="wrap">
+  <div class="section-head reveal"><div><div class="kicker">01 / projetos selecionados</div><h2>O que eu crio.</h2></div><p>Projetos experimentais e produtos digitais construídos com foco em visual, interação e experiência.</p></div>
+  <div class="projects">
+   <article class="project reveal"><span class="tag">WEB • 3D</span><h3>Experiências Web</h3><p>Interfaces modernas, animações fluidas, efeitos de profundidade e experiências responsivas direto no navegador.</p><span class="arrow">↗</span></article>
+   <article class="project reveal"><span class="tag">GAME • HTML</span><h3>Jogos Interativos</h3><p>Protótipos e jogos com física, sistemas de gameplay, interfaces e ambientes 2D/3D.</p><span class="arrow">↗</span></article>
+   <article class="project reveal"><span class="tag">ROBLOX • LUA</span><h3>Universos Roblox</h3><p>Experiências completas com mapas, sistemas, UI, animações, NPCs e mecânicas personalizadas.</p><span class="arrow">↗</span></article>
+   <article class="project reveal"><span class="tag">EXPERIMENTAL</span><h3>Ideias fora da caixa</h3><p>Conceitos interativos, interfaces diferentes e experimentos que exploram novas formas de jogar e navegar.</p><span class="arrow">↗</span></article>
+  </div>
+ </div>
+</section>
+
+<section id="sobre">
+ <div class="wrap about">
+  <div class="reveal"><div class="kicker">02 / sobre mim</div><h2>Curioso por natureza.<br><span class="gradient">Criativo por escolha.</span></h2></div>
+  <div class="about-copy reveal"><p>Meu trabalho mistura programação e direção visual. Não quero apenas fazer algo funcionar — quero que a pessoa sinta que existe uma identidade por trás da experiência.</p><p>Exploro desenvolvimento web, criação de jogos, interfaces, 3D e prototipagem rápida. Cada projeto é uma oportunidade de testar uma ideia nova.</p><div class="skills"><span class="skill">HTML / CSS / JS</span><span class="skill">Three.js</span><span class="skill">GameMaker</span><span class="skill">Roblox Studio</span><span class="skill">UI / UX</span><span class="skill">3D Web</span></div></div>
+ </div>
+</section>
+
+<section id="contato">
+ <div class="wrap"><div class="contact reveal"><div class="kicker">03 / contato</div><h2>Tem uma ideia?</h2><p>Vamos transformar ela em algo que as pessoas realmente queiram explorar.</p><a class="btn primary" href="mailto:seuemail@exemplo.com">Falar comigo ↗</a></div></div>
+</section>
+</main>
+<footer class="wrap"><span>© 2026 Vinícius Feitosa</span><span>Designed & built with curiosity.</span></footer>
+
+<script>
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('show')}),{threshold:.12});
+document.querySelectorAll('.reveal').forEach(e=>obs.observe(e));
+const visual=document.querySelector('.visual');
+window.addEventListener('mousemove',e=>{if(innerWidth>800){const x=(e.clientX/innerWidth-.5)*18,y=(e.clientY/innerHeight-.5)*18;visual.style.transform=`rotateY(${x}deg) rotateX(${-y}deg)`;}});
+window.addEventListener('scroll',()=>{document.querySelectorAll('.orb,.ring').forEach((el,i)=>el.style.translate=`0 ${scrollY*(i?.015:.01)}px`)},{passive:true});
+</script>
+</body>
+</html>
