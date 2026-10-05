@@ -2,91 +2,695 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#050509">
-<meta name="description" content="isauzinho1 — portfólio criativo de desenvolvimento web, jogos e experiências digitais.">
-<title>isauzinho1 — Creative Developer · v3.1</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#050505">
+<meta name="description" content="Grand Theft Auto VI — fan experience interativa inspirada em Vice City e Leonida.">
+<title>GRAND THEFT AUTO VI — VICE CITY / Fan Experience</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
-:root{--bg:#050509;--text:#f7f7fb;--muted:#9699a8;--line:rgba(255,255,255,.11);--violet:#9b6cff;--cyan:#5cecff;--pink:#ff65bb;--mx:50%;--my:50%}
-*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{background:var(--bg);color:var(--text);font-family:Inter,sans-serif;overflow-x:hidden}
-body:before{content:"";position:fixed;inset:-10%;z-index:-5;background:radial-gradient(circle at 15% 15%,rgba(155,108,255,.18),transparent 28%),radial-gradient(circle at 85% 25%,rgba(92,236,255,.12),transparent 25%),radial-gradient(circle at 55% 90%,rgba(255,101,187,.09),transparent 25%),#050509;transform:translate(calc((var(--mx) - 50%) * .012),calc((var(--my) - 50%) * .012));transition:transform .3s ease}
-body:after{content:"";position:fixed;inset:0;z-index:-4;opacity:.25;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:72px 72px;mask-image:linear-gradient(to bottom,#000,transparent 90%)}
-a{color:inherit;text-decoration:none}.wrap{width:min(1180px,92%);margin:auto}
-.cursor{position:fixed;width:18px;height:18px;border:1px solid rgba(255,255,255,.85);border-radius:50%;pointer-events:none;z-index:100;mix-blend-mode:difference;transform:translate(-50%,-50%);transition:width .25s,height .25s,background .25s}.cursor.big{width:52px;height:52px;background:#fff}
-.nav{position:fixed;top:18px;left:50%;transform:translateX(-50%);width:min(950px,92%);z-index:50;display:flex;align-items:center;justify-content:space-between;padding:10px 12px 10px 18px;border:1px solid var(--line);border-radius:18px;background:rgba(8,8,13,.62);backdrop-filter:blur(22px);box-shadow:0 20px 70px #0005;transition:.35s}.nav.scrolled{background:rgba(8,8,13,.9);box-shadow:0 15px 50px #0009}
-.logo{font:700 20px "Space Grotesk";letter-spacing:-.06em}.logo span{color:var(--cyan)}.links{display:flex;gap:4px}.links a{font-size:12px;color:#aaaebb;padding:9px 12px;border-radius:10px;transition:.25s}.links a:hover,.links a.active{color:#fff;background:#ffffff12}
-.version{font:10px "DM Mono";letter-spacing:.08em;color:#aeb2c0;border:1px solid var(--line);border-radius:999px;padding:7px 9px;background:#ffffff06}.nav-right{display:flex;align-items:center;gap:8px}
-.btn{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:13px;padding:12px 16px;font-size:13px;font-weight:600;transition:.3s;cursor:pointer}.btn:hover{transform:translateY(-3px);border-color:#ffffff4d;box-shadow:0 12px 35px #0005}.btn.primary{background:#f7f7fb;color:#08080b;border-color:#fff}
-.hero{min-height:100vh;position:relative;display:flex;align-items:center;padding:145px 0 90px;overflow:hidden}.hero:after{content:"";position:absolute;inset:auto 0 0;height:220px;background:linear-gradient(transparent,var(--bg));pointer-events:none}.hero-grid{display:grid;grid-template-columns:1.03fr .97fr;gap:25px;align-items:center}
-.eyebrow{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:#ffffff09;padding:8px 12px;border-radius:999px;color:#bfc2cd;font-size:11px;margin-bottom:25px}.status{width:7px;height:7px;border-radius:50%;background:#64f5a5;box-shadow:0 0 16px #64f5a5;animation:blink 2s infinite}
-.hero h1{font:700 clamp(60px,9vw,112px)/.86 "Space Grotesk";letter-spacing:-.085em;max-width:850px}.gradient{background:linear-gradient(105deg,#fff 5%,#b9a3ff 42%,#67ecff 78%,#ff83cb);-webkit-background-clip:text;background-clip:text;color:transparent}.hero p{max-width:600px;margin:30px 0;color:var(--muted);font-size:16px;line-height:1.8}.actions{display:flex;gap:10px;flex-wrap:wrap}.hero-meta{display:flex;gap:25px;margin-top:30px;color:#777b8a;font:11px "DM Mono"}.hero-meta strong{display:block;color:#ddd;font:600 12px Inter;margin-bottom:4px}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Montserrat:wght@700;800;900&family=DM+Mono:wght@400;500&display=swap');
 
-/* MODELO 3D HUMANO PROCEDURAL — pessoa tridimensional estilizada, em pose de segurar a esfera */
-.scene{height:620px;position:relative;perspective:1350px;transform-style:preserve-3d}
-.model-stage{position:absolute;inset:1% 0 4% 0;border:1px solid #ffffff12;border-radius:38px;overflow:hidden;background:radial-gradient(circle at 52% 35%,#38205f55,transparent 35%),linear-gradient(160deg,#11121a,#07070c 55%,#050509);box-shadow:0 40px 100px #000b,inset 0 0 80px #0008;transform:rotateY(-3deg);transform-style:preserve-3d}
-.model-stage:before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 0 38%,#9b6cff12 53%,transparent 70%),radial-gradient(circle at 50% 90%,#5cecff10,transparent 27%);pointer-events:none}
-.floor{position:absolute;left:5%;right:5%;bottom:-7%;height:35%;background:radial-gradient(ellipse at center,#8c64e522,transparent 65%);transform:rotateX(67deg);transform-origin:center bottom;filter:blur(4px)}
-.human3d{position:absolute;left:48%;top:50%;width:290px;height:510px;transform:translate(-50%,-48%) translateZ(15px) rotateY(-12deg);transform-style:preserve-3d;filter:drop-shadow(0 30px 30px #000b);transition:transform .18s cubic-bezier(.2,.8,.2,1)}
-.bodyPart{position:absolute;transform-style:preserve-3d}.skin{background:linear-gradient(105deg,#6c3f2e,#b87554 32%,#d99a76 56%,#7e4b38 85%,#40251d);box-shadow:inset -12px -12px 18px #28140e,inset 8px 6px 12px #f3c1a244,0 12px 22px #0008}.shirt{background:linear-gradient(105deg,#151822,#3a4054 45%,#12141d);box-shadow:inset -16px -5px 18px #0008,inset 8px 4px 12px #aab5d41a,0 15px 25px #0009}.pants{background:linear-gradient(105deg,#0b0d13,#252a38 45%,#0b0d12);box-shadow:inset -15px -10px 20px #000a,inset 8px 5px 12px #fff1}.shoe{background:linear-gradient(110deg,#08090d,#303340 48%,#090a0f);box-shadow:inset 4px 4px 8px #ffffff14,0 10px 18px #000a}
-.head{width:112px;height:136px;left:89px;top:24px;border-radius:48% 48% 44% 45%/42% 42% 58% 58%;transform:translateZ(6px) rotateZ(-2deg);background:radial-gradient(circle at 38% 28%,#efb89a 0 5%,transparent 8%),linear-gradient(115deg,#6d4030,#c88362 33%,#e2a683 56%,#8c5642 83%,#40251d);box-shadow:inset -18px -19px 25px #28150f,inset 10px 8px 16px #f9d3bb33,0 20px 30px #0009;overflow:hidden}
-.head:before{content:"";position:absolute;width:50px;height:23px;left:12px;top:34px;border-radius:50%;background:radial-gradient(circle,#251610 0 4%,#090708 6% 35%,transparent 37%);box-shadow:49px 0 0 -1px #15100e;opacity:.95}.head:after{content:"";position:absolute;width:78px;height:54px;left:19px;top:-9px;border-radius:55% 65% 28% 35%;background:linear-gradient(120deg,#080808,#24140f 54%,#080808);box-shadow:inset -5px 5px 10px #ffffff0a}
-.neck{width:55px;height:56px;left:118px;top:142px;border-radius:15px 15px 22px 22px;z-index:-1}.torso{width:154px;height:185px;left:70px;top:165px;border-radius:39px 39px 22px 22px;clip-path:polygon(19% 0,81% 0,100% 18%,90% 100%,10% 100%,0 18%)}.collar{position:absolute;width:54px;height:42px;left:120px;top:168px;border:2px solid #080a0f;border-top:0;border-radius:0 0 35px 35px;z-index:4;transform:translateZ(3px)}.chest-light{position:absolute;width:94px;height:2px;left:101px;top:205px;background:#ffffff10;box-shadow:0 0 18px #fff1;transform:translateZ(4px)}
-.arm{width:43px;border-radius:23px}.upperL{height:106px;left:47px;top:180px;transform:rotateZ(22deg) rotateY(-8deg) translateZ(11px)}.foreL{height:105px;left:47px;top:263px;transform:rotateZ(52deg) rotateY(-12deg) translateZ(25px)}.upperR{height:108px;right:38px;top:182px;transform:rotateZ(-25deg) rotateY(10deg) translateZ(11px)}.foreR{height:105px;right:39px;top:267px;transform:rotateZ(-55deg) rotateY(12deg) translateZ(25px)}
-.hand{width:46px;height:55px;border-radius:44% 50% 42% 46%;z-index:20}.handL{left:112px;top:322px;transform:rotateZ(18deg) translateZ(48px)}.handR{right:105px;top:323px;transform:rotateZ(-18deg) translateZ(48px)}.finger{position:absolute;width:28px;height:8px;border-radius:8px;background:linear-gradient(90deg,#7e4a37,#dda07c,#714332);opacity:.9}.handL .finger{left:7px;top:16px;transform:rotate(-17deg);box-shadow:0 14px 0 -1px #a96f54,0 28px 0 -2px #8c5641}.handR .finger{right:7px;top:16px;transform:rotate(17deg);box-shadow:0 14px 0 -1px #a96f54,0 28px 0 -2px #8c5641}
-.legL,.legR{width:58px;height:143px;top:335px;border-radius:25px 25px 16px 16px}.legL{left:86px;transform:rotateZ(2deg)}.legR{right:83px;transform:rotateZ(-3deg)}.footL,.footR{width:76px;height:43px;top:466px;border-radius:18px 30px 14px 14px}.footL{left:60px;transform:rotateZ(4deg) translateZ(8px)}.footR{right:57px;transform:rotateZ(-5deg) translateZ(8px)}.sole{position:absolute;left:0;right:0;bottom:0;height:8px;border-radius:0 0 12px 12px;background:#050609;box-shadow:0 2px 4px #000}
+:root{
+  --ink:#070707;
+  --paper:#f7f3eb;
+  --pink:#ff3f9a;
+  --hot:#ff5a7a;
+  --orange:#ff8a36;
+  --yellow:#ffd25c;
+  --aqua:#51d6d0;
+  --muted:#766f68;
+  --line:rgba(7,7,7,.14);
+  --white-line:rgba(255,255,255,.16);
+  --header-h:76px;
+  --scroll:0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:Inter,Arial,sans-serif;
+  overflow-x:hidden;
+}
+body:before{
+  content:"";
+  position:fixed; inset:0; pointer-events:none; z-index:1000;
+  opacity:.18;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+  mix-blend-mode:multiply;
+}
+a{color:inherit;text-decoration:none}
+button{font:inherit}
+img{max-width:100%;display:block}
+.wrap{width:min(1240px,92%);margin:0 auto}
+.cursor,.cursor-ring{
+  position:fixed; top:0; left:0; pointer-events:none; z-index:1200;
+  transform:translate(-50%,-50%); border-radius:50%;
+}
+.cursor{
+  width:8px;height:8px;background:#fff;mix-blend-mode:difference;
+}
+.cursor-ring{
+  width:42px;height:42px;border:1px solid rgba(255,255,255,.8);mix-blend-mode:difference;
+  transition:width .25s ease,height .25s ease,background .25s ease,opacity .25s ease;
+}
+.cursor-ring.active{width:72px;height:72px;background:#fff;opacity:.18}
+.progress{
+  position:fixed;left:0;top:0;width:100%;height:3px;z-index:1100;background:rgba(0,0,0,.06);
+}
+.progress i{display:block;height:100%;width:calc(var(--scroll)*100%);background:linear-gradient(90deg,var(--pink),var(--orange),var(--yellow))}
 
-/* esfera holográfica feita anteriormente — agora encaixada entre as mãos */
-.scene-core{position:absolute;left:48%;top:58%;z-index:25;width:270px;height:270px;transform:translate(-50%,-50%);transform-style:preserve-3d;transition:transform .14s cubic-bezier(.2,.8,.2,1);filter:drop-shadow(0 25px 32px #000b)}
-.coreHalo{position:absolute;inset:-14px;border-radius:50%;background:radial-gradient(circle,#c4b3ff25,#9b6cff1d 36%,transparent 70%);filter:blur(16px);animation:halo 4s ease-in-out infinite}
-.core{position:absolute;inset:36px;border-radius:50%;background:radial-gradient(circle at 28% 20%,#fff 0 1.2%,#eee9ff 3.5%,#c1b2ff 8%,#8c6bf0 18%,#4f2ea1 38%,#24114e 62%,#08070d 79%);box-shadow:0 0 42px #9b6cff80,0 0 105px #7540e850,inset -36px -45px 62px #000,inset 10px 8px 24px #fff7;overflow:hidden;animation:coreFloat 5s ease-in-out infinite}.core:before{content:"";position:absolute;inset:-10%;background:conic-gradient(from 25deg,transparent 0 18%,#fff3 20%,transparent 24% 42%,#5cecff28 45%,transparent 50% 70%,#ff65bb20 73%,transparent 78%);mix-blend-mode:screen;animation:spin 11s linear infinite}.core:after{content:"";position:absolute;width:48%;height:23%;left:15%;top:12%;border-radius:50%;background:#fff;filter:blur(13px);opacity:.17;transform:rotate(-25deg)}
-.inner{position:absolute;inset:62px;border:1px solid #ffffff2a;border-radius:50%;box-shadow:inset 0 0 25px #5cecff29,0 0 25px #9b6cff25;transform:translateZ(30px);animation:innerPulse 4s ease-in-out infinite}.ring{position:absolute;inset:22px;border:1px solid #ffffff38;border-radius:50%;transform:rotateX(72deg) rotateZ(-18deg) translateZ(28px);box-shadow:0 0 25px #9b6cff2a;animation:ringSpin 10s linear infinite}.ring.r2{inset:8px;transform:rotateY(67deg) rotateZ(18deg);animation-duration:14s;animation-direction:reverse}.ring.r3{inset:38px;transform:rotateX(61deg) rotateZ(72deg);animation-duration:8s}.ring:after{content:"";position:absolute;width:9px;height:9px;border-radius:50%;right:8%;top:18%;background:#5cecff;box-shadow:0 0 8px #fff,0 0 24px #5cecff,0 0 45px #5cecff}.ring.r2:after{left:11%;top:70%;background:#ff65bb;box-shadow:0 0 8px #fff,0 0 25px #ff65bb}.ring.r3:after{right:30%;bottom:4%;background:#b795ff}.reflection{position:absolute;left:15%;top:15%;width:39%;height:11%;z-index:30;border-radius:50%;background:linear-gradient(90deg,transparent,#fff9,transparent);filter:blur(4px);transform:rotate(-27deg);mix-blend-mode:screen;pointer-events:none}
-.particle{position:absolute;width:4px;height:4px;border-radius:50%;background:#fff;box-shadow:0 0 10px #fff,0 0 22px #9b6cff;animation:particleFloat 4s ease-in-out infinite}.p1{left:8%;top:15%}.p2{right:6%;top:32%;animation-delay:-1s}.p3{left:14%;bottom:19%;animation-delay:-2s}.p4{right:20%;bottom:8%;animation-delay:-3s}.p5{left:1%;top:54%;animation-delay:-1.5s}
-.groundGlow{position:absolute;left:27%;bottom:8%;width:40%;height:20%;border-radius:50%;background:#9b6cff3b;filter:blur(30px);z-index:1}
-.floating{position:absolute;padding:12px 14px;border:1px solid var(--line);background:#09090eb3;backdrop-filter:blur(15px);border-radius:13px;box-shadow:0 20px 55px #0007;color:#aeb2c0;font:11px "DM Mono";animation:float 6s ease-in-out infinite;z-index:40}.floating b{color:#fff}.float-a{left:1%;top:7%}.float-b{right:1%;bottom:12%;animation-delay:1s}.float-c{right:5%;top:10%;color:#6eeaff}.hud{position:absolute;left:5%;top:4%;z-index:41;font:9px "DM Mono";letter-spacing:.12em;text-transform:uppercase;color:#b9bdca;border:1px solid #ffffff14;background:#09090db3;backdrop-filter:blur(14px);padding:8px 10px;border-radius:999px}
-.code{position:absolute;left:2%;bottom:4%;padding:15px 18px;width:210px;border:1px solid var(--line);border-radius:15px;background:#08080dc7;backdrop-filter:blur(18px);font:11px/1.8 "DM Mono";color:#aeb1be;box-shadow:0 25px 60px #0008;z-index:42}.code i{color:#ff72c0;font-style:normal}.code em{color:#6eeaff;font-style:normal}.code strong{color:#a990ff;font-weight:400}
-.scroll{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);font:10px "DM Mono";color:#676b79;display:flex;align-items:center;gap:10px;z-index:50}.scroll span{display:block;width:45px;height:1px}
-section{padding:125px 0}.section-head{display:flex;justify-content:space-between;align-items:end;gap:30px;margin-bottom:45px}.kicker{font:10px "DM Mono";letter-spacing:.18em;text-transform:uppercase;color:#737887}.section-head h2{font:700 clamp(40px,6vw,70px)/.95 "Space Grotesk";letter-spacing:-.07em;margin-top:12px}.section-head p{max-width:400px;color:var(--muted);font-size:13px;line-height:1.8}
-.projects{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}.project{min-height:390px;grid-column:span 6;position:relative;overflow:hidden;border:1px solid var(--line);border-radius:25px;padding:25px;background:linear-gradient(145deg,#ffffff11,#ffffff04);transition:.45s;transform-style:preserve-3d}.project:nth-child(3),.project:nth-child(4){grid-column:span 6}.project:hover{transform:translateY(-8px) rotateX(1deg) rotateY(-1deg);border-color:#ffffff40}.project:before{content:"";position:absolute;width:330px;height:330px;right:-100px;top:-120px;border-radius:50%;background:var(--glow);filter:blur(35px);opacity:.14;transition:.5s}.project:hover:before{opacity:.27;transform:scale(1.2)}.project:nth-child(1){--glow:#956cff}.project:nth-child(2){--glow:#4de7ff}.project:nth-child(3){--glow:#ff63bd}.project:nth-child(4){--glow:#ffc45b}
-.visual-project{height:155px;margin:-5px -5px 0;border:1px solid #ffffff0f;border-radius:17px;background:radial-gradient(circle at 75% 25%,var(--glow),transparent 30%),linear-gradient(135deg,#ffffff0b,transparent);position:relative;overflow:hidden}.visual-project:after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 25%,#ffffff1a 50%,transparent 75%);transform:translateX(-100%);transition:.7s}.project:hover .visual-project:after{transform:translateX(100%)}.mock-window{position:absolute;width:65%;height:105px;left:17%;top:25px;border:1px solid #ffffff26;border-radius:9px;background:#0c0c13;box-shadow:0 15px 35px #0008;padding:10px}.mock-window i{display:block;width:40%;height:5px;border-radius:5px;background:linear-gradient(90deg,var(--glow),transparent);margin:8px}.mock-window b{display:block;width:70%;height:25px;margin:15px 8px;background:linear-gradient(90deg,#ffffff26,transparent);border-radius:5px}.project:nth-child(2) .mock-window{transform:perspective(400px) rotateY(-12deg)}.project:nth-child(3) .mock-window{transform:perspective(400px) rotateX(8deg)}.project:nth-child(4) .mock-window{transform:rotate(-4deg)}
-.tag{display:inline-block;margin-top:22px;padding:6px 9px;border:1px solid var(--line);border-radius:999px;color:#aeb2c0;font:9px "DM Mono"}.project h3{font:600 30px "Space Grotesk";letter-spacing:-.045em;margin:14px 0 8px}.project p{color:var(--muted);font-size:12px;line-height:1.7;max-width:480px}.arrow{position:absolute;right:24px;bottom:21px;font-size:20px;transition:.3s}.project:hover .arrow{transform:translate(4px,-4px)}
-.about{display:grid;grid-template-columns:.9fr 1.1fr;gap:90px;align-items:start}.about h2{font:700 clamp(42px,6vw,72px)/.95 "Space Grotesk";letter-spacing:-.07em;margin-top:12px}.about-copy p{color:var(--muted);font-size:14px;line-height:1.9;margin-bottom:18px}.skills{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px}.skill{padding:9px 11px;border:1px solid var(--line);border-radius:10px;color:#c3c6d0;font:10px "DM Mono";background:#ffffff06;transition:.25s}.skill:hover{background:#ffffff12;transform:translateY(-2px)}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:55px}.stat{border-top:1px solid var(--line);padding-top:16px}.stat strong{font:700 38px "Space Grotesk";letter-spacing:-.06em}.stat span{display:block;color:#747887;font-size:10px;margin-top:4px}
-.contact{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:30px;padding:75px 30px;text-align:center;background:radial-gradient(circle at 50% 0,#9b6cff2e,transparent 42%),#ffffff06}.contact:before,.contact:after{content:"";position:absolute;border:1px solid #ffffff14;border-radius:50%;pointer-events:none}.contact:before{width:500px;height:500px;left:-250px;top:-250px}.contact:after{width:400px;height:400px;right:-200px;bottom:-200px}.contact h2{font:700 clamp(48px,8vw,88px)/.9 "Space Grotesk";letter-spacing:-.08em;margin:13px auto 18px}.contact p{max-width:540px;margin:0 auto 28px;color:var(--muted);font-size:14px;line-height:1.8}
-footer{padding:35px 0 55px;color:#676b79;font:10px "DM Mono";display:flex;justify-content:space-between}.footer-version{color:#aeb2c0}.reveal{opacity:0;transform:translateY(45px) scale(.98);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}.reveal.show{opacity:1;transform:none}
-@keyframes coreFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-8px) rotate(2deg)}}@keyframes innerPulse{50%{transform:translateZ(45px) scale(1.05);opacity:.75}}@keyframes spin{to{transform:rotate(360deg)}}@keyframes ringSpin{to{transform:rotateX(72deg) rotateZ(342deg)}}@keyframes float{50%{transform:translateY(-12px)}}@keyframes particleFloat{50%{transform:translate3d(12px,-18px,25px);opacity:.45}}@keyframes blink{50%{opacity:.35;box-shadow:0 0 4px #64f5a5}}@keyframes halo{50%{transform:scale(1.12);opacity:.75}}
-@media(max-width:800px){.cursor{display:none}.links a{display:none}.nav{top:10px}.nav-right .version{display:none}.hero{padding-top:130px}.hero-grid{grid-template-columns:1fr}.hero h1{font-size:clamp(56px,16vw,86px)}.scene{height:520px;margin-top:20px}.model-stage{border-radius:28px}.human3d{left:47%;transform:translate(-50%,-48%) scale(.78) rotateY(-12deg)}.scene-core{width:225px;height:225px;left:50%;top:57%}.core{inset:30px}.inner{inset:51px}.float-a{left:1%;top:8%}.float-b{right:1%;bottom:8%}.float-c{right:2%;top:15%}.code{left:1%;bottom:3%;width:175px}.hud{left:4%;top:4%}.projects{grid-template-columns:1fr}.project,.project:nth-child(3),.project:nth-child(4){grid-column:span 1}.about{grid-template-columns:1fr}.section-head{display:block}.section-head p{margin-top:16px}.stats{grid-template-columns:1fr 1fr}.contact{padding:55px 20px}footer{display:block}footer span{display:block;margin-top:7px}}
-@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.reveal{opacity:1;transform:none}}
+.loader{
+  position:fixed;inset:0;background:#070707;color:#fff;z-index:1300;
+  display:grid;place-items:center;overflow:hidden;
+}
+.loader.hide{pointer-events:none;animation:loaderOut 1s .15s forwards}
+.loader-inner{width:min(560px,78%);text-align:center}
+.loader-mark{font:900 clamp(14px,2vw,22px)/1 Montserrat;letter-spacing:.12em}
+.loader-vi{font:900 clamp(110px,24vw,290px)/.7 Montserrat;letter-spacing:-.11em;margin:18px 0 22px;color:#fff}
+.loader-bar{height:2px;background:#2b2b2b;overflow:hidden}
+.loader-bar span{display:block;width:0;height:100%;background:linear-gradient(90deg,var(--pink),var(--orange),var(--yellow));animation:loaderBar 1.7s cubic-bezier(.22,.61,.36,1) forwards}
+.loader-note{margin-top:14px;font:10px "DM Mono";letter-spacing:.15em;color:#858585;text-transform:uppercase}
+
+.nav{
+  position:fixed;top:0;left:0;right:0;height:var(--header-h);z-index:900;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 4%;
+  color:#fff; mix-blend-mode:difference;
+}
+.nav:after{
+  content:"";position:absolute;left:4%;right:4%;bottom:0;height:1px;background:rgba(255,255,255,.25);
+}
+.brand{font:900 15px/1 Montserrat;letter-spacing:.1em;display:flex;gap:10px;align-items:center}
+.brand .pill{font:700 8px "DM Mono";padding:5px 7px;border:1px solid rgba(255,255,255,.45);border-radius:99px;letter-spacing:.1em}
+.navlinks{display:flex;gap:22px;align-items:center}
+.navlinks a{font:600 10px "DM Mono";text-transform:uppercase;letter-spacing:.12em;opacity:.75;transition:.25s}
+.navlinks a:hover{opacity:1}
+.nav-date{font:700 10px "DM Mono";letter-spacing:.08em}
+
+.hero{
+  min-height:100svh; position:relative;overflow:hidden;color:#fff;
+  display:grid;place-items:center;
+  isolation:isolate;
+  background:
+    radial-gradient(circle at 72% 26%,rgba(255,204,92,.35),transparent 23%),
+    radial-gradient(circle at 34% 35%,rgba(255,63,154,.35),transparent 27%),
+    linear-gradient(160deg,#181016 0%,#0a0711 44%,#091315 100%);
+}
+.hero-bg{
+  position:absolute;inset:-10%;z-index:-3;
+  transform:translate3d(calc((var(--mx,50)-50)*-.018px),calc((var(--my,50)-50)*-.018px),0) scale(1.12);
+  background:
+    linear-gradient(180deg,rgba(0,0,0,.06),rgba(0,0,0,.5)),
+    radial-gradient(circle at 58% 45%,rgba(255,101,187,.15),transparent 22%),
+    radial-gradient(circle at 78% 60%,rgba(81,214,208,.15),transparent 20%);
+}
+.hero-grid{
+  position:absolute;inset:-20%;z-index:-2;opacity:.45;
+  background-image:
+    linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);
+  background-size:60px 60px;
+  transform:perspective(500px) rotateX(62deg) translateY(38%);
+  transform-origin:center;
+  animation:gridDrift 18s linear infinite;
+}
+.sun{
+  position:absolute;right:10%;top:17%;width:min(34vw,410px);aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle,#fff1c2 0 12%,#ffc95c 28%,#ff8669 52%,rgba(255,74,117,.12) 67%,transparent 69%);
+  filter:blur(.2px);z-index:-1;opacity:.95;
+}
+.palms{position:absolute;inset:0;z-index:-1;opacity:.36;overflow:hidden}
+.palm{
+  position:absolute;bottom:-5%;width:24vw;height:90vh;min-width:260px;
+  background:
+    radial-gradient(ellipse at 50% 85%,transparent 0 50%,rgba(3,18,14,.0) 51%),
+    linear-gradient(82deg,transparent 0 45%,rgba(3,18,14,.5) 46% 49%,transparent 50%),
+    radial-gradient(ellipse at 49% 25%,rgba(3,18,14,.42) 0 2%,transparent 3%),
+    radial-gradient(ellipse at 37% 18%,rgba(3,18,14,.42) 0 3%,transparent 4%),
+    radial-gradient(ellipse at 61% 23%,rgba(3,18,14,.42) 0 2%,transparent 3%);
+  border-radius:50%;
+  filter:blur(1px);
+}
+.palm.p1{left:-7%;transform:rotate(-8deg)}
+.palm.p2{right:-6%;transform:scaleX(-1) rotate(-4deg)}
+.palm.p3{left:28%;bottom:-33%;transform:scale(.7) rotate(12deg);opacity:.55}
+
+.hero-copy{
+  position:relative;z-index:3;width:min(1240px,92%);padding-top:clamp(70px,10vh,120px);
+}
+.hero-topline{
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;
+  font:10px "DM Mono";letter-spacing:.18em;text-transform:uppercase;color:#d9d1d0;
+}
+.live-dot{display:inline-flex;align-items:center;gap:7px}
+.live-dot i{width:6px;height:6px;border-radius:50%;background:#72f5c7;box-shadow:0 0 15px #72f5c7;animation:pulse 1.8s infinite}
+.hero-title{
+  font:900 clamp(76px,15vw,230px)/.72 Montserrat;
+  letter-spacing:-.105em;text-transform:uppercase;
+  margin-left:-.045em;
+}
+.hero-title .line{display:block;overflow:hidden}
+.hero-title .line span{display:inline-block;transform:translateY(120%);animation:titleIn 1.25s cubic-bezier(.18,.75,.15,1) forwards}
+.hero-title .line:nth-child(2) span{animation-delay:.10s}
+.hero-title .line:nth-child(3) span{animation-delay:.2s}
+.hero-title .gta{font-size:.33em;letter-spacing:.05em;line-height:1;vertical-align:top;position:relative;top:.12em}
+.hero-title .six{
+  color:transparent;
+  -webkit-text-stroke:1px rgba(255,255,255,.75);
+  text-shadow:0 0 30px rgba(255,61,150,.24);
+}
+.hero-sub{
+  max-width:540px;margin:36px 0 0 6px;color:#d8d0d0;font-size:15px;line-height:1.75;
+  opacity:0;transform:translateY(20px);animation:fadeUp .8s .55s forwards;
+}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin:28px 0 0 6px;opacity:0;transform:translateY(20px);animation:fadeUp .8s .72s forwards}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:11px;
+  min-height:46px;padding:0 18px;border:1px solid rgba(255,255,255,.24);border-radius:99px;
+  color:#fff;font:700 10px "DM Mono";letter-spacing:.12em;text-transform:uppercase;
+  backdrop-filter:blur(10px);transition:transform .35s cubic-bezier(.2,.8,.2,1),background .35s,border-color .35s;
+}
+.btn:hover{transform:translateY(-4px);background:rgba(255,255,255,.11);border-color:rgba(255,255,255,.55)}
+.btn.primary{background:#fff;color:#111;border-color:#fff}
+.btn.primary:hover{background:#fff;box-shadow:0 18px 50px rgba(255,255,255,.18)}
+.hero-footer{
+  position:absolute;bottom:28px;left:0;right:0;z-index:5;
+  display:flex;justify-content:space-between;align-items:end;
+  font:10px "DM Mono";letter-spacing:.12em;color:#aaa1a0;text-transform:uppercase;
+}
+.scroll-cue{display:flex;align-items:center;gap:10px}
+.scroll-cue i{width:38px;height:1px;background:#aaa1a0;position:relative}
+.scroll-cue i:after{content:"";position:absolute;right:0;top:-2px;width:4px;height:4px;border-radius:50%;background:#fff;animation:scrollDot 1.6s infinite}
+.side-marker{
+  position:absolute;right:4%;top:50%;transform:translateY(-50%);z-index:3;
+  writing-mode:vertical-rl;transform-origin:center;
+  font:9px "DM Mono";letter-spacing:.2em;color:#aaa1a0;text-transform:uppercase;
+}
+
+.section{position:relative;padding:150px 0;overflow:hidden}
+.dark{background:#101011;color:#fff}
+.light{background:var(--paper);color:var(--ink)}
+.kicker{font:10px "DM Mono";letter-spacing:.18em;text-transform:uppercase;opacity:.6}
+.display{
+  font:900 clamp(52px,9vw,130px)/.84 Montserrat;letter-spacing:-.085em;text-transform:uppercase;
+}
+.display em{
+  font-style:normal;color:var(--pink);
+  text-shadow:12px 12px 0 rgba(255,138,54,.16);
+}
+.reveal{opacity:0;transform:translateY(60px);transition:opacity .9s cubic-bezier(.2,.8,.2,1),transform 1s cubic-bezier(.2,.8,.2,1)}
+.reveal.in{opacity:1;transform:none}
+.reveal.delay1{transition-delay:.1s}
+.reveal.delay2{transition-delay:.2s}
+.reveal.delay3{transition-delay:.3s}
+
+#model-section{background:#ece4dc}
+.model-layout{
+  display:grid;grid-template-columns:.82fr 1.18fr;gap:60px;align-items:center;
+}
+.model-copy h2{margin:14px 0 25px}
+.model-copy p{max-width:460px;color:#655f5b;font-size:14px;line-height:1.9}
+.model-specs{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:30px 0;
+}
+.spec{padding:15px;border:1px solid var(--line);background:#f3eee7}
+.spec b{display:block;font:800 24px Montserrat;letter-spacing:-.04em}
+.spec span{display:block;margin-top:4px;color:#837b74;font:9px "DM Mono";letter-spacing:.12em;text-transform:uppercase}
+.model-shell{
+  min-height:650px;border-radius:34px;overflow:hidden;position:relative;
+  background:
+    radial-gradient(circle at 55% 30%,rgba(255,84,169,.28),transparent 25%),
+    linear-gradient(135deg,#121018,#080809 56%,#18131a);
+  box-shadow:0 35px 100px rgba(9,4,8,.28);
+  border:1px solid rgba(0,0,0,.18);
+}
+.model-shell:before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(transparent 0 93%,rgba(255,255,255,.09)),
+    repeating-linear-gradient(90deg,transparent 0 58px,rgba(255,255,255,.035) 59px 60px);
+  z-index:2;
+}
+.model-grid{
+  position:absolute;inset:0;opacity:.26;
+  background-image:linear-gradient(rgba(255,255,255,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.09) 1px,transparent 1px);
+  background-size:48px 48px;
+  transform:perspective(700px) rotateX(68deg) translateY(34%);
+  transform-origin:center bottom;
+}
+.model-hud{
+  position:absolute;left:20px;right:20px;top:18px;display:flex;justify-content:space-between;align-items:center;z-index:5;
+  font:9px "DM Mono";color:#d7cfd2;letter-spacing:.15em;text-transform:uppercase;
+}
+.model-hud .badge{padding:8px 10px;border:1px solid rgba(255,255,255,.15);border-radius:99px;background:rgba(0,0,0,.25);backdrop-filter:blur(10px)}
+.model-frame{position:absolute;inset:52px 28px 30px;border-radius:24px;overflow:hidden;border:1px solid rgba(255,255,255,.13);background:#070707}
+.model-frame iframe{
+  width:100%;height:100%;border:0;display:block;
+  background:#070707;
+}
+.model-credit{
+  position:absolute;left:30px;bottom:18px;right:30px;z-index:7;display:flex;justify-content:space-between;gap:10px;
+  color:#958b92;font:9px "DM Mono";letter-spacing:.04em;
+}
+.model-credit a{text-decoration:underline}
+.model-credit strong{color:#ded9dc}
+
+.splitline{height:1px;background:var(--line);margin:46px 0}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:end}
+.info-copy p{color:#6e6863;font-size:14px;line-height:1.9;max-width:490px}
+.big-number{font:900 clamp(80px,14vw,190px)/.75 Montserrat;letter-spacing:-.11em;text-align:right;color:#111}
+
+.locations{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:50px}
+.location{
+  min-height:300px;position:relative;overflow:hidden;border-radius:20px;padding:22px;
+  display:flex;flex-direction:column;justify-content:space-between;
+  color:#fff;border:1px solid rgba(255,255,255,.12);
+  transform-style:preserve-3d;transition:transform .45s cubic-bezier(.2,.8,.2,1);
+}
+.location:hover{transform:translateY(-8px) rotateX(2deg) rotateY(-2deg)}
+.location:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.02),rgba(0,0,0,.65));z-index:0}
+.location>div{position:relative;z-index:1}
+.location .num{font:9px "DM Mono";opacity:.7;letter-spacing:.12em}
+.location h3{font:900 38px/1 Montserrat;letter-spacing:-.06em;text-transform:uppercase}
+.location p{max-width:250px;font-size:11px;line-height:1.7;color:#efe8e7}
+.l1{background:linear-gradient(145deg,#113c58,#17a5a1 38%,#ef548d 76%,#ffb35a)}
+.l2{background:linear-gradient(145deg,#111a2a,#2b6c8c 36%,#51c8c0 65%,#f0c676)}
+.l3{background:linear-gradient(145deg,#182033,#72534a 43%,#f29258 70%,#ff4e8f)}
+.l4{background:linear-gradient(145deg,#1d2430,#466448 48%,#9cac63 70%,#e4b35c)}
+.l5{background:linear-gradient(145deg,#2a1720,#76415a 45%,#d26d8c 70%,#ffb15e)}
+.l6{background:linear-gradient(145deg,#071d20,#195a56 40%,#77a868 70%,#d2c07d)}
+
+.photo-wall{
+  margin-top:60px;
+  display:grid;grid-template-columns:repeat(12,1fr);grid-auto-rows:80px;gap:12px;
+}
+.photo{
+  position:relative;overflow:hidden;border-radius:18px;border:1px solid rgba(0,0,0,.08);
+  background-size:cover;background-position:center;
+  transform:translateZ(0);
+}
+.photo:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent,rgba(0,0,0,.45))}
+.photo span{position:absolute;left:16px;bottom:13px;z-index:2;color:#fff;font:9px "DM Mono";letter-spacing:.12em;text-transform:uppercase}
+.pv1{grid-column:span 7;grid-row:span 4;background:
+  radial-gradient(circle at 65% 25%,rgba(255,240,190,.75),transparent 19%),
+  linear-gradient(145deg,#163844,#1d8d8e 40%,#e35b85 73%,#ffbc61)}
+.pv2{grid-column:span 5;grid-row:span 3;background:
+  radial-gradient(circle at 55% 35%,#ffd76a,transparent 16%),
+  linear-gradient(145deg,#182e3c,#44a1a4 48%,#f18378)}
+.pv3{grid-column:span 5;grid-row:span 5;background:
+  radial-gradient(circle at 30% 32%,#f8b26e,transparent 18%),
+  linear-gradient(145deg,#2a1521,#85505f 46%,#e8a05e)}
+.pv4{grid-column:span 3;grid-row:span 3;background:
+  radial-gradient(circle at 50% 30%,#98fff2,transparent 13%),
+  linear-gradient(145deg,#0a2732,#268385 48%,#f7a66e)}
+.pv5{grid-column:span 4;grid-row:span 3;background:
+  radial-gradient(circle at 70% 35%,#ffd78a,transparent 11%),
+  linear-gradient(145deg,#14231e,#5d7d58 48%,#d09c5d)}
+.pv6{grid-column:span 7;grid-row:span 2;background:
+  linear-gradient(90deg,#ed5c83,#f19a5f,#5dbcb1)}
+.photo-note{margin-top:18px;font:9px "DM Mono";color:#8a8179;letter-spacing:.06em}
+
+.marquee{
+  background:#070707;color:#fff;overflow:hidden;white-space:nowrap;border-top:1px solid #222;border-bottom:1px solid #222;
+}
+.marquee-track{display:inline-flex;gap:42px;padding:18px 0;animation:marquee 25s linear infinite}
+.marquee b{font:900 25px Montserrat;letter-spacing:-.04em}
+.marquee i{color:var(--pink);font-style:normal}
+
+.timeline{
+  display:grid;grid-template-columns:150px 1fr;gap:22px;padding:28px 0;border-top:1px solid rgba(255,255,255,.12)
+}
+.timeline:last-child{border-bottom:1px solid rgba(255,255,255,.12)}
+.timeline .date{font:800 14px Montserrat}
+.timeline .event h3{font:800 24px Montserrat;letter-spacing:-.03em}
+.timeline .event p{margin-top:7px;color:#aaa;font-size:12px;line-height:1.7;max-width:620px}
+
+.countdown{
+  min-height:640px;display:grid;place-items:center;text-align:center;position:relative;overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 20%,rgba(255,72,152,.36),transparent 24%),
+    radial-gradient(circle at 30% 80%,rgba(255,208,88,.16),transparent 25%),
+    #090909;color:#fff;
+}
+.countdown .ring{
+  position:absolute;width:min(64vw,700px);aspect-ratio:1;border:1px solid rgba(255,255,255,.09);border-radius:50%;
+  animation:rotate 25s linear infinite;
+}
+.countdown .ring:before,.countdown .ring:after{
+  content:"";position:absolute;inset:10%;border:1px solid rgba(255,90,154,.12);border-radius:50%;
+}
+.countdown .ring:after{inset:25%;border-color:rgba(255,211,92,.13)}
+.countdown-content{position:relative;z-index:2}
+.countdown small{font:10px "DM Mono";letter-spacing:.2em;color:#aaa;text-transform:uppercase}
+.countdown h2{font:900 clamp(58px,11vw,150px)/.78 Montserrat;letter-spacing:-.09em;margin:22px 0 26px}
+.countdown h2 em{font-style:normal;color:var(--pink)}
+.count-grid{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.count-item{min-width:104px;padding:16px 20px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);backdrop-filter:blur(12px)}
+.count-item b{display:block;font:900 28px Montserrat}
+.count-item span{display:block;margin-top:4px;color:#aaa;font:9px "DM Mono";letter-spacing:.14em;text-transform:uppercase}
+.count-sub{margin-top:25px;color:#a9a0a0;font-size:12px}
+
+.footer{background:#050505;color:#fff;padding:30px 0 50px}
+.footer-top{display:flex;justify-content:space-between;gap:20px;align-items:start}
+.footer-brand{font:900 30px Montserrat;letter-spacing:-.06em}
+.footer-brand span{color:var(--pink)}
+.footer-links{display:flex;gap:18px;flex-wrap:wrap}
+.footer-links a{font:9px "DM Mono";letter-spacing:.12em;color:#918989;text-transform:uppercase}
+.footer-bottom{margin-top:55px;padding-top:16px;border-top:1px solid #202020;display:flex;justify-content:space-between;gap:20px;font:9px "DM Mono";color:#666}
+.disclaimer{max-width:650px;line-height:1.7}
+
+@keyframes loaderBar{to{width:100%}}
+@keyframes loaderOut{to{opacity:0;visibility:hidden}}
+@keyframes titleIn{to{transform:translateY(0)}}
+@keyframes fadeUp{to{opacity:1;transform:none}}
+@keyframes pulse{50%{transform:scale(1.6);opacity:.4}}
+@keyframes scrollDot{50%{transform:translateX(35px);opacity:.2}}
+@keyframes gridDrift{to{transform:perspective(500px) rotateX(62deg) translateY(22%)}}
+@keyframes marquee{to{transform:translateX(-50%)}}
+@keyframes rotate{to{transform:rotate(360deg)}}
+@media(max-width:1000px){
+  .navlinks{display:none}
+  .hero-title{font-size:clamp(68px,17vw,150px)}
+  .model-layout{grid-template-columns:1fr}
+  .model-shell{min-height:580px}
+  .locations{grid-template-columns:repeat(2,1fr)}
+  .photo-wall{grid-auto-rows:64px}
+  .pv1{grid-column:span 8}.pv2{grid-column:span 4}.pv3{grid-column:span 6}.pv4{grid-column:span 6}.pv5{grid-column:span 6}.pv6{grid-column:span 12}
+}
+@media(max-width:650px){
+  :root{--header-h:64px}
+  .nav-date{display:none}
+  .hero{min-height:820px}
+  .hero-topline{display:block}.hero-topline>span:last-child{display:block;margin-top:12px}
+  .hero-title{font-size:22vw}
+  .hero-sub{font-size:13px;margin-top:25px}
+  .side-marker{display:none}
+  .section{padding:100px 0}
+  .model-shell{min-height:500px;border-radius:22px}
+  .model-frame{inset:52px 12px 32px;border-radius:16px}
+  .model-credit{left:15px;right:15px;bottom:12px;font-size:8px}
+  .locations{grid-template-columns:1fr}
+  .location{min-height:240px}
+  .photo-wall{grid-template-columns:1fr 1fr;grid-auto-rows:120px}
+  .photo{grid-column:span 1!important;grid-row:span 2!important}
+  .pv1,.pv6{grid-column:span 2!important}
+  .info-grid{grid-template-columns:1fr}
+  .big-number{text-align:left;margin-top:25px}
+  .timeline{grid-template-columns:1fr;gap:8px}
+  .footer-top,.footer-bottom{display:block}
+  .footer-links{margin-top:25px}
+  .footer-bottom>span{display:block;margin-top:10px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation:none!important;scroll-behavior:auto!important;transition:none!important}
+  .reveal{opacity:1;transform:none}
+}
 </style>
 </head>
 <body>
-<div class="cursor"></div>
-<nav class="nav" id="nav"><a class="logo" href="#top">isauzinho<span>1</span></a><div class="links"><a href="#projetos">Projetos</a><a href="#sobre">Sobre</a><a href="#contato">Contato</a></div><div class="nav-right"><span class="version">V3.0</span><a class="btn" href="#contato">Bora criar ↗</a></div></nav>
-<main id="top">
-<section class="hero"><div class="wrap hero-grid">
-<div class="reveal"><div class="eyebrow"><i class="status"></i> creative developer • online</div><h1>Eu transformo<br><span class="gradient">ideias em experiências.</span></h1><p>Olá, eu sou <b>isauzinho1</b>. Este é meu espaço para mostrar projetos, experimentos e coisas que saem da cabeça e viram código.</p><div class="actions"><a class="btn primary" href="#projetos">Explorar projetos ↓</a><a class="btn" href="#sobre">Conhecer mais ↗</a></div><div class="hero-meta"><div><strong>01</strong>IDEIAS</div><div><strong>02</strong>CÓDIGO</div><div><strong>03</strong>EXPERIÊNCIA</div></div></div>
-<div class="scene reveal"><div class="model-stage"><div class="floor"></div>
-<div class="human3d" id="human3d"><div class="bodyPart head"></div><div class="bodyPart neck skin"></div><div class="bodyPart torso shirt"></div><div class="collar"></div><div class="chest-light"></div><div class="bodyPart arm upperL skin"></div><div class="bodyPart arm foreL skin"></div><div class="bodyPart arm upperR skin"></div><div class="bodyPart arm foreR skin"></div><div class="bodyPart hand handL skin"><span class="finger"></span></div><div class="bodyPart hand handR skin"><span class="finger"></span></div><div class="bodyPart legL pants"></div><div class="bodyPart legR pants"></div><div class="bodyPart footL shoe"><span class="sole"></span></div><div class="bodyPart footR shoe"><span class="sole"></span></div></div>
-<div class="hud">3D HUMAN / HOLDING OBJECT / V3.0</div><div class="groundGlow"></div><div class="scene-core" id="sceneCore"><div class="coreHalo"></div><div class="core"></div><div class="inner"></div><div class="ring"></div><div class="ring r2"></div><div class="ring r3"></div><div class="reflection"></div><div class="particle p1"></div><div class="particle p2"></div><div class="particle p3"></div><div class="particle p4"></div><div class="particle p5"></div></div>
-<div class="floating float-a">/model<br><b>human_3d</b></div><div class="floating float-b">pose: <b>holding</b><br>detail: <b>ultra</b></div><div class="floating float-c">✦ REALTIME 3D</div><div class="code"><strong>const</strong> scene = {<br>&nbsp;version: <em>"3.0"</em>,<br>&nbsp;human: <i>true</i>,<br>&nbsp;motion: <em>true</em><br>};</div>
-</div></div><div class="scroll"><span></span> SCROLL TO EXPLORE <span></span></div></section>
+<div class="progress"><i></i></div>
+<div class="cursor"></div><div class="cursor-ring"></div>
 
-<section id="projetos"><div class="wrap"><div class="section-head reveal"><div><div class="kicker">01 / selected work</div><h2>Coisas que eu crio.</h2></div><p>Uma coleção de projetos, jogos e experiências feitas para testar ideias e criar algo diferente.</p></div><div class="projects">
-<article class="project reveal"><div class="visual-project"><div class="mock-window"><i></i><b></b></div></div><span class="tag">WEB • DESIGN</span><h3>Experiências Web</h3><p>Sites modernos com animações, efeitos de profundidade, interfaces interativas e identidade visual.</p><span class="arrow">↗</span></article>
-<article class="project reveal"><div class="visual-project"><div class="mock-window"><i></i><b></b></div></div><span class="tag">GAME • 3D</span><h3>Jogos & Experimentos</h3><p>Ideias transformadas em gameplay: movimento, física, menus, mapas e sistemas interativos.</p><span class="arrow">↗</span></article>
-<article class="project reveal"><div class="visual-project"><div class="mock-window"><i></i><b></b></div></div><span class="tag">ROBLOX • LUA</span><h3>Universos Interativos</h3><p>Experiências com mapas, personagens, UI, animações, NPCs e mecânicas personalizadas.</p><span class="arrow">↗</span></article>
-<article class="project reveal"><div class="visual-project"><div class="mock-window"><i></i><b></b></div></div><span class="tag">EXPERIMENTAL</span><h3>Ideias fora da caixa</h3><p>Protótipos e conceitos que exploram novas formas de navegar, jogar e interagir com tecnologia.</p><span class="arrow">↗</span></article>
-</div></div></section>
-<section id="sobre"><div class="wrap"><div class="about"><div class="reveal"><div class="kicker">02 / about</div><h2>Curioso.<br><span class="gradient">Criativo.</span><br>Incansável.</h2></div><div class="about-copy reveal"><p>Para mim, um projeto não precisa ser apenas funcional. Ele precisa ter personalidade. Gosto de juntar programação, design, movimento e interação para transformar uma ideia simples em uma experiência marcante.</p><p>Este portfólio é uma pequena amostra dessa mentalidade: experimentar, aprender, construir e deixar cada projeto melhor que o anterior.</p><div class="skills"><span class="skill">HTML / CSS / JS</span><span class="skill">3D Web</span><span class="skill">Game Development</span><span class="skill">Roblox Studio</span><span class="skill">UI / UX</span><span class="skill">Creative Coding</span></div></div></div><div class="stats reveal"><div class="stat"><strong>∞</strong><span>IDEIAS PARA TESTAR</span></div><div class="stat"><strong>01</strong><span>PROJETO DE CADA VEZ</span></div><div class="stat"><strong>100%</strong><span>VONTADE DE CRIAR</span></div></div></div></section>
-<section id="contato"><div class="wrap"><div class="contact reveal"><div class="kicker">03 / let's create</div><h2>Tem uma ideia?</h2><p>Se existe algo que você quer transformar em site, jogo ou experiência interativa, este é o começo.</p><a class="btn primary" href="https://github.com/vfeitosades-dot" target="_blank" rel="noopener">Ver GitHub ↗</a></div></div></section>
+<div class="loader" id="loader">
+  <div class="loader-inner">
+    <div class="loader-mark">GRAND THEFT AUTO</div>
+    <div class="loader-vi">VI</div>
+    <div class="loader-bar"><span></span></div>
+    <div class="loader-note">VICE CITY / LEONIDA / FAN EXPERIENCE</div>
+  </div>
+</div>
+
+<header class="nav">
+  <a class="brand" href="#top">GTAVI <span class="pill">FAN EXPERIENCE</span></a>
+  <nav class="navlinks">
+    <a href="#model-section">3D</a>
+    <a href="#leonida">LEONIDA</a>
+    <a href="#media">MEDIA</a>
+    <a href="#release">RELEASE</a>
+  </nav>
+  <div class="nav-date">19 NOV 2026</div>
+</header>
+
+<main id="top">
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="sun"></div>
+  <div class="palms"><div class="palm p1"></div><div class="palm p2"></div><div class="palm p3"></div></div>
+
+  <div class="hero-copy">
+    <div class="hero-topline">
+      <span class="live-dot"><i></i> VICE CITY, USA</span>
+      <span>ROCKSTAR GAMES / LEONIDA</span>
+    </div>
+
+    <h1 class="hero-title" aria-label="Grand Theft Auto VI">
+      <span class="line"><span><small class="gta">GRAND<br>THEFT</small></span></span>
+      <span class="line"><span>AUTO</span></span>
+      <span class="line"><span class="six">VI</span></span>
+    </h1>
+
+    <p class="hero-sub">
+      Uma experiência de fã criada para capturar a energia de Vice City: tipografia brutal,
+      cor tropical, movimento contínuo, parallax e um personagem 3D interativo.
+    </p>
+
+    <div class="hero-actions">
+      <a class="btn primary magnetic" href="#model-section">EXPLORAR 3D ↓</a>
+      <a class="btn magnetic" href="https://www.rockstargames.com/VI/media" target="_blank" rel="noopener">MEDIA OFICIAL ↗</a>
+    </div>
+  </div>
+
+  <div class="side-marker">SUNNY PLACE / DARK SIDE</div>
+  <div class="hero-footer wrap">
+    <span>JASON + LUCIA / LEONIDA</span>
+    <span class="scroll-cue"><i></i> SCROLL</span>
+  </div>
+</section>
+
+<section class="section light" id="model-section">
+  <div class="wrap model-layout">
+    <div class="model-copy">
+      <div class="kicker reveal">01 / 3D CHARACTER</div>
+      <h2 class="display reveal delay1">JASON<br><em>DUVAL.</em></h2>
+      <p class="reveal delay2">
+        O centro da nova experiência é um modelo 3D de Jason incorporado diretamente na página.
+        Ele fica dentro de um palco escuro com iluminação neon e controles do visualizador.
+      </p>
+      <div class="model-specs reveal delay3">
+        <div class="spec"><b>213K+</b><span>triângulos do modelo</span></div>
+        <div class="spec"><b>3D</b><span>viewer interativo</span></div>
+        <div class="spec"><b>360°</b><span>rotação e zoom</span></div>
+        <div class="spec"><b>V4.0</b><span>nova direção visual</span></div>
+      </div>
+      <a class="btn magnetic reveal delay3" href="https://sketchfab.com/3d-models/jason-gta-vi-43ae0a8fe4df424eaf9c920e67b74b00" target="_blank" rel="noopener">ABRIR MODELO ↗</a>
+    </div>
+
+    <div class="model-shell reveal delay1">
+      <div class="model-grid"></div>
+      <div class="model-hud">
+        <span class="badge">JASON / 3D</span>
+        <span>ROTATE · ZOOM · EXPLORE</span>
+      </div>
+      <div class="model-frame">
+        <iframe
+          title="Jason — GTA VI 3D model"
+          src="https://sketchfab.com/models/43ae0a8fe4df424eaf9c920e67b74b00/embed?autospin=0.15&autostart=1&ui_theme=dark&ui_infos=0&ui_watermark=1"
+          allow="autoplay; fullscreen; xr-spatial-tracking"
+          loading="lazy">
+        </iframe>
+      </div>
+      <div class="model-credit">
+        <span>MODEL BY <strong>mukaloko73</strong> · SKETCHFAB</span>
+        <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="marquee">
+  <div class="marquee-track">
+    <b>ONLY IN LEONIDA</b><i>✦</i><b>VICE CITY</b><i>✦</i><b>GRASSRIVERS</b><i>✦</i><b>LEONIDA KEYS</b><i>✦</i>
+    <b>PORT GELLHORN</b><i>✦</i><b>AMBROSIA</b><i>✦</i><b>MOUNT KALAGA</b><i>✦</i>
+    <b>ONLY IN LEONIDA</b><i>✦</i><b>VICE CITY</b><i>✦</i><b>GRASSRIVERS</b><i>✦</i><b>LEONIDA KEYS</b><i>✦</i>
+  </div>
+</div>
+
+<section class="section light" id="leonida">
+  <div class="wrap">
+    <div class="kicker reveal">02 / THE WORLD</div>
+    <h2 class="display reveal delay1" style="margin-top:15px">LEONIDA<br><em>CALLS.</em></h2>
+    <div class="info-grid" style="margin-top:32px">
+      <div class="info-copy reveal delay2">
+        <p>
+          A Rockstar apresenta Vice City dentro de um estado maior chamado Leonida.
+          A identidade da página usa seis destinos como uma coleção de cartões-postais,
+          com cores e atmosferas diferentes para cada área.
+        </p>
+      </div>
+      <div class="big-number reveal delay3">06</div>
+    </div>
+
+    <div class="locations">
+      <article class="location l1 reveal"><div><span class="num">01</span></div><div><h3>Vice City</h3><p>Neon, praia, skyline e a cidade no centro do caos.</p></div></article>
+      <article class="location l2 reveal delay1"><div><span class="num">02</span></div><div><h3>Leonida Keys</h3><p>Ilhas, água aberta e o lado tropical do estado.</p></div></article>
+      <article class="location l3 reveal delay2"><div><span class="num">03</span></div><div><h3>Grassrivers</h3><p>Uma paisagem mais aberta e distante dos grandes prédios.</p></div></article>
+      <article class="location l4 reveal"><div><span class="num">04</span></div><div><h3>Port Gellhorn</h3><p>Porto e estrada, com uma atmosfera mais áspera.</p></div></article>
+      <article class="location l5 reveal delay1"><div><span class="num">05</span></div><div><h3>Ambrosia</h3><p>Um dos contrastes que expandem a escala de Leonida.</p></div></article>
+      <article class="location l6 reveal delay2"><div><span class="num">06</span></div><div><h3>Mount Kalaga</h3><p>Natureza e montanha para quebrar o ritmo urbano.</p></div></article>
+    </div>
+  </div>
+</section>
+
+<section class="section dark" id="media">
+  <div class="wrap">
+    <div class="kicker reveal">03 / MEDIA WALL</div>
+    <h2 class="display reveal delay1" style="margin-top:15px">VICE CITY<br><em>IN FRAMES.</em></h2>
+    <div class="photo-wall">
+      <a class="photo pv1 reveal" href="https://www.rockstargames.com/VI/media/screenshots" target="_blank" rel="noopener"><span>Official Screenshots / Jason + Lucia</span></a>
+      <a class="photo pv2 reveal delay1" href="https://www.rockstargames.com/VI/media/screenshots" target="_blank" rel="noopener"><span>Vice City / Official Gallery</span></a>
+      <a class="photo pv3 reveal delay2" href="https://www.rockstargames.com/VI/media/artwork-wallpapers" target="_blank" rel="noopener"><span>Official Artwork / Cover</span></a>
+      <a class="photo pv4 reveal" href="https://www.rockstargames.com/VI/media/screenshots" target="_blank" rel="noopener"><span>Leonida Keys</span></a>
+      <a class="photo pv5 reveal delay1" href="https://www.rockstargames.com/VI/media/screenshots" target="_blank" rel="noopener"><span>Mount Kalaga</span></a>
+      <a class="photo pv6 reveal delay2" href="https://www.rockstargames.com/VI/media/videos" target="_blank" rel="noopener"><span>Trailer 2 / An Extended Look</span></a>
+    </div>
+    <div class="photo-note reveal">Clique em qualquer quadro para abrir a mídia oficial da Rockstar.</div>
+  </div>
+</section>
+
+<section class="section light">
+  <div class="wrap">
+    <div class="kicker reveal">04 / STORY FRAME</div>
+    <div class="splitline reveal"></div>
+    <div class="timeline reveal">
+      <div class="date">JASON</div>
+      <div class="event"><h3>Um protagonista em Leonida.</h3><p>O site oficial apresenta Jason Duval ao lado de Lucia Caminos como os protagonistas centrais da nova história.</p></div>
+    </div>
+    <div class="timeline reveal">
+      <div class="date">LUCIA</div>
+      <div class="event"><h3>Uma dupla no centro da história.</h3><p>A campanha gira em torno dos dois e de uma situação que os força a depender um do outro para seguir em frente.</p></div>
+    </div>
+    <div class="timeline reveal">
+      <div class="date">WORLD</div>
+      <div class="event"><h3>Vice City e além.</h3><p>A experiência se expande para outras regiões de Leonida e usa contraste entre cidade, estrada, água e natureza.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="countdown" id="release">
+  <div class="ring"></div>
+  <div class="countdown-content wrap reveal">
+    <small>official release date</small>
+    <h2>19 <em>NOV</em><br>2026</h2>
+    <div class="count-grid">
+      <div class="count-item"><b id="days">00</b><span>days</span></div>
+      <div class="count-item"><b id="hours">00</b><span>hours</span></div>
+      <div class="count-item"><b id="mins">00</b><span>minutes</span></div>
+      <div class="count-item"><b id="secs">00</b><span>seconds</span></div>
+    </div>
+    <div class="count-sub">PlayStation 5 · Xbox Series X|S</div>
+  </div>
+</section>
 </main>
-<footer class="wrap"><span>© 2026 isauzinho1</span><span class="footer-version">VERSION 3.0 · NEXT: 4.0</span></footer>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-top">
+      <div class="footer-brand">VI<span>.</span></div>
+      <div class="footer-links">
+        <a href="https://www.rockstargames.com/VI" target="_blank" rel="noopener">Rockstar Games ↗</a>
+        <a href="https://www.rockstargames.com/VI/media" target="_blank" rel="noopener">Media ↗</a>
+        <a href="https://sketchfab.com/3d-models/jason-gta-vi-43ae0a8fe4df424eaf9c920e67b74b00" target="_blank" rel="noopener">3D Model ↗</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>FAN-MADE / NOT AFFILIATED WITH ROCKSTAR GAMES</span>
+      <span class="disclaimer">
+        Grand Theft Auto VI, seus personagens e materiais oficiais pertencem a seus respectivos detentores de direitos.
+        Modelo 3D incorporado por licença indicada pelo autor no Sketchfab.
+      </span>
+      <span>VERSION 4.0</span>
+    </div>
+  </div>
+</footer>
+
 <script>
-const obs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add("show")}),{threshold:.12});document.querySelectorAll(".reveal").forEach(el=>obs.observe(el));
-const core=document.getElementById("sceneCore"),human=document.getElementById("human3d"),cursor=document.querySelector(".cursor"),nav=document.getElementById("nav");let targetX=0,targetY=0,rx=0,ry=0,hrx=0,hry=0;
-window.addEventListener("mousemove",e=>{if(innerWidth<=800)return;cursor.style.left=e.clientX+"px";cursor.style.top=e.clientY+"px";targetY=(e.clientX/innerWidth-.5)*24;targetX=(e.clientY/innerHeight-.5)*18;document.documentElement.style.setProperty("--mx",e.clientX+"px");document.documentElement.style.setProperty("--my",e.clientY+"px")});
-document.querySelectorAll("a,.btn").forEach(el=>{el.addEventListener("mouseenter",()=>cursor.classList.add("big"));el.addEventListener("mouseleave",()=>cursor.classList.remove("big"))});
-function render(){rx+=(targetX-rx)*.05;ry+=(targetY-ry)*.05;hrx+=(targetX*.42-hrx)*.035;hry+=(targetY*.42-hry)*.035;core.style.transform="translate(-50%,-50%) rotateX("+rx+"deg) rotateY("+ry+"deg)";human.style.transform="translate(-50%,-48%) translateZ(15px) rotateY("+(hry-12)+"deg) rotateX("+hrx+"deg)";requestAnimationFrame(render)}render();
-window.addEventListener("scroll",()=>{nav.classList.toggle("scrolled",scrollY>40);document.querySelectorAll(".links a").forEach(a=>{const s=document.querySelector(a.getAttribute("href"));if(s){const r=s.getBoundingClientRect();a.classList.toggle("active",r.top<180&&r.bottom>180)}})},{passive:true});
+const root=document.documentElement;
+const loader=document.getElementById('loader');
+window.addEventListener('load',()=>setTimeout(()=>loader.classList.add('hide'),900));
+
+const cursor=document.querySelector('.cursor');
+const ring=document.querySelector('.cursor-ring');
+let cx=innerWidth/2,cy=innerHeight/2,rx=cx,ry=cy;
+window.addEventListener('mousemove',e=>{
+  cx=e.clientX;cy=e.clientY;
+  root.style.setProperty('--mx',cx);
+  root.style.setProperty('--my',cy);
+});
+function cursorLoop(){
+  rx+=(cx-rx)*.16;ry+=(cy-ry)*.16;
+  cursor.style.left=cx+'px';cursor.style.top=cy+'px';
+  ring.style.left=rx+'px';ring.style.top=ry+'px';
+  requestAnimationFrame(cursorLoop);
+}
+cursorLoop();
+
+document.querySelectorAll('a,button,.location,.spec').forEach(el=>{
+  el.addEventListener('mouseenter',()=>ring.classList.add('active'));
+  el.addEventListener('mouseleave',()=>ring.classList.remove('active'));
+});
+
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(entry=>{if(entry.isIntersecting)entry.target.classList.add('in')});
+},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+
+function updateProgress(){
+  const d=document.documentElement;
+  const max=d.scrollHeight-innerHeight;
+  root.style.setProperty('--scroll',max>0?scrollY/max:0);
+}
+window.addEventListener('scroll',updateProgress,{passive:true});
+updateProgress();
+
+document.querySelectorAll('.magnetic').forEach(btn=>{
+  btn.addEventListener('mousemove',e=>{
+    const r=btn.getBoundingClientRect();
+    const x=(e.clientX-r.left-r.width/2)*.18;
+    const y=(e.clientY-r.top-r.height/2)*.18;
+    btn.style.transform='translate('+x+'px,'+y+'px)';
+  });
+  btn.addEventListener('mouseleave',()=>btn.style.transform='');
+});
+
+const cards=document.querySelectorAll('.location');
+cards.forEach(card=>{
+  card.addEventListener('mousemove',e=>{
+    if(innerWidth<900)return;
+    const r=card.getBoundingClientRect();
+    const x=(e.clientX-r.left)/r.width-.5;
+    const y=(e.clientY-r.top)/r.height-.5;
+    card.style.transform='translateY(-8px) rotateX('+(-y*4)+'deg) rotateY('+(x*4)+'deg)';
+  });
+  card.addEventListener('mouseleave',()=>card.style.transform='');
+});
+
+const target=new Date('2026-11-19T00:00:00-03:00');
+function pad(v){return String(Math.max(0,v)).padStart(2,'0')}
+function countdown(){
+  const diff=Math.max(0,target-new Date());
+  const total=Math.floor(diff/1000);
+  const days=Math.floor(total/86400);
+  const hours=Math.floor(total%86400/3600);
+  const mins=Math.floor(total%3600/60);
+  const secs=total%60;
+  document.getElementById('days').textContent=String(days);
+  document.getElementById('hours').textContent=pad(hours);
+  document.getElementById('mins').textContent=pad(mins);
+  document.getElementById('secs').textContent=pad(secs);
+}
+countdown();
+setInterval(countdown,1000);
 </script>
-</body></html>
+</body>
+</html>
