@@ -23,7 +23,7 @@
 <p>Use HTTPS ou localhost. Câmera e sensores dependem de permissão. O modelo é baixado ao ativar; as imagens são processadas neste aparelho.</p>
 <button class="settings-close">Concluir</button></form></dialog>
 <dialog id="cameraAccess" role="dialog" aria-modal="true" aria-labelledby="cameraAccessTitle"><h2 id="cameraAccessTitle">Ativar câmera do dispositivo</h2><p id="cameraAccessMessage" role="status" aria-live="polite">Toque no botão abaixo. O navegador solicitará acesso à câmera selecionada. Se a permissão já estiver salva, a câmera poderá abrir diretamente.</p><p>As imagens são processadas no aparelho. Use o site em HTTPS no Chrome ou Safari; uma prévia do GitHub ou de ZIP não executa este aplicativo.</p><div class="camera-actions"><button id="cameraAllow" type="button">Permitir câmera traseira</button><button id="cameraOpen" type="button">Abrir página em outra aba</button><button id="cameraLater" type="button">Agora não</button></div></dialog>
-<dialog id="objectPanel" role="dialog" aria-modal="true" aria-labelledby="objectTitle"><h2 id="objectTitle">Escolha sua referência</h2><p>Toque em um objeto na imagem ou arraste para marcar sua área. Ele precisa ficar parado. A IA reconhece uma lista limitada de objetos; você pode marcar uma caixa manualmente mesmo sem reconhecimento.</p><canvas id="objectPreview" width="640" height="480" aria-label="Imagem da câmera: toque ou arraste para marcar um objeto"></canvas><label>Nome <input id="anchorName" maxlength="40" placeholder="Ex.: caixa"></label><p id="objectInfo" role="status">Você já pode marcar uma área. O download da IA é opcional e as imagens ficam no aparelho.</p><div id="objectList"></div><div class="camera-actions"><button id="objectAI" type="button">Identificar objetos com IA</button><button id="objectClear" type="button">Limpar referência</button><button id="objectClose" type="button">Voltar</button></div></dialog><div id="anchorState" role="status">Sem objeto fixado</div>
+<dialog id="objectPanel" role="dialog" aria-modal="true" aria-labelledby="objectTitle"><h2 id="objectTitle">Escolha sua referência</h2><p>Toque em um objeto na imagem ou arraste para marcar sua área. Ele precisa ficar parado. A IA reconhece uma lista limitada de objetos; você pode marcar uma caixa manualmente mesmo sem reconhecimento.</p><canvas id="objectPreview" width="640" height="480" aria-label="Imagem da câmera: toque ou arraste para marcar um objeto"></canvas><label>Nome <input id="anchorName" maxlength="40" placeholder="Ex.: caixa"></label><p id="objectInfo" role="status">Você já pode marcar uma área. A IA inicia automaticamente com a câmera. As imagens ficam no aparelho.</p><div id="objectList"></div><div class="camera-actions"><button id="objectAI" type="button">Recarregar IA de objetos</button><button id="objectClear" type="button">Limpar referência</button><button id="objectClose" type="button">Voltar</button></div></dialog><div id="anchorState" role="status">Sem objeto fixado</div>
 <script>
 'use strict';
 const S={reach:1.6,hand:false,hx:.5,hy:.5,d:520,dwell:1200,vr:false,apps:[],yaw:0,pitch:0,view:'library',filter:'all',env:'coast',brightness:100,note:'',recents:[]};
@@ -407,6 +407,7 @@ async function startVisual(){
   stream=await acquireCamera();if(run!==vision.run){releaseUnusedCamera(stream);return;}
   vision.stream=stream;const v=$('visionVideo');v.srcObject=stream;v.muted=true;await v.play();if(run!==vision.run){releaseUnusedCamera(stream);return;}
   stopSensors(false);vision.active=true;vision.valid=false;vision.reason='preparando referência';vision.lastVideo=-1;vision.lastAt=0;vision.lastGood=0;vision.tracker=null;vision.stableFrames=0;vision.period=50;vision.yaw=S.yaw;vision.pitch=S.pitch;vision.sensor.reset(S.yaw,S.pitch);
+  void loadObjectAI();
   v.hidden=false;v.style.transform=(stream.getVideoTracks()[0]?.getSettings?.()?.facingMode||prefs.facing)==='user'?'scaleX(-1)':'';
   $('bVision').textContent='Desativar direção visual';$('bVision').setAttribute('aria-pressed','true');
   stream.getVideoTracks()[0]?.addEventListener('ended',()=>{if(vision.stream===stream)stopVisual();},{once:true});
@@ -498,7 +499,7 @@ async function loadObjectAI(){
   const options={baseOptions:{...base,delegate:'GPU'},runningMode:'VIDEO',maxResults:6,scoreThreshold:.55};
   try{return await ObjectDetector.createFromOptions(files,options);}catch{return await ObjectDetector.createFromOptions(files,{...options,baseOptions:{...base,delegate:'CPU'}});}
  })();
- try{const task=objects.loading;let timeout;try{objects.engine=await Promise.race([task,new Promise((_,reject)=>timeout=setTimeout(()=>reject(new Error('Model timeout')),30000))]);}catch(error){task.then(engine=>{if(engine!==objects.engine)engine.close();}).catch(()=>{});throw error;}finally{clearTimeout(timeout);}objects.error='';$('objectInfo').textContent='IA pronta. Toque em um objeto reconhecido ou marque qualquer área na imagem.';return objects.engine;}
+ try{const task=objects.loading;let timeout;try{objects.engine=await Promise.race([task,new Promise((_,reject)=>timeout=setTimeout(()=>reject(new Error('Model timeout')),30000))]);}catch(error){task.then(engine=>{if(engine!==objects.engine)engine.close();}).catch(()=>{});throw error;}finally{clearTimeout(timeout);}objects.error='';$('objectInfo').textContent='IA automática ativa. Os objetos são identificados enquanto você movimenta a câmera.';return objects.engine;}
  catch{objects.error='IA indisponível. Marque a referência manualmente; a câmera e o acompanhamento continuam funcionando.';$('objectInfo').textContent=objects.error;return null;}
  finally{objects.loading=null;$('objectAI').disabled=false;}
 }
@@ -534,7 +535,16 @@ function correctFromObject(ray){
  const correction=[...axis.map(v=>v/length*Math.sin(angle*.1)),Math.cos(angle*.1)];vision.sensor.q=vision.sensor.multiply(correction,vision.sensor.q);
 }
 function updateObjectUI(now){
- const a=objects.anchor,state=$('anchorState');const text=a?`${a.label} · ${a.valid?a.direction:'fora da imagem · procurando'}`:'Sem objeto fixado';if(state.textContent!==text)state.textContent=text;
+ if(vision.active&&!document.hidden){const v=$('visionVideo');if(v.readyState>=2){
+ if(objects.engine&&now-objects.lastDetect>700&&v.currentTime!==objects.lastFrame){
+  objects.lastDetect=now;objects.lastFrame=v.currentTime;
+  try{const result=objects.engine.detectForVideo(v,now);objects.detections=(result.detections||[]).map(d=>{const k=d.categories?.[0],b=d.boundingBox;return k&&b?{label:OBJECT_NAMES[k.categoryName]||k.displayName||k.categoryName,score:k.score,box:{x:b.originX/v.videoWidth,y:b.originY/v.videoHeight,width:b.width/v.videoWidth,height:b.height/v.videoHeight}}:null;}).filter(Boolean);
+   const list=$('objectList');list.replaceChildren();objects.detections.forEach(d=>{const button=document.createElement('button');button.type='button';button.textContent=d.label;button.onclick=()=>setObjectReference(d.box,d.label);list.appendChild(button);});
+   $('objectInfo').textContent=objects.detections.length?'Objetos reconhecidos: '+objects.detections.map(d=>d.label).join(', ')+'. A identificação atualiza automaticamente.':'Nenhum objeto da lista do modelo reconhecido. Você pode marcar qualquer objeto manualmente.';
+  }catch{objects.error='A IA foi interrompida; marque a referência manualmente.';objects.engine?.close();objects.engine=null;$('objectInfo').textContent=objects.error;}
+ }
+ }}
+ const a=objects.anchor,state=$('anchorState');const text=a?`${a.label} · ${a.valid?a.direction:'fora da imagem · procurando'}`:objects.loading?'IA: carregando identificação automática…':objects.error?objects.error:objects.detections.length?'Identificados: '+objects.detections.map(d=>d.label+' '+Math.round(d.score*100)+'%').join(' · '):'IA: procurando objetos na câmera…';if(state.textContent!==text)state.textContent=text;
  if(!objectsOpen()||!vision.active||now-objects.drawAt<80)return;objects.drawAt=now;
  const v=$('visionVideo'),canvas=$('objectPreview');if(v.readyState<2)return;
  const w=640,h=Math.round(w*(v.videoHeight||480)/(v.videoWidth||640));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
@@ -542,13 +552,7 @@ function updateObjectUI(now){
  const rect=(box,label,color)=>{const x=(cameraFront()?1-box.x-box.width:box.x)*w,y=box.y*h;c.strokeStyle=color;c.lineWidth=3;c.strokeRect(x,y,box.width*w,box.height*h);c.font='16px system-ui';c.fillStyle='#092033dd';const width=c.measureText(label).width+12;c.fillRect(x,y,Math.min(width,w-x),24);c.fillStyle=color;c.fillText(label,x+5,y+18);};
  objects.detections.forEach(d=>rect(d.box,d.label,'#a4d0ff'));
  if(a?.valid)rect({x:a.box.x/a.width,y:a.box.y/a.height,width:a.box.width/a.width,height:a.box.height/a.height},a.label,'#75ffbe');
- if(objects.engine&&now-objects.lastDetect>700&&v.currentTime!==objects.lastFrame){
-  objects.lastDetect=now;objects.lastFrame=v.currentTime;
-  try{const result=objects.engine.detectForVideo(v,now);objects.detections=(result.detections||[]).map(d=>{const k=d.categories?.[0],b=d.boundingBox;return k&&b?{label:OBJECT_NAMES[k.categoryName]||k.displayName||k.categoryName,score:k.score,box:{x:b.originX/v.videoWidth,y:b.originY/v.videoHeight,width:b.width/v.videoWidth,height:b.height/v.videoHeight}}:null;}).filter(Boolean);
-   const list=$('objectList');list.replaceChildren();objects.detections.forEach(d=>{const button=document.createElement('button');button.type='button';button.textContent=d.label;button.onclick=()=>setObjectReference(d.box,d.label);list.appendChild(button);});
-   $('objectInfo').textContent=objects.detections.length?'Objetos reconhecidos: '+objects.detections.map(d=>d.label).join(', ')+'. Toque em um deles.':'Nenhum objeto da lista do modelo reconhecido. Você pode marcar qualquer objeto manualmente.';
-  }catch{objects.error='A IA foi interrompida; marque a referência manualmente.';objects.engine?.close();objects.engine=null;$('objectInfo').textContent=objects.error;}
- }
+
 }
 
 // BEGIN DIRECTION ESTIMATOR

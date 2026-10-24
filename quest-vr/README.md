@@ -103,13 +103,16 @@ foram observados. Precisão e conforto dependem do aparelho e do cenário.
 
 ## IA de objetos e referência visual
 
-1. Ative a câmera traseira e abra **Objetos / referência**.
+1. Ative a câmera traseira: a IA baixa e inicia automaticamente. Os nomes e
+   a confiança aparecem na tela e atualizam conforme você move a câmera,
+   mesmo com o painel **Objetos / referência** fechado.
 2. Você pode tocar em um objeto ou arrastar para marcar a área dele. Inclua
    bordas ou textura; uma região inteiramente lisa não permite acompanhar.
 3. Opcionalmente, escreva um nome, como **caixa**. A referência fica fixada
    e a interface indica câmera estimada à esquerda, direita, acima ou abaixo.
-4. O botão **Identificar objetos com IA** baixa um modelo EfficientDet Lite0
-   int8 e desenha os objetos reconhecidos. Escolha um pela imagem ou pela lista.
+4. O modelo EfficientDet Lite0 int8 identifica objetos automaticamente a cada
+   700 ms. Abra o painel para ver as caixas ou escolher uma referência.
+   **Recarregar IA de objetos** permite tentar novamente se o download falhar.
 5. Use **Limpar referência** para trocar de objeto; **Centralizar** renova o
    ponto de frente. Se o objeto sair da imagem, o sistema procura sua aparência
    novamente e continua pelo cenário quando esse acompanhamento estiver válido.
