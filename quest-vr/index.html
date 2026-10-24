@@ -1,0 +1,342 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#263b5b"><title>Horizon Web • VR Workspace</title><style>
+:root{color-scheme:dark;--text:#f3f5fa;--muted:#a5adbc;--panel:rgba(30,33,43,.96);--line:#ffffff12;--accent:#88b5ff}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;color:var(--text);background:#b8c4d8}button,input,select,textarea{font:inherit}button{cursor:pointer}button:focus-visible,[data-id]:focus-visible{outline:3px solid #99bcff;outline-offset:4px}button{color:inherit}#stage{position:fixed;inset:0;display:flex;background:#b7bed1}.eye{flex:1;position:relative;overflow:hidden;perspective:1100px;touch-action:none;background:radial-gradient(ellipse at 76% 21%,#fff3dd 0,transparent 31%),linear-gradient(180deg,#8e9cbb,#ccd1df 42%,#edf0eb 58%,#adbac5 58.2%,#6e8c9f 100%)}
+.eye:before{content:"";position:absolute;width:160%;height:80%;bottom:-48%;left:-30%;border-radius:50%;background:repeating-radial-gradient(ellipse at 50% 0%,#d9e1df66 0 1px,transparent 2px 32px);transform:rotate(-5deg)}.eye:after{content:"";position:absolute;left:-12%;bottom:38%;width:65%;height:18%;border-radius:60% 90% 0 0;background:linear-gradient(140deg,#788aa666,#7b8b9f11);filter:blur(1px);pointer-events:none}.eye[data-env=night]{background:radial-gradient(ellipse at 60% 15%,#7789d866,transparent 40%),linear-gradient(#121b36,#344c72 58%,#223d57 58.2%,#0c203b)}.eye[data-env=sunset]{background:radial-gradient(circle at 70% 37%,#fff1c3 0 3%,#ffc5ad66 4%,transparent 28%),linear-gradient(#9a8abb,#e2b0b5 57%,#bba8bc 57.2%,#717a9b)}.scenery{position:absolute;inset:0;background:inherit;filter:brightness(var(--scene-brightness,1));pointer-events:none}.world{z-index:1;position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d}.obj{position:absolute;left:0;top:0;transform-style:preserve-3d}.panel{background:var(--panel);border:1px solid #ffffff21;border-radius:26px;box-shadow:0 32px 95px #10253f45,0 2px 1px #ffffff08 inset;backdrop-filter:blur(30px);padding:28px}.window-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:23px}.window-header h1,.window-header h2{font-size:23px;font-weight:600;letter-spacing:-.7px;margin:0}.subtle{font-size:12px;color:var(--muted)}.icon{width:23px;height:23px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.round{display:grid;place-items:center;width:36px;height:36px;border:0;border-radius:50%;background:#ffffff0b;color:#c4cbd7}.head-actions{display:flex;align-items:center;gap:9px}.toolbar{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:23px}.tabs{display:flex;background:#ffffff08;padding:4px;border-radius:12px;gap:3px}.tab{border:0;border-radius:9px;background:transparent;padding:9px 16px;font-size:12px;color:var(--muted)}.tab.active{background:#535a6b;color:white;box-shadow:0 3px 8px #0002}.search{height:37px;display:flex;align-items:center;gap:9px;background:#ffffff08;border:1px solid #ffffff0b;border-radius:11px;padding:0 12px;color:#aab2bf;max-width:220px}.search .icon{width:16px}.search input{width:100%;background:none;color:white;border:0;outline:none;font-size:12px;min-width:0}.search:focus-within{border-color:#88b5ff}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:23px 17px}.tile{position:relative;border:0;background:none;text-align:left;padding:0;color:white;min-width:0;cursor:pointer;border-radius:15px}.app-art{height:108px;border-radius:17px;position:relative;overflow:hidden;display:grid;place-items:center;border:1px solid #ffffff13;background:var(--art);transition:transform .18s,box-shadow .18s}.app-art:before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 25% 0%,#ffffff38,transparent 65%)}.app-art .icon{width:43px;height:43px;filter:drop-shadow(0 8px 10px #0003);stroke-width:1.4;z-index:1}.tile-title{font-size:12px;display:block;margin-top:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tile-meta{display:block;font-size:10px;color:#9ca6b6;margin-top:4px}.hov .app-art,.tile:hover .app-art{transform:translateY(-3px);box-shadow:0 0 0 3px #a6caff,0 12px 24px #0004}.hov.btn,.hov.tab,.hov.round,.btn:hover{background:#667084;color:white}.badge{position:absolute;right:8px;top:8px;width:7px;height:7px;border-radius:50%;background:#95ceff;box-shadow:0 0 9px #95ceff66}.footer-line{display:flex;justify-content:space-between;border-top:1px solid var(--line);padding-top:18px;margin-top:23px;color:#9aa5b7;font-size:10px}.dock{display:flex;gap:8px;align-items:center;background:rgba(32,36,45,.97);padding:11px 14px;border:1px solid #ffffff23;border-radius:28px;box-shadow:0 20px 60px #10253f55;backdrop-filter:blur(22px)}.dock .btn{display:grid;place-items:center;width:47px;height:47px;border:0;background:#ffffff0a;border-radius:15px;padding:0;color:#c9d0de;transition:background .2s}.dock .btn.selected{color:#b8d4ff;background:#3e567d}.dock .btn.home{background:#3170dc;color:white}.divider{width:1px;height:29px;background:#ffffff18;margin:0 4px}.system-pill{display:flex;align-items:center;gap:10px;border:0;background:#ffffff09;border-radius:17px;padding:10px 13px;margin-right:4px;font-size:12px;white-space:nowrap}.system-pill .icon{width:17px;height:17px}.profile{background:linear-gradient(140deg,#a3bcf1,#7478a7)!important;color:#202c51!important;font-size:16px;font-weight:700}.btn{border:1px solid #ffffff12;background:#ffffff09;border-radius:13px;padding:12px 16px;color:#d8dfed}.row{display:flex;gap:14px;align-items:center;margin:18px 0}.row>span{flex:1;font-size:13px}.row small{display:block;color:var(--muted);margin-top:5px;font-size:11px}.row .btn{min-width:38px}.quick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:22px 0}.quick-item{display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:18px;min-height:93px;text-align:left;font-size:11px}.quick-item.enabled{background:#3766ae;border-color:#84acdf;color:white}.quick-item .icon{width:23px}.range-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid var(--line)}.range-row .icon{color:#a5afbf;width:18px}.range-row input{flex:1;min-width:0;accent-color:#a7caff}.range-row output{font-size:11px;color:#aeb9c9;min-width:34px}.intro-card{padding:23px;background:radial-gradient(ellipse at right,#a698de55,transparent 65%),linear-gradient(120deg,#303d61,#4b536f);border-radius:18px;margin-bottom:22px}.intro-card h2{font-size:25px;line-height:1.25;font-weight:500;margin:9px 0;letter-spacing:-.6px}.intro-card p{font-size:12px;color:#c4cfe3;line-height:1.7;margin:0;max-width:380px}.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:#c0d5ff}.environment-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}.environment{height:117px;display:flex;align-items:flex-end;padding:13px;border-radius:15px;border:2px solid transparent;font-size:12px;background:linear-gradient(#a1aec9,#e6e9e7 58%,#728da4 59%,#4e667e)}.environment.night{background:radial-gradient(circle at 70% 30%,#c4cfff 0 3%,transparent 4%),linear-gradient(#14203f,#4a6087 58%,#162e4b 59%)}.environment.sunset{background:linear-gradient(#8d87b5,#edb6ae 58%,#987d9a 59%)}.environment.chosen{border-color:#a6caff}.note-editor{width:100%;height:205px;resize:none;background:#151b26;border:1px solid #ffffff13;border-radius:13px;padding:16px;color:#e0e9fa;line-height:1.7;font-size:14px;outline:none;user-select:text}.note-editor:focus{border-color:#88b5ff}.empty[hidden]{display:none}.empty{grid-column:1/-1;text-align:center;padding:44px;color:#aebbd1;font-size:13px}.guide-list{display:grid;gap:13px}.guide-item{padding:15px;background:#ffffff05;border:1px solid var(--line);border-radius:13px;font-size:12px;line-height:1.7;color:#b7c2d3}.guide-item b{display:block;color:#e2e9f7;margin-bottom:4px}.welcome{position:fixed;left:27px;top:24px;z-index:8;pointer-events:none}.wordmark{font-size:18px;letter-spacing:-.6px;color:#33425f;display:flex;gap:8px;align-items:center}.wordmark .infinity{font-size:29px;line-height:1}.welcome small{color:#566781;font-size:10px;letter-spacing:1px;display:block;margin-top:4px}#ui{position:fixed;right:22px;top:23px;display:flex;gap:8px;flex-wrap:wrap;max-width:75vw;justify-content:flex-end;z-index:10}#ui button{min-height:37px;border:1px solid #ffffff75;border-radius:20px;background:#eef3fa88;color:#344463;font-size:11px;padding:9px 14px;backdrop-filter:blur(14px)}#ui button[aria-pressed=true]{background:#31588c;color:white;border-color:#6088b5}#ui #bVR{background:#263b5b;color:#f1f5ff;border-color:#263b5b}.vr #ui button:not(#bExit){display:none}.vr .welcome{display:none}.vr .eye+.eye{border-left:2px solid #000}.vr #ret{display:none}#bExit[hidden]{display:none}#status{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);padding:10px 18px;background:#23344ad9;border:1px solid #ffffff22;border-radius:20px;font-size:11px;color:#dce8fb;z-index:9;pointer-events:none;text-align:center;max-width:min(680px,94vw);width:max-content;backdrop-filter:blur(12px)}.vr #status{max-width:43vw;left:25%;font-size:10px}.r,#ret{position:absolute;width:20px;height:20px;margin:-10px;border:2px solid #fff;border-radius:50%;pointer-events:none;z-index:7;box-shadow:0 1px 10px #0007;background:conic-gradient(#91c6ff calc(var(--p,0)*1%),#23334c44 0)}#ret{position:fixed}.pinching #ret,.pinching .r{border-color:#8cface;box-shadow:0 0 18px #8cface88}#cv{position:fixed;right:18px;bottom:22px;width:130px;border-radius:15px;border:1px solid #ffffff80;opacity:.85;z-index:8;pointer-events:none}#cv:not([data-active]),.vr #cv{display:none}dialog{width:min(490px,92vw);max-height:85dvh;overflow:auto;background:#222936;border:1px solid #ffffff2b;border-radius:25px;color:#eff4ff;padding:27px;box-shadow:0 30px 120px #0007}dialog::backdrop{background:#131f3d88;backdrop-filter:blur(12px)}dialog h2{font-size:21px;letter-spacing:-.5px;margin:0 0 16px}dialog p{font-size:12px;line-height:1.7;color:#b1bdd2}dialog label{display:flex;align-items:center;gap:10px;margin:21px 0;font-size:12px}dialog input[type=range]{flex:1;min-width:30px;accent-color:#9ac5ff}dialog output{font-size:11px;min-width:45px}dialog select,dialog button{background:#394a68;border:1px solid #ffffff20;border-radius:10px;padding:10px;color:white}dialog .settings-close{width:100%}.sk{z-index:5;pointer-events:none}.eye .sk{position:absolute;inset:0;width:100%;height:100%}body[data-theme=night] .wordmark,body[data-theme=night] .welcome small{color:#dce5ff}.app-notice{font-size:11px;line-height:1.7;color:#aab7ce;margin:0 0 16px}.tile[hidden]{display:none}@media(max-width:650px){.welcome{top:17px;left:16px}.wordmark{font-size:16px}.welcome small{display:none}#ui{top:58px;right:12px;left:12px;max-width:none;justify-content:center;gap:5px}#ui button{padding:8px 11px;font-size:10px;min-height:32px}#status{font-size:10px;bottom:14px;padding:9px 13px}#cv{bottom:62px;width:95px}}@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+@media(max-width:650px){body:not(.vr) .panel{width:420px!important;padding:20px;max-height:550px;overflow-y:auto;scrollbar-width:thin;touch-action:pan-y}body:not(.vr) .grid{grid-template-columns:repeat(2,1fr);gap:19px 16px}body:not(.vr) .app-art{height:82px}body:not(.vr) .tile-title{font-size:14px}body:not(.vr) .tile-meta{font-size:11px}body:not(.vr) .toolbar{flex-wrap:wrap;gap:12px}body:not(.vr) .search{max-width:none;width:100%}body:not(.vr) .dock{margin-top:38px;padding:9px;gap:5px}body:not(.vr) .dock .btn{width:35px;height:35px;border-radius:11px}body:not(.vr) .dock .profile,body:not(.vr) .dock .divider{display:none}body:not(.vr) .system-pill{padding:8px;font-size:11px;gap:6px;margin:0}body:not(.vr) .eye{touch-action:pan-y}body:not(.vr) .quick-grid{grid-template-columns:repeat(2,1fr)}body:not(.vr) .environment-grid{grid-template-columns:1fr}body:not(.vr) .environment{height:90px}body:not(.vr) .intro-card h2{font-size:23px}}
+</style></head><body>
+<div class="welcome"><div class="wordmark"><span class="infinity">∞</span> horizon <b>web</b></div><small>SEU ESPAÇO. OUTRA PERSPECTIVA.</small></div><main id="stage" aria-label="Ambiente virtual"></main><div id="ret"></div><video id="cv" playsinline muted aria-label="Prévia local da câmera"></video>
+<nav id="ui" aria-label="Controles do ambiente"><button id="bCam">Ativar mãos</button><button id="bGyro">Ativar sensores</button><button id="bCenter">Centralizar</button><button id="bSettings">Conforto</button><button id="bVR">Entrar no VR Box</button><button id="bExit" hidden>Sair do VR</button></nav><div id="status" role="status" aria-live="polite">Arraste para explorar · clique para abrir · R para centralizar</div><dialog id="settings"><form method="dialog"><h2>Conforto e rastreamento</h2><p>Interface web inspirada em headsets VR. O VR Box usa tela dividida, sem rastreamento de posição ou passthrough estereoscópico.</p>
+<label>Câmera <select id="facing"><option value="environment">Traseira · VR Box</option><option value="user">Frontal · espelhada</option></select></label>
+<label>Sensibilidade <input id="sensitivity" type="range" min="0.5" max="1.8" step="0.1" value="1"><output id="sensitivityValue">1.0×</output></label>
+<label>Suavização <input id="smoothing" type="range" min="40" max="220" step="10" value="90"><output id="smoothingValue">90 ms</output></label>
+<label><input type="checkbox" id="dwellEnabled" checked> Selecionar ao manter o cursor parado</label>
+<label><input type="checkbox" id="showHands" checked> Mostrar articulações das mãos</label>
+<label>Seleção pelo olhar <input id="dwellTime" type="range" min="700" max="2400" step="100" value="1200"><output id="dwellValue">1.2 s</output></label>
+<label>Alcance da mão <input id="reachControl" type="range" min="1" max="2.4" step="0.1" value="1.6"><output id="reachValue">1.6×</output></label>
+<p>Aponte com o indicador. Junte polegar e indicador para selecionar; solte antes do próximo clique. Sem mãos, o cursor segue o centro da visão.</p>
+<p>Use HTTPS ou localhost. Câmera e sensores dependem de permissão. O modelo é baixado ao ativar; as imagens são processadas neste aparelho.</p>
+<button class="settings-close">Concluir</button></form></dialog>
+<script>
+'use strict';
+const S={reach:1.6,hand:false,hx:.5,hy:.5,d:520,dwell:1200,vr:false,apps:[],yaw:0,pitch:0,view:'library',filter:'all',env:'coast',brightness:100,note:'',recents:[]};
+const ICONS={grid:'<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',home:'<path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>',compass:'<circle cx="12" cy="12" r="9"/><path d="m16 8-3 5-5 3 3-5z"/>',settings:'<path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3" fill="currentColor"/><circle cx="16" cy="17" r="3" fill="currentColor"/>',note:'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5"/>',image:'<rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1.5"/><path d="m3 17 6-6 4 4 3-3 5 5"/>',hand:'<path d="M8 12V5a1.5 1.5 0 0 1 3 0v6-8a1.5 1.5 0 0 1 3 0v8-6a1.5 1.5 0 0 1 3 0v7-4a1.5 1.5 0 0 1 3 0v6c0 5-2 7-6 7h-1c-3 0-4-1-6-4l-3-4c-1-2 1-3 2-2l2 2"/>',globe:'<circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18M5 6h14M5 18h14"/>',moon:'<path d="M21 13A9 9 0 0 1 11 3a9 9 0 1 0 10 10Z"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1 1m12 12 1 1M5 19l1-1M18 6l1-1"/>',search:'<circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/>',close:'<path d="m6 6 12 12M18 6 6 18"/>',back:'<path d="m15 5-7 7 7 7"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7v.01"/>',center:'<path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/><circle cx="12" cy="12" r="3"/>',battery:'<rect x="2" y="7" width="17" height="10" rx="2"/><path d="M22 10v4M6 10v4m4-4v4m4-4v4"/>',check:'<path d="m5 12 4 4L19 6"/>',star:'<path d="m12 3 3 6 6 1-4.5 4.5 1 6.5-5.5-3-5.5 3 1-6.5L3 10l6-1z"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',headset:'<path d="M3 9c0-4 18-4 18 0v7c0 3-6 4-8 1l-1-1-1 1c-2 3-8 2-8-1Z"/><path d="M3 10h18"/>',bolt:'<path d="m13 2-9 12h7l-1 8 10-13h-7z"/>'};
+const icon=name=>`<svg class="icon" aria-hidden="true" viewBox="0 0 24 24">${ICONS[name]||ICONS.grid}</svg>`;
+const APPS=[['notes','Notas','note','#b78f69,#785c50','Escreva e salve neste aparelho'],['gallery','Ambientes','image','#6895a5,#49617c','Escolha seu cenário'],['guide','Primeiros passos','compass','#8e8bc8,#55518c','Domine mãos e movimentos'],['hands','Rastreamento','hand','#6eac9a,#33756a','Aponte. Faça uma pinça.'],['set','Configurações','settings','#739acb,#3d64a0','Seu espaço, do seu jeito'],['comfort','Conforto','headset','#a47cb5,#6c4c8c','Ajuste foco e movimento'],['focus','Modo foco','moon','#627da7,#344c77','Um ambiente mais tranquilo'],['about','Sobre este espaço','info','#6f869d,#435366','Recursos e compatibilidade']];
+const A=id=>APPS.find(a=>a[0]===id),COL=c=>`linear-gradient(135deg,${c})`;
+const escapeHTML=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pos=(angle,d,y=0)=>`transform:translate(-50%,-50%) rotateY(${angle}deg) translateZ(${-d}px) translateY(${y}px)`;
+function saveLocal(){try{localStorage.setItem('horizon-web-v2',JSON.stringify({env:S.env,note:S.note,recents:S.recents,d:S.d,dwell:S.dwell,reach:S.reach,brightness:S.brightness,prefs}));return true;}catch{tell('Armazenamento local indisponível. As mudanças ficam somente nesta sessão.');return false;}}
+function tile(a){return `<button class="tile" data-id="${a[0]}" data-app="${a[0]}" aria-label="Abrir ${a[1]}"><span class="app-art" style="--art:${COL(a[3])}">${icon(a[2])}${S.recents.includes(a[0])?'<span class="badge"></span>':''}</span><span class="tile-title">${a[1]}</span><span class="tile-meta">${a[0]==='hands'?'Requer câmera e internet':'Aplicativo web'}</span></button>`;}
+function header(title,subtitle=''){return `<div class="window-header"><div><h1>${title}</h1>${subtitle?`<span class="subtle">${subtitle}</span>`:''}</div><div class="head-actions">${S.view!=='library'?`<button class="round" data-id="library" aria-label="Voltar à biblioteca">${icon('back')}</button>`:''}<button class="round" data-id="comfort" aria-label="Abrir configurações de conforto">${icon('settings')}</button></div></div>`;}
+function environments(){return `<div class="environment-grid">${[['coast','Costa serena'],['sunset','Pôr do sol'],['night','Noite tranquila']].map(([id,title])=>`<button class="environment ${id} ${S.env===id?'chosen':''}" data-id="env-${id}" aria-pressed="${S.env===id}">${title}</button>`).join('')}</div>`;}
+function library(){const apps=S.filter==='recent'?S.recents.map(A).filter(Boolean):APPS;return header('Biblioteca de apps')+`<div class="toolbar"><div class="tabs"><button class="tab ${S.filter==='all'?'active':''}" data-id="filter-all">Todos <span class="subtle">${APPS.length}</span></button><button class="tab ${S.filter==='recent'?'active':''}" data-id="filter-recent">Recentes</button></div><label class="search">${icon('search')}<input class="library-search" placeholder="Buscar aplicativos" aria-label="Buscar aplicativos" autocomplete="off"></label></div><div class="grid">${apps.length?apps.map(tile).join(''):'<div class="empty">Seus aplicativos recentes aparecerão aqui.</div>'}</div><div class="footer-line"><span class="library-count">${apps.length} aplicativos</span><span>Instalados neste espaço · Web</span></div>`;}
+function quick(){return header('Configurações rápidas','Controles do ambiente web')+`<div class="quick-grid"><button class="btn quick-item ${hand.stream?'enabled':''}" data-id="hands">${icon('hand')}<span>Mãos · ${hand.stream?'câmera ativa':'desativadas'}</span></button><button class="btn quick-item ${motion.active?'enabled':''}" data-id="sensor">${icon('compass')}<span>Sensores · ${motion.active?'ativos':'desativados'}</span></button><button class="btn quick-item" data-id="rc">${icon('center')}<span>Centralizar visão</span></button><button class="btn quick-item ${S.vr?'enabled':''}" data-id="vr">${icon('headset')}<span>${S.vr?'Sair do VR Box':'Entrar no VR Box'}</span></button><button class="btn quick-item ${prefs.dwell?'enabled':''}" data-id="dwell-toggle">${icon('clock')}<span>Seleção por olhar</span></button><button class="btn quick-item" data-id="comfort">${icon('settings')}<span>Mais ajustes</span></button></div><label class="range-row">${icon('sun')}<span class="subtle">Luz do cenário</span><input class="brightness" type="range" min="35" max="110" value="${S.brightness}" aria-label="Luz do cenário"><output>${S.brightness}%</output></label><div class="row"><span>Distância dos painéis<small>${S.d} unidades</small></span><button class="btn" data-id="d-" aria-label="Aproximar painéis">−</button><button class="btn" data-id="d+" aria-label="Afastar painéis">+</button></div><p class="app-notice">Câmera e sensores exigem permissão. A luz altera o cenário, não o brilho físico da tela.</p>`;}
+function content(){
+ if(S.view==='library')return library();
+ if(S.view==='quick')return quick();
+ if(S.view==='home')return header('Seu espaço')+`<div class="intro-card"><span class="eyebrow">Bem-vindo de volta</span><h2>Um momento para<br>mudar de perspectiva.</h2><p>Abra sua biblioteca, encontre um cenário tranquilo e faça deste espaço o seu lugar.</p></div><div class="toolbar"><span class="subtle">Escolha o seu ambiente</span><button class="tab" data-id="library">Ver biblioteca →</button></div>${environments()}<div class="footer-line"><span>Processamento das mãos no aparelho</span><span>Interface independente · não oficial</span></div>`;
+ if(S.view==='gallery')return header('Ambientes','Um cenário para cada momento')+environments()+`<div class="intro-card" style="margin-top:22px;margin-bottom:0"><span class="eyebrow">Menos distrações</span><h2>Encontre seu ritmo.</h2><p>Ambientes gerados com CSS, sem downloads de imagens. Escolha um tema e ele será lembrado neste navegador.</p></div>`;
+ if(S.view==='notes')return header('Notas','Seu rascunho, salvo neste navegador')+`<textarea class="note-editor" maxlength="20000" placeholder="O que você quer criar hoje?" aria-label="Suas notas">${escapeHTML(S.note)}</textarea><div class="footer-line"><span class="note-status">Salvo localmente · sem sincronização</span><span class="note-count">${S.note.length}/20000</span></div>`;
+ if(S.view==='guide')return header('Primeiros passos')+`<div class="guide-list"><div class="guide-item"><b>01 · Olhe ao redor</b>Arraste com mouse ou dedo. No celular, ative os sensores, segure na posição de uso e centralize. R também centraliza.</div><div class="guide-item"><b>02 · Suas mãos são o controle</b>Ative as mãos, mostre a mão inteira e aponte com o indicador. Abra polegar e indicador antes de juntar os dois para selecionar.</div><div class="guide-item"><b>03 · Entre no VR Box</b>Coloque o celular na horizontal e ative a tela dividida. Cada olho recebe uma versão da interface. O botão Sair do VR permanece acessível.</div><div class="guide-item"><b>04 · Ajuste para você</b>Abra Conforto para sensibilidade, suavização, câmera frontal ou traseira e tempo de seleção.</div></div>`;
+ return header('Sobre este espaço')+`<div class="intro-card"><span class="eyebrow">Horizon Web · 2.0</span><h2>Uma interface espacial.<br>No seu navegador.</h2><p>Biblioteca, menu universal, notas, ambientes e controles de conforto inspirados em interfaces de headsets.</p></div><div class="guide-list"><div class="guide-item"><b>O que funciona aqui</b>Mãos com 21 landmarks, seleção por pinça, sensores de orientação, controles por toque e mouse e modo VR Box.</div><div class="guide-item"><b>Sobre o hardware</b>Sem câmeras de profundidade, controles Touch, rastreamento 6DoF ou passthrough estereoscópico. Este projeto é independente e não é software oficial Meta.</div></div>`;
+}
+function scene(){return `<section class="obj panel" style="width:670px;${pos(0,S.d,-22)}" aria-label="Janela principal">${content()}</section><nav class="obj dock" style="${pos(0,S.d*.85,278)}" aria-label="Menu universal"><button class="system-pill" data-id="quick" aria-label="Configurações rápidas">${icon('clock')}<span class="live-clock"></span></button><button class="btn profile" data-id="about" aria-label="Sobre este espaço">V</button><span class="divider"></span><button class="btn home ${S.view==='home'?'selected':''}" data-id="home" aria-label="Início">${icon('home')}</button><button class="btn ${S.view==='library'?'selected':''}" data-id="library" aria-label="Biblioteca">${icon('grid')}</button><button class="btn ${S.view==='gallery'?'selected':''}" data-id="gallery" aria-label="Ambientes">${icon('image')}</button><button class="btn ${S.view==='notes'?'selected':''}" data-id="notes" aria-label="Notas">${icon('note')}</button><span class="divider"></span><button class="btn ${S.view==='quick'?'selected':''}" data-id="quick" aria-label="Ajustes rápidos">${icon('settings')}</button><button class="btn" data-id="rc" aria-label="Centralizar visão">${icon('center')}</button></nav>`;}
+const stage=document.getElementById('stage');
+function updateClock(){const time=new Intl.DateTimeFormat('pt-BR',{hour:'2-digit',minute:'2-digit'}).format(new Date());document.querySelectorAll('.live-clock').forEach(el=>el.textContent=time);}
+function applyEnvironment(){document.body.dataset.theme=S.env;document.querySelectorAll('.eye').forEach(e=>{e.dataset.env=S.env;e.style.setProperty('--scene-brightness',S.brightness/100);});}
+function build(){stage.innerHTML='';for(let i=0;i<(S.vr?2:1);i++){const e=document.createElement('div');e.className='eye';e.innerHTML=`<div class="scenery" aria-hidden="true"></div><div class="world">${scene()}</div><svg class="sk" aria-hidden="true"></svg>${S.vr?'<div class="r"></div>':''}`;stage.appendChild(e);}document.body.classList.toggle('vr',S.vr);applyEnvironment();updateClock();size();}
+function size(){document.querySelectorAll('.eye').forEach((e,i)=>{const compact=!S.vr&&innerWidth<650;const desired=Math.max(.11,compact?Math.min(.85,(e.clientHeight-170)/760,(e.clientWidth-36)/460):Math.min(.92,e.clientHeight/760,e.clientWidth/750));const scale=desired/(1-desired*520/1100);const ex=S.vr?(i?-4:4):0;e.querySelector('.world').style.transform=`scale(${scale}) translateX(${ex}px) rotateX(${S.pitch}deg) rotateY(${S.yaw}deg)`;});}
+window.addEventListener('resize',size);
+async function enterVR(){S.vr=true;build();try{await document.documentElement.requestFullscreen?.();}catch{tell('Tela dividida ativa. A tela cheia não está disponível neste navegador.');}try{await screen.orientation?.lock?.('landscape');}catch{}resetSelection();}
+function act(id){
+ if(A(id)){S.recents=[id,...S.recents.filter(x=>x!==id)].slice(0,8);saveLocal();}
+ if(id==='vr'){if(S.vr)exitVR();else void enterVR();return;}
+ if(id==='rc'){recenter();return;}
+ if(id==='comfort'){document.getElementById('settings').showModal();resetSelection();return;}
+ if(id==='hands'){void startCamera().then(()=>{if(S.view==='quick')build();});return;}
+ if(id==='sensor'){void toggleSensors().then(()=>{if(S.view==='quick')build();});return;}
+ if(id==='dwell-toggle'){prefs.dwell=!prefs.dwell;document.getElementById('dwellEnabled').checked=prefs.dwell;saveLocal();build();return;}
+ if(id==='d-'||id==='d+'){S.d=clamp(S.d+(id==='d-'?-50:50),350,850);saveLocal();build();return;}
+ if(id.startsWith('env-')){const env=id.slice(4);if(!['coast','night','sunset'].includes(env))return;S.env=env;saveLocal();build();tell('Ambiente atualizado.');return;}
+ if(id.startsWith('filter-')){S.filter=id==='filter-recent'?'recent':'all';build();return;}
+ if(id==='focus'){S.env='night';S.view='home';saveLocal();build();tell('Modo foco: ambiente noturno ativado.');return;}
+ if(id==='set')id='quick';
+ if(['library','home','quick','notes','gallery','guide','about'].includes(id)){S.view=id;build();}
+}
+
+// Rastreamento por landmarks reais; não usa cor da pele nem movimento do fundo.
+const $=id=>document.getElementById(id), clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const aName=id=>A(id)?.[1]||id;
+const prefs={sensitivity:1,smoothing:90,dwell:true,hands:true,facing:'environment'};
+const motion={active:false,raw:null,base:null,lastHeading:null,unwrapped:0,targetYaw:0,targetPitch:0,offsetYaw:0,offsetPitch:0,lastAt:0};
+const hand={engine:null,loading:null,stream:null,starting:false,run:0,lastVideo:-1,lastInfer:0,lastSeen:0,acquired:0,candidateAt:0,points:[],primary:null,wrist:null,filters:[],pinched:false,pinchAt:0,releaseAt:0,armed:false,fps:24};
+const selection={id:null,since:0,fired:false,cooldown:0,source:'gaze'};
+const video=$('cv'), status=$('status');
+let lastStatus='',drag=null,suppressClickUntil=0,frameAt=performance.now(),modeChangedAt=0;
+function tell(message){if(message!==lastStatus){status.textContent=message;lastStatus=message;}}
+function resetSelection(){selection.id=null;selection.since=performance.now();selection.fired=false;}
+function clearHands(){S.hand=false;hand.points=[];hand.primary=null;hand.wrist=null;hand.filters=[];hand.candidateAt=0;hand.acquired=0;hand.lastSeen=0;hand.pinched=false;hand.pinchAt=0;hand.releaseAt=0;hand.armed=false;document.body.classList.remove('pinching');resetSelection();}
+const oldBuild=build;
+build=function(){oldBuild();resetSelection();document.querySelectorAll('[data-id]').forEach(n=>{n.setAttribute('role','button');n.tabIndex=0;if(!n.hasAttribute('aria-label'))n.setAttribute('aria-label',n.textContent.trim());});$('bExit').hidden=!S.vr;$('bVR').setAttribute('aria-pressed',String(S.vr));};
+const oldAct=act;
+act=function(id){if(!id)return;oldAct(id);};
+function activate(id,now=performance.now(),direct=false){
+ if(!id||(!direct&&now<selection.cooldown)||$('settings').open||document.hidden)return;
+ selection.cooldown=now+550;selection.fired=true;
+ act(id);refreshHover(id);selection.id=id;selection.since=now;selection.fired=true;
+ if(navigator.vibrate)navigator.vibrate(18);
+}
+function point(){const e=stage.firstElementChild.getBoundingClientRect();return [e.left+(S.hand?S.hx:.5)*e.width,e.top+(S.hand?S.hy:.5)*e.height];}
+function targetAt(x,y){
+ if($('settings').open||document.activeElement?.matches('input,textarea,select'))return null;
+ // Only the topmost painted element may select a target (no clicks through panels).
+ const hit=document.elementFromPoint(x,y);
+ return hit&&stage.contains(hit)?hit.closest('[data-id]')?.dataset.id||null:null;
+}
+function refreshHover(id){document.querySelectorAll('.hov').forEach(n=>n.classList.remove('hov'));if(id)document.querySelectorAll('[data-id]').forEach(n=>n.classList.toggle('hov',n.dataset.id===id));}
+stage.addEventListener('click',e=>{if(performance.now()<suppressClickUntil)return;const t=e.target.closest('[data-id]');if(t)activate(t.dataset.id,performance.now(),true);});
+stage.addEventListener('keydown',e=>{if(!e.target.closest('input,textarea,select')&&(e.key==='Enter'||e.key===' ')){const t=e.target.closest('[data-id]');if(t){e.preventDefault();activate(t.dataset.id,performance.now(),true);}}});
+
+// Filtro One Euro: estável em repouso e rápido durante o movimento.
+class OneEuro{
+ constructor(){this.value=null;this.raw=null;this.derivative=0;this.time=0;}
+ step(v,t){if(this.value===null){this.value=this.raw=v;this.time=t;return v;}
+ const dt=clamp((t-this.time)/1000,.001,.2),alpha=c=>1/(1+1/(2*Math.PI*c*dt));
+ this.derivative+=alpha(1)*((v-this.raw)/dt-this.derivative);
+ this.value+=alpha(1.4+.22*Math.abs(this.derivative))*(v-this.value);
+ this.raw=v;this.time=t;return this.value;
+ }
+}
+const CONNECTIONS=[[0,1,2,3,4],[0,5,6,7,8],[5,9,10,11,12],[9,13,14,15,16],[13,17,18,19,20],[0,17]];
+function distance(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
+async function loadHands(){
+ if(hand.engine)return hand.engine;
+ if(hand.loading)return hand.loading;
+ hand.loading=(async()=>{
+  tell('Carregando o rastreador de mãos… Na primeira vez, é necessário acesso à internet.');
+  const {FilesetResolver,HandLandmarker}=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/vision_bundle.mjs');
+  const files=await FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/wasm');
+  const options={baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task'},runningMode:'VIDEO',numHands:2,minHandDetectionConfidence:.65,minHandPresenceConfidence:.65,minTrackingConfidence:.65};
+  try{return await HandLandmarker.createFromOptions(files,{...options,baseOptions:{...options.baseOptions,delegate:'GPU'}});}
+  catch(gpuError){console.info('GPU indisponível; tentando CPU.',gpuError.name);return await HandLandmarker.createFromOptions(files,{...options,baseOptions:{...options.baseOptions,delegate:'CPU'}});}
+ })();
+ try{hand.engine=await hand.loading;return hand.engine;}finally{hand.loading=null;}
+}
+function stopCamera(message='Mãos desativadas. Você pode usar o olhar, o toque ou o mouse.'){
+ hand.run++;hand.stream?.getTracks().forEach(t=>t.stop());hand.stream=null;video.srcObject=null;video.removeAttribute('data-active');clearHands();$('bCam').textContent='Ativar mãos';$('bCam').setAttribute('aria-pressed','false');if(message)tell(message);
+}
+async function startCamera(){
+ if(hand.starting)return;
+ if(hand.stream){stopCamera();return;}
+ if(!isSecureContext||!navigator.mediaDevices?.getUserMedia){tell('A câmera precisa de HTTPS ou localhost e de um navegador compatível.');return;}
+ hand.starting=true;$('bCam').disabled=true;$('facing').disabled=true;const run=++hand.run;
+ let stream=null;
+ try{
+  tell('Autorize a câmera para rastrear suas mãos.');
+  stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:prefs.facing},width:{ideal:640},height:{ideal:480},frameRate:{ideal:30,max:30}}});
+  if(run!==hand.run){stream.getTracks().forEach(t=>t.stop());return;}
+  hand.stream=stream;video.srcObject=stream;video.style.transform=prefs.facing==='user'?'scaleX(-1)':'';await video.play();
+  await Promise.race([loadHands(),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Tempo excedido ao carregar o modelo')),45000))]);if(run!==hand.run)return;
+  video.setAttribute('data-active','');hand.lastVideo=-1;hand.lastInfer=0;hand.fps=24;
+  $('bCam').textContent='Desativar mãos';$('bCam').setAttribute('aria-pressed','true');
+  stream.getVideoTracks()[0]?.addEventListener('ended',()=>{if(hand.stream===stream)stopCamera('A câmera foi interrompida. Ative as mãos novamente.');},{once:true});
+  tell('Mostre a mão inteira para a câmera. Aponte com o indicador e faça uma pinça para selecionar.');
+ }catch(error){
+  stream?.getTracks().forEach(t=>t.stop());
+  if(run===hand.run){stopCamera('');const messages={NotAllowedError:'Permissão da câmera recusada. Libere a câmera nas configurações do navegador e tente novamente.',NotFoundError:'Nenhuma câmera encontrada. Use toque, mouse ou sensores.',NotReadableError:'A câmera está ocupada por outro aplicativo. Feche-o e tente novamente.',OverconstrainedError:'A câmera não aceita as opções solicitadas. Experimente a outra câmera nos ajustes.'};tell(messages[error.name]||'Não foi possível carregar o rastreador. Verifique a conexão e tente novamente.');console.error('Inicialização das mãos:',error);}
+ }finally{hand.starting=false;$('bCam').disabled=false;$('facing').disabled=false;}
+}
+function updateHands(now){
+ if(!hand.stream||!hand.engine||hand.starting||video.readyState<2||document.hidden)return;
+ if(now-hand.lastInfer<1000/hand.fps||video.currentTime===hand.lastVideo)return;
+ hand.lastVideo=video.currentTime;hand.lastInfer=now;
+ let result;const begin=performance.now();
+ try{result=hand.engine.detectForVideo(video,now);}catch(error){console.error(error);stopCamera('O rastreador foi interrompido. Ative as mãos para tentar novamente.');return;}
+ const spent=performance.now()-begin;if(spent>55)hand.fps=15;else if(spent<28)hand.fps=24;
+ const candidates=(result.landmarks||[]).filter(points=>points.length===21&&points.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.y))&&distance(points[0],points[9])>.035&&distance(points[0],points[9])<.85);
+ hand.points=candidates.map(ps=>ps.map(p=>({x:prefs.facing==='user'?1-p.x:p.x,y:p.y,z:p.z})));
+ if(!hand.points.length){hand.candidateAt=0;return;}
+ let index=0;
+ if(hand.wrist){let best=Infinity;hand.points.forEach((ps,i)=>{const d=distance(ps[0],hand.wrist);if(d<best){best=d;index=i;}});}
+ let primary=hand.points[index];
+ const jumped=hand.wrist&&distance(primary[0],hand.wrist)>.25;
+ if(jumped){hand.filters=[];hand.candidateAt=now;hand.acquired=0;hand.armed=false;hand.pinched=false;S.hand=false;resetSelection();}
+ hand.wrist={...primary[0]};hand.lastSeen=now;
+ if(!hand.candidateAt)hand.candidateAt=now;
+ if(now-hand.candidateAt<120)return;
+ if(!hand.acquired){hand.acquired=now;hand.filters=[];resetSelection();tell('Mão detectada · indicador para apontar · pinça para selecionar.');}
+ primary=primary.map((p,i)=>{if(!hand.filters[i])hand.filters[i]=[new OneEuro(),new OneEuro()];return {x:hand.filters[i][0].step(p.x,now),y:hand.filters[i][1].step(p.y,now),z:p.z};});
+ hand.points[index]=primary;hand.primary=primary;
+ const tip=primary[8];const x=clamp(.5+(tip.x-.5)*S.reach, .025,.975),y=clamp(.5+(tip.y-.5)*S.reach,.025,.975);
+ if(!S.hand){S.hx=x;S.hy=y;resetSelection();}else{const dt=clamp((now-(hand.pointerAt||now-40))/1000,.005,.2);const speed=1-Math.exp(-dt/(prefs.smoothing/1000));S.hx+=(x-S.hx)*speed;S.hy+=(y-S.hy)*speed;}
+ hand.pointerAt=now;S.hand=true;
+ // Pinch normalized by palm size: thresholds remain useful at different distances.
+ const scale=Math.max(.03,(distance(primary[0],primary[9])+distance(primary[5],primary[17]))/2);
+ const ratio=distance(primary[4],primary[8])/scale;
+ if(ratio>.48){hand.pinchAt=0;if(!hand.releaseAt)hand.releaseAt=now;if(now-hand.releaseAt>=110){hand.pinched=false;hand.armed=true;}}
+ else if(ratio<.29){hand.releaseAt=0;if(!hand.pinchAt)hand.pinchAt=now;
+  if(!hand.pinched&&hand.armed&&now-hand.pinchAt>=70&&now-hand.acquired>220){
+   hand.pinched=true;hand.armed=false;
+   const [x,y]=point(),id=targetAt(x,y);
+   if(id&&id===selection.id&&now-selection.since>=100&&!selection.fired)activate(id,now);
+  }
+ }else{hand.pinchAt=0;hand.releaseAt=0;}
+ document.body.classList.toggle('pinching',hand.pinched);
+}
+
+// DeviceOrientation -> quaternion -> viewing vector. Screen rotation is included.
+function multiply(a,b){return [a[0]*b[3]+a[3]*b[0]+a[1]*b[2]-a[2]*b[1],a[1]*b[3]+a[3]*b[1]+a[2]*b[0]-a[0]*b[2],a[2]*b[3]+a[3]*b[2]+a[0]*b[1]-a[1]*b[0],a[3]*b[3]-a[0]*b[0]-a[1]*b[1]-a[2]*b[2]];}
+function viewingAngles(alpha,beta,gamma,screenAngle=0){
+ const r=Math.PI/180,x=beta*r/2,y=alpha*r/2,z=-gamma*r/2;
+ const c1=Math.cos(x),c2=Math.cos(y),c3=Math.cos(z),s1=Math.sin(x),s2=Math.sin(y),s3=Math.sin(z);
+ let q=[s1*c2*c3+c1*s2*s3,c1*s2*c3-s1*c2*s3,c1*c2*s3-s1*s2*c3,c1*c2*c3+s1*s2*s3];
+ q=multiply(q,[-Math.SQRT1_2,0,0,Math.SQRT1_2]);q=multiply(q,[0,0,-Math.sin(screenAngle*r/2),Math.cos(screenAngle*r/2)]);
+ const [qx,qy,qz,qw]=q,fx=-2*(qx*qz+qw*qy),fy=2*(qw*qx-qy*qz),fz=-(1-2*(qx*qx+qy*qy));
+ return {heading:Math.atan2(-fx,-fz)/r,elevation:Math.asin(clamp(fy,-1,1))/r,horizontal:Math.hypot(fx,fz)};
+}
+const angleDelta=(a,b)=>((a-b+540)%360)-180;
+function onOrientation(e){
+ if(!motion.active||document.hidden||![e.alpha,e.beta,e.gamma].every(v=>typeof v==='number'&&Number.isFinite(v)))return;
+ const raw=viewingAngles(e.alpha,e.beta,e.gamma,screen.orientation?.angle??window.orientation??0);
+ if(raw.horizontal<.10)return; // Avoid unstable heading when pointing straight up/down.
+ if(motion.lastHeading===null)motion.unwrapped=raw.heading;else motion.unwrapped+=angleDelta(raw.heading,motion.lastHeading);
+ motion.lastHeading=raw.heading;motion.raw={heading:motion.unwrapped,elevation:raw.elevation};motion.lastAt=performance.now();
+ if(!motion.base){motion.base={...motion.raw};tell('Sensores ativos. Olhe para frente e use Centralizar sempre que precisar.');}
+ motion.targetYaw=motion.offsetYaw-(motion.raw.heading-motion.base.heading)*prefs.sensitivity;
+ motion.targetPitch=clamp(motion.offsetPitch+(motion.raw.elevation-motion.base.elevation)*prefs.sensitivity,-65,65);
+}
+async function toggleSensors(){
+ if(motion.active){motion.active=false;window.removeEventListener('deviceorientation',onOrientation);$('bGyro').textContent='Ativar sensores';$('bGyro').setAttribute('aria-pressed','false');tell('Sensores desativados. Arraste para olhar.');return;}
+ if(!('DeviceOrientationEvent' in window)){tell('Este aparelho não oferece sensores de orientação. Arraste para olhar.');return;}
+ try{
+  if(typeof DeviceOrientationEvent.requestPermission==='function'){
+   const permission=await DeviceOrientationEvent.requestPermission();if(permission!=='granted'){tell('Permissão dos sensores recusada. Você ainda pode arrastar para olhar.');return;}
+  }
+  motion.base=null;motion.lastHeading=null;motion.raw=null;motion.offsetYaw=S.yaw;motion.offsetPitch=S.pitch;motion.lastAt=performance.now();motion.active=true;
+  window.addEventListener('deviceorientation',onOrientation);$('bGyro').textContent='Desativar sensores';$('bGyro').setAttribute('aria-pressed','true');tell('Aguardando os sensores… mantenha o aparelho na posição de uso.');
+  setTimeout(()=>{if(motion.active&&!motion.raw)tell('Nenhum dado de orientação recebido. Verifique HTTPS e permissões ou use o arraste.');},4000);
+ }catch(error){tell('Toque no botão Ativar sensores para conceder permissão. Use HTTPS e verifique se o aparelho oferece orientação.');}
+}
+function recenter(){
+ motion.base=motion.raw?{...motion.raw}:null;motion.offsetYaw=motion.offsetPitch=motion.targetYaw=motion.targetPitch=0;S.yaw=S.pitch=0;resetSelection();size();tell('Visão centralizada.');
+}
+function screenChanged(){motion.base=null;motion.lastHeading=null;motion.offsetYaw=S.yaw;motion.offsetPitch=S.pitch;resetSelection();size();}
+screen.orientation?.addEventListener('change',screenChanged);window.addEventListener('orientationchange',screenChanged);
+
+// Drag is always available, including when sensors are active. Click is suppressed after dragging.
+stage.addEventListener('pointerdown',e=>{
+ if(e.button!==0||$('settings').open||e.target.closest('input,textarea,select')||(e.pointerType==='touch'&&!S.vr&&innerWidth<650&&e.target.closest('.panel')))return;
+ drag={id:e.pointerId,x:e.clientX,y:e.clientY,yaw:S.yaw,pitch:S.pitch,moved:false};resetSelection();
+});
+stage.addEventListener('pointermove',e=>{
+ if(!drag||drag.id!==e.pointerId)return;
+ const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.hypot(dx,dy)>6)drag.moved=true;
+ if(!drag.moved)return;
+ if(!stage.hasPointerCapture(e.pointerId))stage.setPointerCapture(e.pointerId);
+ S.yaw=drag.yaw-dx*.18*prefs.sensitivity;S.pitch=clamp(drag.pitch+dy*.18*prefs.sensitivity,-65,65);size();
+ if(motion.active){motion.offsetYaw=S.yaw;motion.offsetPitch=S.pitch;motion.base=motion.raw?{...motion.raw}:null;motion.targetYaw=S.yaw;motion.targetPitch=S.pitch;}
+});
+function endDrag(e){if(!drag||e.pointerId!==drag.id)return;if(drag.moved)suppressClickUntil=performance.now()+350;drag=null;resetSelection();}
+stage.addEventListener('pointerup',endDrag);stage.addEventListener('pointercancel',endDrag);stage.addEventListener('lostpointercapture',endDrag);
+window.addEventListener('keydown',e=>{
+ if($('settings').open||e.target.closest('input,textarea,select'))return;
+ if(e.key==='Escape'&&S.vr){exitVR();return;}
+ if(e.code==='KeyR'&&!e.repeat)recenter();
+ if(!motion.active&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)&&!e.target.closest('button,input,select,[data-id]')){e.preventDefault();S.yaw+=e.key==='ArrowLeft'?5:e.key==='ArrowRight'?-5:0;S.pitch=clamp(S.pitch+(e.key==='ArrowUp'?-5:e.key==='ArrowDown'?5:0),-65,65);resetSelection();size();}
+});
+function exitVR(){if(S.vr){S.vr=false;build();}if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});screen.orientation?.unlock?.();}
+$('bVR').onclick=()=>act('vr');$('bExit').onclick=exitVR;
+$('bCam').onclick=()=>act('hands');$('bGyro').onclick=()=>act('sensor');$('bCenter').onclick=recenter;
+$('bSettings').onclick=()=>{$('settings').showModal();resetSelection();};
+$('settings').addEventListener('close',()=>{saveLocal();resetSelection();if(S.view==='quick')build();});
+$('facing').onchange=async e=>{prefs.facing=e.target.value;if(hand.stream){stopCamera('');await startCamera();}};
+$('sensitivity').oninput=e=>{prefs.sensitivity=Number(e.target.value);$('sensitivityValue').value=prefs.sensitivity.toFixed(1)+'×';if(motion.raw){motion.base={...motion.raw};motion.offsetYaw=S.yaw;motion.offsetPitch=S.pitch;}};
+$('smoothing').oninput=e=>{prefs.smoothing=Number(e.target.value);$('smoothingValue').value=prefs.smoothing+' ms';};
+$('dwellEnabled').onchange=e=>{prefs.dwell=e.target.checked;resetSelection();};$('showHands').onchange=e=>prefs.hands=e.target.checked;
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&S.vr){S.vr=false;build();}});
+document.addEventListener('visibilitychange',()=>{hand.stream?.getVideoTracks().forEach(t=>t.enabled=!document.hidden);clearHands();drag=null;frameAt=performance.now();if(!document.hidden){motion.base=null;motion.lastHeading=null;motion.offsetYaw=S.yaw;motion.offsetPitch=S.pitch;}});
+window.addEventListener('pagehide',()=>{stopCamera('');motion.active=false;window.removeEventListener('deviceorientation',onOrientation);hand.engine?.close();hand.engine=null;});
+
+// Reuse SVG nodes instead of rebuilding the skeleton on every display frame.
+const svgNS='http://www.w3.org/2000/svg';
+function svgNode(type,attrs){const n=document.createElementNS(svgNS,type);for(const [k,v]of Object.entries(attrs))n.setAttribute(k,v);return n;}
+function renderHands(){
+ document.querySelectorAll('.eye').forEach(eye=>{
+  const svg=eye.querySelector('.sk');const visible=prefs.hands&&S.hand&&hand.primary;
+  svg.style.display=visible?'':'none';if(!visible)return;
+  svg.setAttribute('viewBox','0 0 1000 1000');svg.setAttribute('preserveAspectRatio','none');
+  if(!svg.children.length){for(let j=0;j<2;j++){const group=svgNode('g',{});CONNECTIONS.forEach(()=>group.appendChild(svgNode('polyline',{fill:'none',stroke:j?'#b9a2ff':'#7fe0ff','stroke-width':4,'stroke-linecap':'round','stroke-linejoin':'round','vector-effect':'non-scaling-stroke'})));for(let k=0;k<21;k++)group.appendChild(svgNode('circle',{r:5,fill:k===8||k===4?'#5fffb1':'#fff'}));svg.appendChild(group);}}
+  [...svg.children].forEach((group,j)=>{const points=hand.points[j];group.style.display=points?'':'none';if(!points)return;
+   const map=p=>[(.5+(p.x-.5)*S.reach)*1000,(.5+(p.y-.5)*S.reach)*1000];
+   CONNECTIONS.forEach((chain,k)=>group.children[k].setAttribute('points',chain.map(i=>map(points[i]).join(',')).join(' ')));
+   points.forEach((p,k)=>{const [x,y]=map(p),circle=group.children[CONNECTIONS.length+k];circle.setAttribute('cx',x);circle.setAttribute('cy',y);});
+  });
+ });
+}
+function tick(now){
+ const dt=clamp((now-frameAt)/1000,.001,.06);frameAt=now;
+ if(!document.hidden){
+  if(motion.active&&motion.raw&&!drag&&now-motion.lastAt<1000){const a=1-Math.exp(-dt/(prefs.smoothing/1000));S.yaw+=(motion.targetYaw-S.yaw)*a;S.pitch+=(motion.targetPitch-S.pitch)*a;size();}
+  updateHands(now);
+  if(S.hand&&now-hand.lastSeen>180){clearHands();tell('Mão fora de vista. O cursor voltou ao olhar.');}
+  const source=S.hand?'hand':'gaze';if(source!==selection.source){selection.source=source;modeChangedAt=now;resetSelection();}
+  const [x,y]=point();const fresh=!S.hand||now-hand.lastSeen<120;
+  const id=!drag&&!$('settings').open&&fresh?targetAt(x,y):null;
+  if(id!==selection.id){selection.id=id;selection.since=now;selection.fired=false;refreshHover(id);}
+  const stable=now-modeChangedAt>300;
+  const progress=id&&prefs.dwell&&(motion.active||S.hand)&&!selection.fired&&stable?clamp((now-selection.since)/S.dwell,0,1):0;
+  if(progress>=1)activate(id,now);
+  const ret=$('ret');ret.style.left=x+'px';ret.style.top=y+'px';ret.style.setProperty('--p',progress*100);
+  document.querySelectorAll('.eye .r').forEach(r=>{r.style.left=(S.hand?S.hx*100:50)+'%';r.style.top=(S.hand?S.hy*100:50)+'%';r.style.setProperty('--p',progress*100);});
+  renderHands();
+ }
+ requestAnimationFrame(tick);
+}
+
+// Persist only user preferences and notes, never camera frames or permission grants.
+try{
+ const saved=JSON.parse(localStorage.getItem('horizon-web-v2')||'null');
+ if(saved&&typeof saved==='object'){
+  if(['coast','sunset','night'].includes(saved.env))S.env=saved.env;
+  if(typeof saved.note==='string')S.note=saved.note.slice(0,20000);
+  if(Array.isArray(saved.recents))S.recents=[...new Set(saved.recents.filter(id=>typeof id==='string'&&A(id)))].slice(0,8);
+  for(const [key,min,max]of [['d',350,850],['dwell',700,2400],['reach',1,2.4],['brightness',35,110]])if(typeof saved[key]==='number'&&Number.isFinite(saved[key]))S[key]=clamp(saved[key],min,max);
+  const p=saved.prefs;if(p&&typeof p==='object'){
+   for(const key of ['dwell','hands'])if(typeof p[key]==='boolean')prefs[key]=p[key];
+   if(['user','environment'].includes(p.facing))prefs.facing=p.facing;
+   if(typeof p.sensitivity==='number'&&Number.isFinite(p.sensitivity))prefs.sensitivity=clamp(p.sensitivity,.5,1.8);
+   if(typeof p.smoothing==='number'&&Number.isFinite(p.smoothing))prefs.smoothing=clamp(p.smoothing,40,220);
+  }
+ }
+}catch{ /* Blocked storage or an invalid saved value does not prevent startup. */ }
+$('facing').value=prefs.facing;$('sensitivity').value=prefs.sensitivity;$('sensitivityValue').value=prefs.sensitivity.toFixed(1)+'×';$('smoothing').value=prefs.smoothing;$('smoothingValue').value=prefs.smoothing+' ms';$('dwellEnabled').checked=prefs.dwell;$('showHands').checked=prefs.hands;$('dwellTime').value=S.dwell;$('dwellValue').value=(S.dwell/1000).toFixed(1)+' s';$('reachControl').value=S.reach;$('reachValue').value=S.reach.toFixed(1)+'×';
+$('dwellTime').oninput=e=>{S.dwell=Number(e.target.value);$('dwellValue').value=(S.dwell/1000).toFixed(1)+' s';resetSelection();};
+$('reachControl').oninput=e=>{S.reach=Number(e.target.value);$('reachValue').value=S.reach.toFixed(1)+'×';clearHands();};
+const normalized=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
+let noteTimer=null;
+stage.addEventListener('input',e=>{
+ if(e.target.matches('.library-search')){
+  const query=normalized(e.target.value.trim());
+  document.querySelectorAll('.eye').forEach(eye=>{
+   const input=eye.querySelector('.library-search');if(input&&input!==e.target)input.value=e.target.value;
+   let count=0;eye.querySelectorAll('[data-app]').forEach(tile=>{const a=A(tile.dataset.app);tile.hidden=!normalized(a[1]+' '+a[4]).includes(query);if(!tile.hidden)count++;});
+   const grid=eye.querySelector('.grid');if(grid){let empty=grid.querySelector('.search-empty');if(!empty){empty=document.createElement('div');empty.className='empty search-empty';empty.textContent='Nenhum aplicativo encontrado.';grid.appendChild(empty);}empty.hidden=count>0;}
+   const counter=eye.querySelector('.library-count');if(counter)counter.textContent=count+' aplicativos';
+  });resetSelection();
+ }
+ if(e.target.matches('.note-editor')){
+  S.note=e.target.value.slice(0,20000);document.querySelectorAll('.note-editor').forEach(n=>{if(n!==e.target)n.value=S.note;});
+  document.querySelectorAll('.note-count').forEach(n=>n.textContent=S.note.length+'/20000');
+  document.querySelectorAll('.note-status').forEach(n=>n.textContent='Salvando…');
+  clearTimeout(noteTimer);noteTimer=setTimeout(()=>{const ok=saveLocal();document.querySelectorAll('.note-status').forEach(n=>n.textContent=ok?'Salvo localmente · sem sincronização':'Sem armazenamento · texto apenas nesta sessão');},400);
+ }
+ if(e.target.matches('.brightness')){
+  S.brightness=Number(e.target.value);document.querySelectorAll('.brightness').forEach(n=>{n.value=S.brightness;n.nextElementSibling.textContent=S.brightness+'%';});applyEnvironment();saveLocal();
+ }
+});
+stage.addEventListener('focusin',e=>{if(e.target.matches('input,textarea,select'))resetSelection();});
+window.addEventListener('pagehide',()=>{clearTimeout(noteTimer);saveLocal();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(noteTimer);saveLocal();}});
+setInterval(updateClock,15000);
+build();requestAnimationFrame(tick);
+</script></body></html>
