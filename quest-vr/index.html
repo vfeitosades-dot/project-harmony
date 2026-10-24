@@ -3,12 +3,18 @@
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;color:var(--text);background:#b8c4d8}button,input,select,textarea{font:inherit}button{cursor:pointer}button:focus-visible,[data-id]:focus-visible{outline:3px solid #99bcff;outline-offset:4px}button{color:inherit}#stage{position:fixed;inset:0;display:flex;background:#b7bed1}.eye{flex:1;position:relative;overflow:hidden;perspective:1100px;touch-action:none;background:radial-gradient(ellipse at 76% 21%,#fff3dd 0,transparent 31%),linear-gradient(180deg,#8e9cbb,#ccd1df 42%,#edf0eb 58%,#adbac5 58.2%,#6e8c9f 100%)}
 .eye:before{content:"";position:absolute;width:160%;height:80%;bottom:-48%;left:-30%;border-radius:50%;background:repeating-radial-gradient(ellipse at 50% 0%,#d9e1df66 0 1px,transparent 2px 32px);transform:rotate(-5deg)}.eye:after{content:"";position:absolute;left:-12%;bottom:38%;width:65%;height:18%;border-radius:60% 90% 0 0;background:linear-gradient(140deg,#788aa666,#7b8b9f11);filter:blur(1px);pointer-events:none}.eye[data-env=night]{background:radial-gradient(ellipse at 60% 15%,#7789d866,transparent 40%),linear-gradient(#121b36,#344c72 58%,#223d57 58.2%,#0c203b)}.eye[data-env=sunset]{background:radial-gradient(circle at 70% 37%,#fff1c3 0 3%,#ffc5ad66 4%,transparent 28%),linear-gradient(#9a8abb,#e2b0b5 57%,#bba8bc 57.2%,#717a9b)}.scenery{position:absolute;inset:0;background:inherit;filter:brightness(var(--scene-brightness,1));pointer-events:none}.world{z-index:1;position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d}.obj{position:absolute;left:0;top:0;transform-style:preserve-3d}.panel{background:var(--panel);border:1px solid #ffffff21;border-radius:26px;box-shadow:0 32px 95px #10253f45,0 2px 1px #ffffff08 inset;backdrop-filter:blur(30px);padding:28px}.window-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:23px}.window-header h1,.window-header h2{font-size:23px;font-weight:600;letter-spacing:-.7px;margin:0}.subtle{font-size:12px;color:var(--muted)}.icon{width:23px;height:23px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.round{display:grid;place-items:center;width:36px;height:36px;border:0;border-radius:50%;background:#ffffff0b;color:#c4cbd7}.head-actions{display:flex;align-items:center;gap:9px}.toolbar{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:23px}.tabs{display:flex;background:#ffffff08;padding:4px;border-radius:12px;gap:3px}.tab{border:0;border-radius:9px;background:transparent;padding:9px 16px;font-size:12px;color:var(--muted)}.tab.active{background:#535a6b;color:white;box-shadow:0 3px 8px #0002}.search{height:37px;display:flex;align-items:center;gap:9px;background:#ffffff08;border:1px solid #ffffff0b;border-radius:11px;padding:0 12px;color:#aab2bf;max-width:220px}.search .icon{width:16px}.search input{width:100%;background:none;color:white;border:0;outline:none;font-size:12px;min-width:0}.search:focus-within{border-color:#88b5ff}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:23px 17px}.tile{position:relative;border:0;background:none;text-align:left;padding:0;color:white;min-width:0;cursor:pointer;border-radius:15px}.app-art{height:108px;border-radius:17px;position:relative;overflow:hidden;display:grid;place-items:center;border:1px solid #ffffff13;background:var(--art);transition:transform .18s,box-shadow .18s}.app-art:before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 25% 0%,#ffffff38,transparent 65%)}.app-art .icon{width:43px;height:43px;filter:drop-shadow(0 8px 10px #0003);stroke-width:1.4;z-index:1}.tile-title{font-size:12px;display:block;margin-top:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tile-meta{display:block;font-size:10px;color:#9ca6b6;margin-top:4px}.hov .app-art,.tile:hover .app-art{transform:translateY(-3px);box-shadow:0 0 0 3px #a6caff,0 12px 24px #0004}.hov.btn,.hov.tab,.hov.round,.btn:hover{background:#667084;color:white}.badge{position:absolute;right:8px;top:8px;width:7px;height:7px;border-radius:50%;background:#95ceff;box-shadow:0 0 9px #95ceff66}.footer-line{display:flex;justify-content:space-between;border-top:1px solid var(--line);padding-top:18px;margin-top:23px;color:#9aa5b7;font-size:10px}.dock{display:flex;gap:8px;align-items:center;background:rgba(32,36,45,.97);padding:11px 14px;border:1px solid #ffffff23;border-radius:28px;box-shadow:0 20px 60px #10253f55;backdrop-filter:blur(22px)}.dock .btn{display:grid;place-items:center;width:47px;height:47px;border:0;background:#ffffff0a;border-radius:15px;padding:0;color:#c9d0de;transition:background .2s}.dock .btn.selected{color:#b8d4ff;background:#3e567d}.dock .btn.home{background:#3170dc;color:white}.divider{width:1px;height:29px;background:#ffffff18;margin:0 4px}.system-pill{display:flex;align-items:center;gap:10px;border:0;background:#ffffff09;border-radius:17px;padding:10px 13px;margin-right:4px;font-size:12px;white-space:nowrap}.system-pill .icon{width:17px;height:17px}.profile{background:linear-gradient(140deg,#a3bcf1,#7478a7)!important;color:#202c51!important;font-size:16px;font-weight:700}.btn{border:1px solid #ffffff12;background:#ffffff09;border-radius:13px;padding:12px 16px;color:#d8dfed}.row{display:flex;gap:14px;align-items:center;margin:18px 0}.row>span{flex:1;font-size:13px}.row small{display:block;color:var(--muted);margin-top:5px;font-size:11px}.row .btn{min-width:38px}.quick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:22px 0}.quick-item{display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:18px;min-height:93px;text-align:left;font-size:11px}.quick-item.enabled{background:#3766ae;border-color:#84acdf;color:white}.quick-item .icon{width:23px}.range-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid var(--line)}.range-row .icon{color:#a5afbf;width:18px}.range-row input{flex:1;min-width:0;accent-color:#a7caff}.range-row output{font-size:11px;color:#aeb9c9;min-width:34px}.intro-card{padding:23px;background:radial-gradient(ellipse at right,#a698de55,transparent 65%),linear-gradient(120deg,#303d61,#4b536f);border-radius:18px;margin-bottom:22px}.intro-card h2{font-size:25px;line-height:1.25;font-weight:500;margin:9px 0;letter-spacing:-.6px}.intro-card p{font-size:12px;color:#c4cfe3;line-height:1.7;margin:0;max-width:380px}.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:#c0d5ff}.environment-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}.environment{height:117px;display:flex;align-items:flex-end;padding:13px;border-radius:15px;border:2px solid transparent;font-size:12px;background:linear-gradient(#a1aec9,#e6e9e7 58%,#728da4 59%,#4e667e)}.environment.night{background:radial-gradient(circle at 70% 30%,#c4cfff 0 3%,transparent 4%),linear-gradient(#14203f,#4a6087 58%,#162e4b 59%)}.environment.sunset{background:linear-gradient(#8d87b5,#edb6ae 58%,#987d9a 59%)}.environment.chosen{border-color:#a6caff}.note-editor{width:100%;height:205px;resize:none;background:#151b26;border:1px solid #ffffff13;border-radius:13px;padding:16px;color:#e0e9fa;line-height:1.7;font-size:14px;outline:none;user-select:text}.note-editor:focus{border-color:#88b5ff}.empty[hidden]{display:none}.empty{grid-column:1/-1;text-align:center;padding:44px;color:#aebbd1;font-size:13px}.guide-list{display:grid;gap:13px}.guide-item{padding:15px;background:#ffffff05;border:1px solid var(--line);border-radius:13px;font-size:12px;line-height:1.7;color:#b7c2d3}.guide-item b{display:block;color:#e2e9f7;margin-bottom:4px}.welcome{position:fixed;left:27px;top:24px;z-index:8;pointer-events:none}.wordmark{font-size:18px;letter-spacing:-.6px;color:#33425f;display:flex;gap:8px;align-items:center}.wordmark .infinity{font-size:29px;line-height:1}.welcome small{color:#566781;font-size:10px;letter-spacing:1px;display:block;margin-top:4px}#ui{position:fixed;right:22px;top:23px;display:flex;gap:8px;flex-wrap:wrap;max-width:75vw;justify-content:flex-end;z-index:10}#ui button{min-height:37px;border:1px solid #ffffff75;border-radius:20px;background:#eef3fa88;color:#344463;font-size:11px;padding:9px 14px;backdrop-filter:blur(14px)}#ui button[aria-pressed=true]{background:#31588c;color:white;border-color:#6088b5}#ui #bVR{background:#263b5b;color:#f1f5ff;border-color:#263b5b}.vr #ui button:not(#bExit){display:none}.vr .welcome{display:none}.vr .eye+.eye{border-left:2px solid #000}.vr #ret{display:none}#bExit[hidden]{display:none}#status{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);padding:10px 18px;background:#23344ad9;border:1px solid #ffffff22;border-radius:20px;font-size:11px;color:#dce8fb;z-index:9;pointer-events:none;text-align:center;max-width:min(680px,94vw);width:max-content;backdrop-filter:blur(12px)}.vr #status{max-width:43vw;left:25%;font-size:10px}.r,#ret{position:absolute;width:20px;height:20px;margin:-10px;border:2px solid #fff;border-radius:50%;pointer-events:none;z-index:7;box-shadow:0 1px 10px #0007;background:conic-gradient(#91c6ff calc(var(--p,0)*1%),#23334c44 0)}#ret{position:fixed}.pinching #ret,.pinching .r{border-color:#8cface;box-shadow:0 0 18px #8cface88}#cv{position:fixed;right:18px;bottom:22px;width:130px;border-radius:15px;border:1px solid #ffffff80;opacity:.85;z-index:8;pointer-events:none}#cv:not([data-active]),.vr #cv{display:none}dialog{width:min(490px,92vw);max-height:85dvh;overflow:auto;background:#222936;border:1px solid #ffffff2b;border-radius:25px;color:#eff4ff;padding:27px;box-shadow:0 30px 120px #0007}dialog::backdrop{background:#131f3d88;backdrop-filter:blur(12px)}dialog h2{font-size:21px;letter-spacing:-.5px;margin:0 0 16px}dialog p{font-size:12px;line-height:1.7;color:#b1bdd2}dialog label{display:flex;align-items:center;gap:10px;margin:21px 0;font-size:12px}dialog input[type=range]{flex:1;min-width:30px;accent-color:#9ac5ff}dialog output{font-size:11px;min-width:45px}dialog select,dialog button{background:#394a68;border:1px solid #ffffff20;border-radius:10px;padding:10px;color:white}dialog .settings-close{width:100%}.sk{z-index:5;pointer-events:none}.eye .sk{position:absolute;inset:0;width:100%;height:100%}body[data-theme=night] .wordmark,body[data-theme=night] .welcome small{color:#dce5ff}.app-notice{font-size:11px;line-height:1.7;color:#aab7ce;margin:0 0 16px}.tile[hidden]{display:none}@media(max-width:650px){.welcome{top:17px;left:16px}.wordmark{font-size:16px}.welcome small{display:none}#ui{top:58px;right:12px;left:12px;max-width:none;justify-content:center;gap:5px}#ui button{padding:8px 11px;font-size:10px;min-height:32px}#status{font-size:10px;bottom:14px;padding:9px 13px}#cv{bottom:62px;width:95px}}@media(prefers-reduced-motion:reduce){*{transition:none!important}}
 @media(max-width:650px){body:not(.vr) .panel{width:420px!important;padding:20px;max-height:550px;overflow-y:auto;scrollbar-width:thin;touch-action:pan-y}body:not(.vr) .grid{grid-template-columns:repeat(2,1fr);gap:19px 16px}body:not(.vr) .app-art{height:82px}body:not(.vr) .tile-title{font-size:14px}body:not(.vr) .tile-meta{font-size:11px}body:not(.vr) .toolbar{flex-wrap:wrap;gap:12px}body:not(.vr) .search{max-width:none;width:100%}body:not(.vr) .dock{margin-top:38px;padding:9px;gap:5px}body:not(.vr) .dock .btn{width:35px;height:35px;border-radius:11px}body:not(.vr) .dock .profile,body:not(.vr) .dock .divider{display:none}body:not(.vr) .system-pill{padding:8px;font-size:11px;gap:6px;margin:0}body:not(.vr) .eye{touch-action:pan-y}body:not(.vr) .quick-grid{grid-template-columns:repeat(2,1fr)}body:not(.vr) .environment-grid{grid-template-columns:1fr}body:not(.vr) .environment{height:90px}body:not(.vr) .intro-card h2{font-size:23px}}
-</style></head><body>
+.direction-controls{margin:24px 0;padding:16px;border:1px solid #ffffff20;border-radius:16px}.direction-controls legend{font-size:13px;color:#bed7ff;padding:0 7px}.direction-controls label{margin:14px 0}.direction-controls p{font-size:11px}.direction-controls button{width:100%}#orientationHealth{font-variant-numeric:tabular-nums;min-height:32px;margin-bottom:0}</style></head><body>
 <div class="welcome"><div class="wordmark"><span class="infinity">∞</span> horizon <b>web</b></div><small>SEU ESPAÇO. OUTRA PERSPECTIVA.</small></div><main id="stage" aria-label="Ambiente virtual"></main><div id="ret"></div><video id="cv" playsinline muted aria-label="Prévia local da câmera"></video>
 <nav id="ui" aria-label="Controles do ambiente"><button id="bCam">Ativar mãos</button><button id="bGyro">Ativar sensores</button><button id="bCenter">Centralizar</button><button id="bSettings">Conforto</button><button id="bVR">Entrar no VR Box</button><button id="bExit" hidden>Sair do VR</button></nav><div id="status" role="status" aria-live="polite">Arraste para explorar · clique para abrir · R para centralizar</div><dialog id="settings"><form method="dialog"><h2>Conforto e rastreamento</h2><p>Interface web inspirada em headsets VR. O VR Box usa tela dividida, sem rastreamento de posição ou passthrough estereoscópico.</p>
 <label>Câmera <select id="facing"><option value="environment">Traseira · VR Box</option><option value="user">Frontal · espelhada</option></select></label>
 <label>Sensibilidade <input id="sensitivity" type="range" min="0.5" max="1.8" step="0.1" value="1"><output id="sensitivityValue">1.0×</output></label>
 <label>Suavização <input id="smoothing" type="range" min="40" max="220" step="10" value="90"><output id="smoothingValue">90 ms</output></label>
+<fieldset class="direction-controls"><legend>Assistente de direção · IA local</legend>
+<label><input id="directionAI" type="checkbox" checked> Assistente adaptativo</label>
+<p>Aprendizado online: mede o ruído e ajusta os pesos de três previsores durante o uso. Não baixa modelos, não usa câmera e não envia dados. Não substitui os sensores do aparelho.</p>
+<label>Antecipação <input id="prediction" type="range" min="0" max="35" step="1" value="18"><output id="predictionValue">18 ms</output></label>
+<button id="calibrateDirection" type="button">Calibrar estabilidade</button>
+<p id="orientationHealth" role="status" aria-live="polite">Sensores desligados</p></fieldset>
 <label><input type="checkbox" id="dwellEnabled" checked> Selecionar ao manter o cursor parado</label>
 <label><input type="checkbox" id="showHands" checked> Mostrar articulações das mãos</label>
 <label>Seleção pelo olhar <input id="dwellTime" type="range" min="700" max="2400" step="100" value="1200"><output id="dwellValue">1.2 s</output></label>
@@ -67,8 +73,8 @@ function act(id){
 // Rastreamento por landmarks reais; não usa cor da pele nem movimento do fundo.
 const $=id=>document.getElementById(id), clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const aName=id=>A(id)?.[1]||id;
-const prefs={sensitivity:1,smoothing:90,dwell:true,hands:true,facing:'environment'};
-const motion={active:false,raw:null,base:null,lastHeading:null,unwrapped:0,targetYaw:0,targetPitch:0,offsetYaw:0,offsetPitch:0,lastAt:0};
+const prefs={sensitivity:1,smoothing:90,dwell:true,hands:true,facing:'environment',directionAI:true,prediction:18};
+const motion={active:false,raw:null,base:null,lastHeading:null,unwrapped:0,targetYaw:0,targetPitch:0,offsetYaw:0,offsetPitch:0,lastAt:0,gyroAt:-Infinity,gyroSpeed:0,healthAt:0,calibration:null,starting:false,session:0,pole:false};
 const hand={engine:null,loading:null,stream:null,starting:false,run:0,lastVideo:-1,lastInfer:0,lastSeen:0,acquired:0,candidateAt:0,points:[],primary:null,wrist:null,filters:[],pinched:false,pinchAt:0,releaseAt:0,armed:false,fps:24};
 const selection={id:null,since:0,fired:false,cooldown:0,source:'gaze'};
 const video=$('cv'), status=$('status');
@@ -195,32 +201,189 @@ function viewingAngles(alpha,beta,gamma,screenAngle=0){
  return {heading:Math.atan2(-fx,-fz)/r,elevation:Math.asin(clamp(fy,-1,1))/r,horizontal:Math.hypot(fx,fz)};
 }
 const angleDelta=(a,b)=>((a-b+540)%360)-180;
+// BEGIN DIRECTION ESTIMATOR
+// Online mixture of predictors: hold, constant velocity and damped velocity.
+// Learns prediction errors and sensor noise in this session; no remote model.
+class DirectionAssistant{
+ constructor(){this.reset(0,0);}
+ reset(yaw=0,pitch=0,time=null){
+  this.yaw=yaw;this.pitch=pitch;this.time=time;this.velocity=[0,0];this.history=[];
+  this.noise=.25;this.weights=[.34,.33,.33];this.previous=null;this.rejected=0;
+  this.pending=null;this.correction=[0,0];this.restSince=null;this.stationary=false;
+  this.reversing=false;this.gyroQuiet=false;this.hz=0;this.confidence='aguardando';this.lastDt=1/60;
+ }
+ sample(yaw,pitch,time,{gyro=null,smoothing=90,adaptive=true}={}){
+  if(![yaw,pitch,time].every(Number.isFinite))return false;
+  let values=[yaw-this.correction[0],pitch-this.correction[1]];
+  if(this.time===null){[this.yaw,this.pitch]=values;this.time=time;this.previous={values,velocity:[0,0]};this.history=[{values,time}];return true;}
+  const elapsed=(time-this.time)/1000;if(elapsed<=0)return false;
+  if(elapsed>.3){const noise=this.noise;this.reset(this.yaw,this.pitch);this.noise=noise;return this.sample(yaw,pitch,time,{gyro,smoothing,adaptive});}
+  const dt=Math.max(1/240,Math.min(.1,elapsed));
+  const delta=Math.hypot(values[0]-this.yaw,values[1]-this.pitch);
+  const predicted=[this.yaw+this.velocity[0]*dt,this.pitch+this.velocity[1]*dt];
+  const innovation=Math.hypot(values[0]-predicted[0],values[1]-predicted[1]);
+  const gyroFresh=Number.isFinite(gyro),quietGyro=gyroFresh&&gyro<1.2;this.gyroQuiet=quietGyro;
+  const gate=Math.max(12,this.noise*8,gyroFresh?gyro*dt*2+4:650*dt);
+  if(adaptive&&innovation>gate){
+   this.rejected++;
+   if(this.pending&&Math.hypot(values[0]-this.pending.values[0],values[1]-this.pending.values[1])<3)this.pending.count++;
+   else this.pending={values:[...values],count:1};
+   if(this.pending.count<3)return false;
+   if(quietGyro){
+    // A persistent compass step while the gyroscope is still: preserve the view.
+    this.correction[0]+=values[0]-this.yaw;this.correction[1]+=values[1]-this.pitch;
+    values=[this.yaw,this.pitch];
+   }else{
+    // Sustained new pose without corroborating stillness is allowed, not erased.
+    this.history=[];this.velocity=[0,0];
+   }
+  }
+  this.pending=null;
+  this.hz=this.hz?this.hz*.9+.1/elapsed:1/elapsed;this.lastDt=dt;
+  this.history.push({values:[...values],time});
+  while(this.history.length>7||this.history.length>2&&time-this.history[0].time>110)this.history.shift();
+  const previous=this.previous;
+  if(previous){
+   const step=[values[0]-previous.values[0],values[1]-previous.values[1]];
+   if(Math.hypot(...step)>Math.max(.12,this.noise*1.2)){
+    this.reversing=step[0]*this.velocity[0]+step[1]*this.velocity[1]<0;
+    if(this.reversing&&gyroFresh&&gyro>15)this.history=this.history.slice(-3);
+   }
+  }
+  if(previous&&adaptive){
+   const factors=[0,1,.55],losses=factors.map(f=>{
+    const ey=values[0]-(previous.values[0]+previous.velocity[0]*dt*f);
+    const ep=values[1]-(previous.values[1]+previous.velocity[1]*dt*f);
+    return Math.min(16,(ey*ey+ep*ep)/Math.max(.08,this.noise*this.noise*2));
+   });
+   this.weights=this.weights.map((w,i)=>.015+w*Math.exp(-.09*losses[i]));
+   const total=this.weights.reduce((a,b)=>a+b,0);this.weights=this.weights.map(w=>w/total);
+  }
+  // Least-squares trend over a short window is less noisy than a two-frame derivative.
+  const origin=this.history[0].time;
+  const meanT=this.history.reduce((a,p)=>a+(p.time-origin)/1000,0)/this.history.length;
+  const means=[0,1].map(k=>this.history.reduce((a,p)=>a+p.values[k],0)/this.history.length);
+  let denom=0,numerator=[0,0];
+  for(const p of this.history){const t=(p.time-origin)/1000-meanT;denom+=t*t;for(let k=0;k<2;k++)numerator[k]+=t*(p.values[k]-means[k]);}
+  const trend=numerator.map(n=>denom>1e-8?n/denom:0),speed=Math.hypot(...trend);
+  if(previous&&(quietGyro||!gyroFresh&&speed<4)){
+   const residual=Math.hypot(values[0]-previous.values[0],values[1]-previous.values[1])/Math.SQRT2;
+   const a=1-Math.exp(-dt/1.4);this.noise+=a*(Math.max(.015,Math.min(3,residual))-this.noise);
+  }
+  if(quietGyro&&speed<8&&delta<Math.max(.9,this.noise*4)){
+   if(this.restSince===null)this.restSince=time;
+   this.stationary=time-this.restSince>450;
+  }else{this.restSince=null;this.stationary=false;}
+  const va=1-Math.exp(-dt/.035);
+  this.velocity=this.velocity.map((v,k)=>this.stationary?0:v+va*(Math.max(-650,Math.min(650,trend[k]))-v));
+  const movement=quietGyro?0:gyroFresh?Math.max(speed,gyro*.7):Math.max(0,speed-this.noise*25);
+  const tau=adaptive?Math.max(.006,(smoothing/1000)*(quietGyro?1.8:Math.max(.8,Math.min(1.8,1+this.noise)))/(1+movement/15)):smoothing/1000;
+  const alpha=1-Math.exp(-dt/tau);
+  this.yaw+=alpha*(values[0]-this.yaw);this.pitch+=alpha*(values[1]-this.pitch);
+  this.previous={values:[...values],velocity:[...this.velocity]};this.time=time;
+  this.confidence=this.stationary?'estável':movement>10?'em movimento':'ajustando';
+  return true;
+ }
+ pose(now,{prediction=18,adaptive=true}={}){
+  const age=this.time===null?Infinity:Math.max(0,(now-this.time)/1000);
+  // Stop prediction quickly when samples stop; no unbounded extrapolation.
+  const horizon=adaptive&&prediction>0&&!this.reversing&&!this.stationary&&!this.gyroQuiet&&age<.08?Math.min(.035,prediction/1000+Math.min(age,this.lastDt)):0;
+  const factor=this.weights[1]+.55*this.weights[2];
+  const project=v=>Math.max(-2,Math.min(2,v*horizon*factor));
+  return {yaw:this.yaw+project(this.velocity[0]),pitch:this.pitch+project(this.velocity[1]),speed:Math.hypot(...this.velocity),fresh:age<.18};
+ }
+}
+// END DIRECTION ESTIMATOR
+
+const direction=new DirectionAssistant();
+function gyroSpeedAt(now){return now-motion.gyroAt<150?motion.gyroSpeed:null;}
+function onMotion(e){
+ if(!motion.active||document.hidden)return;
+ const r=e.rotationRate;if(!r||![r.alpha,r.beta,r.gamma].every(v=>typeof v==='number'&&Number.isFinite(v)))return;
+ motion.gyroSpeed=Math.hypot(r.alpha,r.beta,r.gamma);motion.gyroAt=performance.now();
+}
+function resetDirection(preserve=true,forgetRaw=false){
+ motion.offsetYaw=preserve?S.yaw:0;motion.offsetPitch=preserve?S.pitch:0;
+ motion.targetYaw=motion.offsetYaw;motion.targetPitch=motion.offsetPitch;
+ motion.base=!forgetRaw&&motion.raw?{...motion.raw}:null;
+ if(forgetRaw){motion.lastHeading=null;motion.raw=null;motion.pole=false;}
+ motion.calibration=null;
+ const learned={noise:direction.noise,weights:[...direction.weights],rejected:direction.rejected};
+ direction.reset(motion.offsetYaw,motion.offsetPitch);
+ direction.noise=learned.noise;direction.weights=learned.weights;direction.rejected=learned.rejected;
+ motion.gyroAt=-Infinity;resetSelection();
+}
+function updateDirectionHealth(now){
+ if(now-motion.healthAt<400)return;motion.healthAt=now;
+ const out=$('orientationHealth');if(!out)return;
+ const stale=!motion.raw||now-motion.lastAt>300;
+ out.textContent=!motion.active?'Sensores desligados':motion.calibration?'Calibrando · mantenha o aparelho parado':stale?'Aguardando sinal dos sensores':`${prefs.directionAI?'Assistente local':'Filtro básico'} · ${Math.round(direction.hz)||'—'} Hz · ${direction.confidence} · ${direction.rejected} saltos filtrados`;
+}
+function calibrateDirection(){
+ if(!motion.active||!motion.raw){tell('Ative os sensores e aguarde o sinal antes de calibrar.');return;}
+ motion.calibration={started:performance.now(),samples:[]};resetSelection();
+ tell('Calibração: olhe para frente e mantenha o aparelho parado por um segundo.');
+}
+function collectCalibration(now){
+ const c=motion.calibration;if(!c)return;
+ if(now-c.started>7000){motion.calibration=null;tell('A calibração não encontrou um intervalo estável. Apoie o aparelho e tente novamente.');return;}
+ const gyro=gyroSpeedAt(now);if(gyro!==null&&gyro>3){c.samples=[];return;}
+ c.samples.push({...motion.raw,time:now});
+ const first=c.samples[0];
+ if(Math.abs(motion.raw.heading-first.heading)>.8||Math.abs(motion.raw.elevation-first.elevation)>.8){c.samples=[{...motion.raw,time:now}];return;}
+ if(c.samples.length<12||now-first.time<800)return;
+ const mean=key=>c.samples.reduce((s,p)=>s+p[key],0)/c.samples.length;
+ const heading=mean('heading'),elevation=mean('elevation');
+ const noise=Math.sqrt(c.samples.reduce((s,p)=>s+(p.heading-heading)**2+(p.elevation-elevation)**2,0)/(2*c.samples.length));
+ motion.base={heading,elevation};motion.offsetYaw=motion.offsetPitch=motion.targetYaw=motion.targetPitch=0;
+ S.yaw=S.pitch=0;direction.reset(0,0);direction.noise=clamp(noise,.015,3);motion.calibration=null;
+ resetSelection();size();tell('Calibração concluída. Centro definido e ruído medido neste aparelho.');
+}
 function onOrientation(e){
  if(!motion.active||document.hidden||![e.alpha,e.beta,e.gamma].every(v=>typeof v==='number'&&Number.isFinite(v)))return;
+ const now=performance.now();
+ if(motion.raw&&now-motion.lastAt>300)resetDirection(true,true);
  const raw=viewingAngles(e.alpha,e.beta,e.gamma,screen.orientation?.angle??window.orientation??0);
- if(raw.horizontal<.10)return; // Avoid unstable heading when pointing straight up/down.
- if(motion.lastHeading===null)motion.unwrapped=raw.heading;else motion.unwrapped+=angleDelta(raw.heading,motion.lastHeading);
- motion.lastHeading=raw.heading;motion.raw={heading:motion.unwrapped,elevation:raw.elevation};motion.lastAt=performance.now();
- if(!motion.base){motion.base={...motion.raw};tell('Sensores ativos. Olhe para frente e use Centralizar sempre que precisar.');}
+ // Heading becomes undefined at the poles; still track elevation without inventing yaw.
+ if(raw.horizontal<.12){motion.pole=true;raw.heading=motion.lastHeading??raw.heading;}
+ else if(motion.pole){motion.lastHeading=raw.heading;motion.pole=false;}
+ if(motion.lastHeading===null)motion.unwrapped=raw.heading;
+ else motion.unwrapped+=angleDelta(raw.heading,motion.lastHeading);
+ motion.lastHeading=raw.heading;motion.raw={heading:motion.unwrapped,elevation:raw.elevation};motion.lastAt=now;
+ if(!motion.base){motion.base={...motion.raw};tell('Sensores ativos. O assistente ajusta o filtro; use Calibrar para medir o ruído em repouso.');}
+ if(drag?.moved){motion.base={...motion.raw};motion.offsetYaw=S.yaw;motion.offsetPitch=S.pitch;direction.reset(S.yaw,S.pitch);}
  motion.targetYaw=motion.offsetYaw-(motion.raw.heading-motion.base.heading)*prefs.sensitivity;
- motion.targetPitch=clamp(motion.offsetPitch+(motion.raw.elevation-motion.base.elevation)*prefs.sensitivity,-65,65);
+ motion.targetPitch=clamp(motion.offsetPitch+(motion.raw.elevation-motion.base.elevation)*prefs.sensitivity,-75,75);
+ direction.sample(motion.targetYaw,motion.targetPitch,now,{gyro:gyroSpeedAt(now),smoothing:prefs.smoothing,adaptive:prefs.directionAI});
+ collectCalibration(now);
+}
+function stopSensors(message=true){
+ motion.session++;motion.active=false;motion.calibration=null;
+ window.removeEventListener('deviceorientation',onOrientation);window.removeEventListener('devicemotion',onMotion);
+ resetDirection(true,true);$('bGyro').textContent='Ativar sensores';$('bGyro').setAttribute('aria-pressed','false');
+ if(message)tell('Sensores desativados. Arraste para olhar.');
 }
 async function toggleSensors(){
- if(motion.active){motion.active=false;window.removeEventListener('deviceorientation',onOrientation);$('bGyro').textContent='Ativar sensores';$('bGyro').setAttribute('aria-pressed','false');tell('Sensores desativados. Arraste para olhar.');return;}
+ if(motion.starting)return;
+ if(motion.active){stopSensors();return;}
  if(!('DeviceOrientationEvent' in window)){tell('Este aparelho não oferece sensores de orientação. Arraste para olhar.');return;}
+ motion.starting=true;$('bGyro').disabled=true;const requestSession=++motion.session;
  try{
-  if(typeof DeviceOrientationEvent.requestPermission==='function'){
-   const permission=await DeviceOrientationEvent.requestPermission();if(permission!=='granted'){tell('Permissão dos sensores recusada. Você ainda pode arrastar para olhar.');return;}
-  }
-  motion.base=null;motion.lastHeading=null;motion.raw=null;motion.offsetYaw=S.yaw;motion.offsetPitch=S.pitch;motion.lastAt=performance.now();motion.active=true;
-  window.addEventListener('deviceorientation',onOrientation);$('bGyro').textContent='Desativar sensores';$('bGyro').setAttribute('aria-pressed','true');tell('Aguardando os sensores… mantenha o aparelho na posição de uso.');
-  setTimeout(()=>{if(motion.active&&!motion.raw)tell('Nenhum dado de orientação recebido. Verifique HTTPS e permissões ou use o arraste.');},4000);
- }catch(error){tell('Toque no botão Ativar sensores para conceder permissão. Use HTTPS e verifique se o aparelho oferece orientação.');}
+  // Start both requests in the original user gesture (required by iOS).
+  const request=type=>{try{return typeof type?.requestPermission==='function'?type.requestPermission():Promise.resolve('granted');}catch(error){return Promise.reject(error);}};
+  const results=await Promise.allSettled([request(window.DeviceOrientationEvent),request(window.DeviceMotionEvent)]);
+  if(requestSession!==motion.session)return;
+  if(results[0].status!=='fulfilled'||results[0].value!=='granted'){tell('Permissão de orientação recusada. Você pode continuar arrastando para olhar.');return;}
+  resetDirection(true,true);motion.lastAt=performance.now();motion.active=true;const session=requestSession;
+  window.addEventListener('deviceorientation',onOrientation);
+  if(results[1].status==='fulfilled'&&results[1].value==='granted')window.addEventListener('devicemotion',onMotion);
+  $('bGyro').textContent='Desativar sensores';$('bGyro').setAttribute('aria-pressed','true');tell('Aguardando orientação. O giroscópio auxilia a detecção de repouso quando disponível.');
+  setTimeout(()=>{if(motion.active&&motion.session===session&&!motion.raw)tell('Nenhum dado de orientação recebido. Verifique HTTPS e permissões ou use o arraste.');},4000);
+ }catch{tell('Toque em Ativar sensores para conceder permissão. Use HTTPS e um aparelho com sensores.');}
+ finally{motion.starting=false;$('bGyro').disabled=false;}
 }
-function recenter(){
- motion.base=motion.raw?{...motion.raw}:null;motion.offsetYaw=motion.offsetPitch=motion.targetYaw=motion.targetPitch=0;S.yaw=S.pitch=0;resetSelection();size();tell('Visão centralizada.');
-}
-function screenChanged(){motion.base=null;motion.lastHeading=null;motion.offsetYaw=S.yaw;motion.offsetPitch=S.pitch;resetSelection();size();}
+function recenter(){resetDirection(false);S.yaw=S.pitch=0;size();tell('Visão centralizada.');}
+function screenChanged(){resetDirection(true,true);size();}
 screen.orientation?.addEventListener('change',screenChanged);window.addEventListener('orientationchange',screenChanged);
 
 // Drag is always available, including when sensors are active. Click is suppressed after dragging.
@@ -233,8 +396,8 @@ stage.addEventListener('pointermove',e=>{
  const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.hypot(dx,dy)>6)drag.moved=true;
  if(!drag.moved)return;
  if(!stage.hasPointerCapture(e.pointerId))stage.setPointerCapture(e.pointerId);
- S.yaw=drag.yaw-dx*.18*prefs.sensitivity;S.pitch=clamp(drag.pitch+dy*.18*prefs.sensitivity,-65,65);size();
- if(motion.active){motion.offsetYaw=S.yaw;motion.offsetPitch=S.pitch;motion.base=motion.raw?{...motion.raw}:null;motion.targetYaw=S.yaw;motion.targetPitch=S.pitch;}
+ S.yaw=drag.yaw-dx*.18*prefs.sensitivity;S.pitch=clamp(drag.pitch+dy*.18*prefs.sensitivity,-75,75);size();
+ if(motion.active)resetDirection(true);
 });
 function endDrag(e){if(!drag||e.pointerId!==drag.id)return;if(drag.moved)suppressClickUntil=performance.now()+350;drag=null;resetSelection();}
 stage.addEventListener('pointerup',endDrag);stage.addEventListener('pointercancel',endDrag);stage.addEventListener('lostpointercapture',endDrag);
@@ -242,7 +405,7 @@ window.addEventListener('keydown',e=>{
  if($('settings').open||e.target.closest('input,textarea,select'))return;
  if(e.key==='Escape'&&S.vr){exitVR();return;}
  if(e.code==='KeyR'&&!e.repeat)recenter();
- if(!motion.active&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)&&!e.target.closest('button,input,select,[data-id]')){e.preventDefault();S.yaw+=e.key==='ArrowLeft'?5:e.key==='ArrowRight'?-5:0;S.pitch=clamp(S.pitch+(e.key==='ArrowUp'?-5:e.key==='ArrowDown'?5:0),-65,65);resetSelection();size();}
+ if(!motion.active&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)&&!e.target.closest('button,input,select,[data-id]')){e.preventDefault();S.yaw+=e.key==='ArrowLeft'?5:e.key==='ArrowRight'?-5:0;S.pitch=clamp(S.pitch+(e.key==='ArrowUp'?-5:e.key==='ArrowDown'?5:0),-75,75);resetSelection();size();}
 });
 function exitVR(){if(S.vr){S.vr=false;build();}if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});screen.orientation?.unlock?.();}
 $('bVR').onclick=()=>act('vr');$('bExit').onclick=exitVR;
@@ -250,12 +413,12 @@ $('bCam').onclick=()=>act('hands');$('bGyro').onclick=()=>act('sensor');$('bCent
 $('bSettings').onclick=()=>{$('settings').showModal();resetSelection();};
 $('settings').addEventListener('close',()=>{saveLocal();resetSelection();if(S.view==='quick')build();});
 $('facing').onchange=async e=>{prefs.facing=e.target.value;if(hand.stream){stopCamera('');await startCamera();}};
-$('sensitivity').oninput=e=>{prefs.sensitivity=Number(e.target.value);$('sensitivityValue').value=prefs.sensitivity.toFixed(1)+'×';if(motion.raw){motion.base={...motion.raw};motion.offsetYaw=S.yaw;motion.offsetPitch=S.pitch;}};
+$('sensitivity').oninput=e=>{prefs.sensitivity=Number(e.target.value);$('sensitivityValue').value=prefs.sensitivity.toFixed(1)+'×';if(motion.raw)resetDirection(true);};
 $('smoothing').oninput=e=>{prefs.smoothing=Number(e.target.value);$('smoothingValue').value=prefs.smoothing+' ms';};
 $('dwellEnabled').onchange=e=>{prefs.dwell=e.target.checked;resetSelection();};$('showHands').onchange=e=>prefs.hands=e.target.checked;
 document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&S.vr){S.vr=false;build();}});
-document.addEventListener('visibilitychange',()=>{hand.stream?.getVideoTracks().forEach(t=>t.enabled=!document.hidden);clearHands();drag=null;frameAt=performance.now();if(!document.hidden){motion.base=null;motion.lastHeading=null;motion.offsetYaw=S.yaw;motion.offsetPitch=S.pitch;}});
-window.addEventListener('pagehide',()=>{stopCamera('');motion.active=false;window.removeEventListener('deviceorientation',onOrientation);hand.engine?.close();hand.engine=null;});
+document.addEventListener('visibilitychange',()=>{hand.stream?.getVideoTracks().forEach(t=>t.enabled=!document.hidden);clearHands();drag=null;frameAt=performance.now();resetDirection(true,true);});
+window.addEventListener('pagehide',()=>{stopCamera('');stopSensors(false);hand.engine?.close();hand.engine=null;});
 
 // Reuse SVG nodes instead of rebuilding the skeleton on every display frame.
 const svgNS='http://www.w3.org/2000/svg';
@@ -276,15 +439,27 @@ function renderHands(){
 function tick(now){
  const dt=clamp((now-frameAt)/1000,.001,.06);frameAt=now;
  if(!document.hidden){
-  if(motion.active&&motion.raw&&!drag&&now-motion.lastAt<1000){const a=1-Math.exp(-dt/(prefs.smoothing/1000));S.yaw+=(motion.targetYaw-S.yaw)*a;S.pitch+=(motion.targetPitch-S.pitch)*a;size();}
+  if(motion.active&&motion.raw&&!drag&&!motion.calibration){
+   const pose=direction.pose(now,{prediction:prefs.prediction,adaptive:prefs.directionAI});
+   if(pose.fresh){
+    // The estimator already smooths sensor noise; only a short display interpolation remains.
+    const a=1-Math.exp(-dt/.012),maxStep=720*dt;
+    S.yaw+=clamp((pose.yaw-S.yaw)*a,-maxStep,maxStep);
+    S.pitch=clamp(S.pitch+clamp((pose.pitch-S.pitch)*a,-maxStep,maxStep),-75,75);size();
+   }
+  }
+  if(motion.calibration&&now-motion.calibration.started>7000){motion.calibration=null;tell('Calibração sem sinal estável. Tente novamente com o aparelho parado.');}
+  updateDirectionHealth(now);
   updateHands(now);
   if(S.hand&&now-hand.lastSeen>180){clearHands();tell('Mão fora de vista. O cursor voltou ao olhar.');}
   const source=S.hand?'hand':'gaze';if(source!==selection.source){selection.source=source;modeChangedAt=now;resetSelection();}
   const [x,y]=point();const fresh=!S.hand||now-hand.lastSeen<120;
   const id=!drag&&!$('settings').open&&fresh?targetAt(x,y):null;
   if(id!==selection.id){selection.id=id;selection.since=now;selection.fired=false;refreshHover(id);}
+  const gazeReady=motion.active&&motion.raw&&now-motion.lastAt<180&&!motion.calibration&&Math.hypot(...direction.velocity)<25;
   const stable=now-modeChangedAt>300;
-  const progress=id&&prefs.dwell&&(motion.active||S.hand)&&!selection.fired&&stable?clamp((now-selection.since)/S.dwell,0,1):0;
+  if(!S.hand&&!gazeReady)selection.since=now;
+  const progress=id&&prefs.dwell&&(gazeReady||S.hand)&&!selection.fired&&stable?clamp((now-selection.since)/S.dwell,0,1):0;
   if(progress>=1)activate(id,now);
   const ret=$('ret');ret.style.left=x+'px';ret.style.top=y+'px';ret.style.setProperty('--p',progress*100);
   document.querySelectorAll('.eye .r').forEach(r=>{r.style.left=(S.hand?S.hx*100:50)+'%';r.style.top=(S.hand?S.hy*100:50)+'%';r.style.setProperty('--p',progress*100);});
@@ -302,13 +477,18 @@ try{
   if(Array.isArray(saved.recents))S.recents=[...new Set(saved.recents.filter(id=>typeof id==='string'&&A(id)))].slice(0,8);
   for(const [key,min,max]of [['d',350,850],['dwell',700,2400],['reach',1,2.4],['brightness',35,110]])if(typeof saved[key]==='number'&&Number.isFinite(saved[key]))S[key]=clamp(saved[key],min,max);
   const p=saved.prefs;if(p&&typeof p==='object'){
-   for(const key of ['dwell','hands'])if(typeof p[key]==='boolean')prefs[key]=p[key];
+   for(const key of ['dwell','hands','directionAI'])if(typeof p[key]==='boolean')prefs[key]=p[key];
    if(['user','environment'].includes(p.facing))prefs.facing=p.facing;
    if(typeof p.sensitivity==='number'&&Number.isFinite(p.sensitivity))prefs.sensitivity=clamp(p.sensitivity,.5,1.8);
+   if(typeof p.prediction==='number'&&Number.isFinite(p.prediction))prefs.prediction=clamp(p.prediction,0,35);
    if(typeof p.smoothing==='number'&&Number.isFinite(p.smoothing))prefs.smoothing=clamp(p.smoothing,40,220);
   }
  }
 }catch{ /* Blocked storage or an invalid saved value does not prevent startup. */ }
+$('directionAI').checked=prefs.directionAI;$('prediction').value=prefs.prediction;$('predictionValue').value=prefs.prediction+' ms';
+$('directionAI').onchange=e=>{prefs.directionAI=e.target.checked;resetDirection(true);};
+$('prediction').oninput=e=>{prefs.prediction=Number(e.target.value);$('predictionValue').value=prefs.prediction+' ms';};
+$('calibrateDirection').onclick=calibrateDirection;
 $('facing').value=prefs.facing;$('sensitivity').value=prefs.sensitivity;$('sensitivityValue').value=prefs.sensitivity.toFixed(1)+'×';$('smoothing').value=prefs.smoothing;$('smoothingValue').value=prefs.smoothing+' ms';$('dwellEnabled').checked=prefs.dwell;$('showHands').checked=prefs.hands;$('dwellTime').value=S.dwell;$('dwellValue').value=(S.dwell/1000).toFixed(1)+' s';$('reachControl').value=S.reach;$('reachValue').value=S.reach.toFixed(1)+'×';
 $('dwellTime').oninput=e=>{S.dwell=Number(e.target.value);$('dwellValue').value=(S.dwell/1000).toFixed(1)+' s';resetSelection();};
 $('reachControl').oninput=e=>{S.reach=Number(e.target.value);$('reachValue').value=S.reach.toFixed(1)+'×';clearHands();};

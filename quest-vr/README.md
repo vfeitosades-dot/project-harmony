@@ -46,6 +46,53 @@ proteção contra repetição; cliques e toques diretos continuam imediatos.
 são solicitadas quando o navegador permite. **Sair do VR** permanece visível;
 Escape também sai. Se o bloqueio de orientação falhar, gire o celular à mão.
 
+## Direção assistida · IA local
+
+Em **Conforto → Assistente de direção**, mantenha o assistente adaptativo
+ativado e, depois de ativar os sensores, escolha **Calibrar estabilidade**.
+Olhe para frente e mantenha o aparelho parado por aproximadamente um segundo.
+Se houver movimento ou falta de sinal, a calibração aguarda estabilidade e
+expira em sete segundos. Centralizar com R continua disponível imediatamente.
+
+O assistente é um pequeno modelo de aprendizado online, não uma rede neural
+pré-treinada: compara três previsores (repouso, velocidade constante e
+velocidade amortecida), atualiza os pesos conforme os erros observados e estima
+o ruído do sinal nesta sessão. Não baixa modelos, não usa a câmera e não envia
+dados para uma API. O modelo de mãos MediaPipe é um recurso separado.
+
+- Filtro mais firme em repouso e resposta mais rápida durante movimentos.
+- Tendência de movimento estimada por uma pequena janela de amostras.
+- Antecipação ajustável de 0–35 ms, limitada a dois graus por eixo.
+- Antecipação suspensa em repouso confirmado, reversões e sinal antigo.
+- Giroscópio auxiliar, quando autorizado, confirma movimento/repouso.
+- Saltos isolados são rejeitados; um salto persistente com giroscópio em
+  repouso pode ser compensado sem deslocar a visão. Sem essa confirmação,
+  uma nova posição sustentada é aceita, em vez de ser apagada indefinidamente.
+- Rotação da tela, retorno à aba e interrupções longas preservam o centro
+  atual. Olhar quase vertical mantém a elevação sem inventar um novo azimute.
+- O olhar não seleciona apps durante calibração, movimento rápido ou sinal
+  desatualizado. A pinça permanece independente desse bloqueio do olhar.
+
+O painel exibe a frequência efetivamente observada, estado do estimador e
+contagem de amostras rejeitadas. A permissão de movimento é opcional: se for
+recusada, a orientação continua funcionando sem a confirmação do giroscópio.
+As permissões de orientação e movimento são solicitadas a partir do toque
+original, conforme as restrições dos navegadores móveis.
+
+### Evidência em sinais sintéticos
+
+O teste `tests/direction.cjs` usa sinais determinísticos a 30, 60 e 120 Hz.
+A comparação usa o filtro anterior com constante de suavização de 90 ms.
+Neste cenário, a redução do ruído em repouso foi de aproximadamente 28%.
+Na trajetória constante de 60 graus/s a 60 Hz, o erro RMS do estimador caiu
+de 4,91 para 0,23 grau, com antecipação configurada em 18 ms. Esses números
+medem o estimador sobre sinais artificiais; não são uma medição de latência
+fim a fim ou uma garantia de precisão em aparelhos reais.
+
+Sensores reais, interferência magnética, atrasos do navegador e desempenho do
+aparelho continuam limitando o resultado. O assistente não recupera dados
+físicos ausentes nem garante eliminar toda deriva de orientação.
+
 ## Privacidade e compatibilidade
 
 Os quadros da câmera são processados no aparelho. O código não faz upload de
@@ -84,6 +131,8 @@ npm install --prefix /tmp/horizon-web-tests playwright
 /tmp/horizon-web-tests/node_modules/.bin/playwright install chromium
 NODE_PATH=/tmp/horizon-web-tests/node_modules node tests/interface.cjs
 NODE_PATH=/tmp/horizon-web-tests/node_modules node tests/hands.cjs
+node tests/direction.cjs
+NODE_PATH=/tmp/horizon-web-tests/node_modules node tests/direction-browser.cjs
 ```
 
 Variáveis opcionais: `QUEST_TEST_URL`, `QUEST_ARTIFACT_DIR` e `CHROMIUM_PATH`.
