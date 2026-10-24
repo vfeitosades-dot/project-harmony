@@ -19,8 +19,8 @@ bloquear essa permissão.
 
 ## Usar a rotação pela câmera
 
-1. Toque em **Direção pela câmera** e autorize a câmera traseira.
-2. Deixe a lente descoberta no suporte VR Box. Mostre um cenário fixo,
+1. Toque em **Direção pela câmera** e autorize a câmera frontal.
+2. Deixe a lente frontal descoberta. Mostre um cenário fixo,
    iluminado e com detalhes, evitando paredes lisas e imagens muito escuras.
 3. Aguarde a confirmação da referência. Vire o aparelho para olhar ao redor.
 4. Use **Centralizar**, **R**, ou **Conforto → Renovar referência visual** para

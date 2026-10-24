@@ -6,7 +6,7 @@
 .direction-controls{margin:24px 0;padding:16px;border:1px solid #ffffff20;border-radius:16px}.direction-controls legend{font-size:13px;color:#bed7ff;padding:0 7px}.direction-controls label{margin:14px 0}.direction-controls p{font-size:11px}.direction-controls button{width:100%}#orientationHealth{font-variant-numeric:tabular-nums;min-height:32px;margin-bottom:0}#visionVideo{position:fixed;right:18px;bottom:110px;width:120px;border:1px solid #ffffff88;border-radius:14px;z-index:8;pointer-events:none}#visionVideo[hidden],.vr #visionVideo{display:none}#visionState{position:fixed;right:18px;bottom:94px;max-width:200px;padding:5px 9px;border-radius:9px;background:#15283ee8;color:#d8e8ff;font-size:10px;z-index:9;pointer-events:none}#visionState[hidden],.vr #visionState{display:none}</style></head><body>
 <div class="welcome"><div class="wordmark"><span class="infinity">∞</span> horizon <b>web</b></div><small>SEU ESPAÇO. OUTRA PERSPECTIVA.</small></div><main id="stage" aria-label="Ambiente virtual"></main><div id="ret"></div><div id="visionState" hidden role="status" aria-live="polite"></div><video id="visionVideo" playsinline muted hidden aria-label="Prévia da direção pela câmera"></video><video id="cv" playsinline muted aria-label="Prévia local da câmera"></video>
 <nav id="ui" aria-label="Controles do ambiente"><button id="bCam">Ativar mãos</button><button id="bVision">Direção pela câmera</button><button id="bGyro" hidden>Ativar sensores</button><button id="bCenter">Centralizar</button><button id="bSettings">Conforto</button><button id="bVR">Entrar no VR Box</button><button id="bExit" hidden>Sair do VR</button></nav><div id="status" role="status" aria-live="polite">Arraste para explorar · clique para abrir · R para centralizar</div><dialog id="settings"><form method="dialog"><h2>Conforto e rastreamento</h2><p>Interface web inspirada em headsets VR. O VR Box usa tela dividida, sem rastreamento de posição ou passthrough estereoscópico.</p>
-<label>Câmera <select id="facing"><option value="environment">Traseira · VR Box</option><option value="user">Frontal · espelhada</option></select></label>
+<label>Câmera <select id="facing"><option value="user">Frontal · espelhada</option></select></label>
 <label>Sensibilidade <input id="sensitivity" type="range" min="0.5" max="1.8" step="0.1" value="1"><output id="sensitivityValue">1.0×</output></label>
 <label>Suavização <input id="smoothing" type="range" min="40" max="220" step="10" value="90"><output id="smoothingValue">90 ms</output></label>
 <fieldset class="direction-controls"><legend>Assistente de direção · IA local</legend><p>Sensor visual de rotação: usa somente a câmera para estimar giros nos três eixos, com horizonte nivelado. Precisa de luz, detalhes e um cenário fixo. Não requer sensores físicos de movimento.</p><label>Campo visual estimado <input id="cameraFov" type="range" min="40" max="95" step="1" value="65"><output id="cameraFovValue">65°</output></label><p id="visualHealth" role="status" aria-live="polite">Direção visual desligada</p>
@@ -74,7 +74,7 @@ function act(id){
 // Rastreamento por landmarks reais; não usa cor da pele nem movimento do fundo.
 const $=id=>document.getElementById(id), clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const aName=id=>A(id)?.[1]||id;
-const prefs={sensitivity:1,smoothing:90,dwell:true,hands:true,facing:'environment',directionAI:true,prediction:18,cameraFov:65};
+const prefs={sensitivity:1,smoothing:90,dwell:true,hands:true,facing:'user',directionAI:true,prediction:18,cameraFov:65};
 const motion={active:false,raw:null,base:null,lastHeading:null,unwrapped:0,targetYaw:0,targetPitch:0,offsetYaw:0,offsetPitch:0,lastAt:0,gyroAt:-Infinity,gyroSpeed:0,healthAt:0,calibration:null,starting:false,session:0,pole:false};
 const hand={engine:null,loading:null,stream:null,starting:false,run:0,lastVideo:-1,lastInfer:0,lastSeen:0,acquired:0,candidateAt:0,points:[],primary:null,wrist:null,filters:[],pinched:false,pinchAt:0,releaseAt:0,armed:false,fps:24};
 const selection={id:null,since:0,fired:false,cooldown:0,source:'gaze'};
@@ -340,13 +340,13 @@ class VisualMotionTracker{
 // END VISUAL MOTION
 const vision={sensor:new VisualRotationSensor(),stableFrames:0,period:50,rms:0,active:false,starting:false,stream:null,run:0,lastVideo:-1,lastAt:0,lastGood:0,valid:false,reason:'desligada',tracks:0,total:0,yaw:0,pitch:0,tracker:null,canvas:document.createElement('canvas'),context:null};
 let sharedCameraRequest=null;
-function cameraError(error){const messages={NotAllowedError:'Permissão da câmera recusada. Libere a câmera no navegador e tente novamente.',NotFoundError:'Nenhuma câmera encontrada. Use o arraste.',NotReadableError:'A câmera está ocupada. Feche outros aplicativos de câmera.',OverconstrainedError:'Opções da câmera não suportadas. Experimente a outra câmera.'};return messages[error.name]||'Não foi possível iniciar a câmera. Verifique a conexão e tente novamente.';}
+function cameraError(error){const messages={NotAllowedError:'Permissão da câmera recusada. Libere a câmera no navegador e tente novamente.',NotFoundError:'Nenhuma câmera encontrada. Use o arraste.',NotReadableError:'A câmera está ocupada. Feche outros aplicativos de câmera.',OverconstrainedError:'A câmera frontal não está disponível neste aparelho.'};return messages[error.name]||'Não foi possível iniciar a câmera. Verifique a conexão e tente novamente.';}
 function releaseUnusedCamera(stream){if(stream)setTimeout(()=>{if(hand.stream!==stream&&vision.stream!==stream)stream.getTracks().forEach(t=>t.stop());},0);}
 async function acquireCamera(){
  if(!isSecureContext||!navigator.mediaDevices?.getUserMedia)throw new Error('Use HTTPS ou localhost para acessar a câmera.');
  if(hand.stream?.getVideoTracks().some(t=>t.readyState==='live'))return hand.stream;
  if(vision.stream?.getVideoTracks().some(t=>t.readyState==='live'))return vision.stream;
- if(!sharedCameraRequest)sharedCameraRequest=navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:prefs.facing},width:{ideal:640},height:{ideal:480},frameRate:{ideal:30,max:30}}});
+ if(!sharedCameraRequest)sharedCameraRequest=navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{exact:'user'},width:{ideal:640},height:{ideal:480},frameRate:{ideal:30,max:30}}});
  const pending=sharedCameraRequest;try{return await pending;}finally{if(sharedCameraRequest===pending)sharedCameraRequest=null;}
 }
 function updateCameraBusy(){$('facing').disabled=hand.starting||vision.starting;}
@@ -359,7 +359,7 @@ async function startVisual(){
  if(vision.starting)return;if(vision.active){stopVisual();return;}
  vision.starting=true;updateCameraBusy();$('bVision').disabled=true;const run=++vision.run;let stream=null;
  try{
-  tell('Autorize a câmera traseira. Este modo estima o movimento do cenário, sem giroscópio.');
+  tell('Permita o acesso à câmera frontal quando o navegador solicitar. As imagens são processadas neste aparelho.');
   stream=await acquireCamera();if(run!==vision.run){releaseUnusedCamera(stream);return;}
   vision.stream=stream;const v=$('visionVideo');v.srcObject=stream;v.muted=true;await v.play();if(run!==vision.run){releaseUnusedCamera(stream);return;}
   stopSensors(false);vision.active=true;vision.valid=false;vision.reason='preparando referência';vision.lastVideo=-1;vision.lastAt=0;vision.lastGood=0;vision.tracker=null;vision.stableFrames=0;vision.period=50;vision.yaw=S.yaw;vision.pitch=S.pitch;vision.sensor.reset(S.yaw,S.pitch);
@@ -674,7 +674,7 @@ try{
   for(const [key,min,max]of [['d',350,850],['dwell',700,2400],['reach',1,2.4],['brightness',35,110]])if(typeof saved[key]==='number'&&Number.isFinite(saved[key]))S[key]=clamp(saved[key],min,max);
   const p=saved.prefs;if(p&&typeof p==='object'){
    for(const key of ['dwell','hands','directionAI'])if(typeof p[key]==='boolean')prefs[key]=p[key];
-   if(['user','environment'].includes(p.facing))prefs.facing=p.facing;
+   prefs.facing='user';
    if(typeof p.sensitivity==='number'&&Number.isFinite(p.sensitivity))prefs.sensitivity=clamp(p.sensitivity,.5,1.8);
    if(typeof p.cameraFov==='number'&&Number.isFinite(p.cameraFov))prefs.cameraFov=clamp(p.cameraFov,40,95);
    if(typeof p.prediction==='number'&&Number.isFinite(p.prediction))prefs.prediction=clamp(p.prediction,0,35);
