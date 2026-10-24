@@ -5,15 +5,15 @@
 @media(max-width:650px){body:not(.vr) .panel{width:420px!important;padding:20px;max-height:550px;overflow-y:auto;scrollbar-width:thin;touch-action:pan-y}body:not(.vr) .grid{grid-template-columns:repeat(2,1fr);gap:19px 16px}body:not(.vr) .app-art{height:82px}body:not(.vr) .tile-title{font-size:14px}body:not(.vr) .tile-meta{font-size:11px}body:not(.vr) .toolbar{flex-wrap:wrap;gap:12px}body:not(.vr) .search{max-width:none;width:100%}body:not(.vr) .dock{margin-top:38px;padding:9px;gap:5px}body:not(.vr) .dock .btn{width:35px;height:35px;border-radius:11px}body:not(.vr) .dock .profile,body:not(.vr) .dock .divider{display:none}body:not(.vr) .system-pill{padding:8px;font-size:11px;gap:6px;margin:0}body:not(.vr) .eye{touch-action:pan-y}body:not(.vr) .quick-grid{grid-template-columns:repeat(2,1fr)}body:not(.vr) .environment-grid{grid-template-columns:1fr}body:not(.vr) .environment{height:90px}body:not(.vr) .intro-card h2{font-size:23px}}
 .direction-controls{margin:24px 0;padding:16px;border:1px solid #ffffff20;border-radius:16px}.direction-controls legend{font-size:13px;color:#bed7ff;padding:0 7px}.direction-controls label{margin:14px 0}.direction-controls p{font-size:11px}.direction-controls button{width:100%}#orientationHealth{font-variant-numeric:tabular-nums;min-height:32px;margin-bottom:0}#visionVideo{position:fixed;right:18px;bottom:110px;width:120px;border:1px solid #ffffff88;border-radius:14px;z-index:8;pointer-events:none}#visionVideo[hidden],.vr #visionVideo{display:none}#visionState{position:fixed;right:18px;bottom:94px;max-width:200px;padding:5px 9px;border-radius:9px;background:#15283ee8;color:#d8e8ff;font-size:10px;z-index:9;pointer-events:none}#visionState[hidden],.vr #visionState{display:none}</style></head><body>
 <div class="welcome"><div class="wordmark"><span class="infinity">∞</span> horizon <b>web</b></div><small>SEU ESPAÇO. OUTRA PERSPECTIVA.</small></div><main id="stage" aria-label="Ambiente virtual"></main><div id="ret"></div><div id="visionState" hidden role="status" aria-live="polite"></div><video id="visionVideo" playsinline muted hidden aria-label="Prévia da direção pela câmera"></video><video id="cv" playsinline muted aria-label="Prévia local da câmera"></video>
-<nav id="ui" aria-label="Controles do ambiente"><button id="bCam">Ativar mãos</button><button id="bVision">Direção pela câmera</button><button id="bGyro">Ativar sensores</button><button id="bCenter">Centralizar</button><button id="bSettings">Conforto</button><button id="bVR">Entrar no VR Box</button><button id="bExit" hidden>Sair do VR</button></nav><div id="status" role="status" aria-live="polite">Arraste para explorar · clique para abrir · R para centralizar</div><dialog id="settings"><form method="dialog"><h2>Conforto e rastreamento</h2><p>Interface web inspirada em headsets VR. O VR Box usa tela dividida, sem rastreamento de posição ou passthrough estereoscópico.</p>
+<nav id="ui" aria-label="Controles do ambiente"><button id="bCam">Ativar mãos</button><button id="bVision">Direção pela câmera</button><button id="bGyro" hidden>Ativar sensores</button><button id="bCenter">Centralizar</button><button id="bSettings">Conforto</button><button id="bVR">Entrar no VR Box</button><button id="bExit" hidden>Sair do VR</button></nav><div id="status" role="status" aria-live="polite">Arraste para explorar · clique para abrir · R para centralizar</div><dialog id="settings"><form method="dialog"><h2>Conforto e rastreamento</h2><p>Interface web inspirada em headsets VR. O VR Box usa tela dividida, sem rastreamento de posição ou passthrough estereoscópico.</p>
 <label>Câmera <select id="facing"><option value="environment">Traseira · VR Box</option><option value="user">Frontal · espelhada</option></select></label>
 <label>Sensibilidade <input id="sensitivity" type="range" min="0.5" max="1.8" step="0.1" value="1"><output id="sensitivityValue">1.0×</output></label>
 <label>Suavização <input id="smoothing" type="range" min="40" max="220" step="10" value="90"><output id="smoothingValue">90 ms</output></label>
-<fieldset class="direction-controls"><legend>Assistente de direção · IA local</legend><p>Sem giroscópio? Use o botão Direção pela câmera. Precisa de luz, detalhes e um cenário fixo; não equivale ao rastreamento de um headset.</p><label>Campo visual estimado <input id="cameraFov" type="range" min="40" max="95" step="1" value="65"><output id="cameraFovValue">65°</output></label><p id="visualHealth" role="status" aria-live="polite">Direção visual desligada</p>
+<fieldset class="direction-controls"><legend>Assistente de direção · IA local</legend><p>Sensor visual de rotação: usa somente a câmera para estimar giros nos três eixos, com horizonte nivelado. Precisa de luz, detalhes e um cenário fixo. Não requer sensores físicos de movimento.</p><label>Campo visual estimado <input id="cameraFov" type="range" min="40" max="95" step="1" value="65"><output id="cameraFovValue">65°</output></label><p id="visualHealth" role="status" aria-live="polite">Direção visual desligada</p>
 <label><input id="directionAI" type="checkbox" checked> Assistente adaptativo</label>
 <p>Aprendizado online: mede o ruído e ajusta os pesos de três previsores durante o uso. Não baixa modelos nem envia dados. Suaviza sensores ou a estimativa visual, conforme o modo. Não substitui os sensores do aparelho.</p>
-<label>Antecipação <input id="prediction" type="range" min="0" max="35" step="1" value="18"><output id="predictionValue">18 ms</output></label>
-<button id="calibrateDirection" type="button">Calibrar estabilidade</button>
+<label>Antecipação automática desligada na câmera <input disabled id="prediction" type="range" min="0" max="35" step="1" value="18"><output id="predictionValue">18 ms</output></label>
+<button id="calibrateDirection" type="button">Renovar referência visual</button>
 <p id="orientationHealth" role="status" aria-live="polite">Sensores desligados</p></fieldset>
 <label><input type="checkbox" id="dwellEnabled" checked> Selecionar ao manter o cursor parado</label>
 <label><input type="checkbox" id="showHands" checked> Mostrar articulações das mãos</label>
@@ -36,15 +36,15 @@ function tile(a){return `<button class="tile" data-id="${a[0]}" data-app="${a[0]
 function header(title,subtitle=''){return `<div class="window-header"><div><h1>${title}</h1>${subtitle?`<span class="subtle">${subtitle}</span>`:''}</div><div class="head-actions">${S.view!=='library'?`<button class="round" data-id="library" aria-label="Voltar à biblioteca">${icon('back')}</button>`:''}<button class="round" data-id="comfort" aria-label="Abrir configurações de conforto">${icon('settings')}</button></div></div>`;}
 function environments(){return `<div class="environment-grid">${[['coast','Costa serena'],['sunset','Pôr do sol'],['night','Noite tranquila']].map(([id,title])=>`<button class="environment ${id} ${S.env===id?'chosen':''}" data-id="env-${id}" aria-pressed="${S.env===id}">${title}</button>`).join('')}</div>`;}
 function library(){const apps=S.filter==='recent'?S.recents.map(A).filter(Boolean):APPS;return header('Biblioteca de apps')+`<div class="toolbar"><div class="tabs"><button class="tab ${S.filter==='all'?'active':''}" data-id="filter-all">Todos <span class="subtle">${APPS.length}</span></button><button class="tab ${S.filter==='recent'?'active':''}" data-id="filter-recent">Recentes</button></div><label class="search">${icon('search')}<input class="library-search" placeholder="Buscar aplicativos" aria-label="Buscar aplicativos" autocomplete="off"></label></div><div class="grid">${apps.length?apps.map(tile).join(''):'<div class="empty">Seus aplicativos recentes aparecerão aqui.</div>'}</div><div class="footer-line"><span class="library-count">${apps.length} aplicativos</span><span>Instalados neste espaço · Web</span></div>`;}
-function quick(){return header('Configurações rápidas','Controles do ambiente web')+`<div class="quick-grid"><button class="btn quick-item ${hand.stream?'enabled':''}" data-id="hands">${icon('hand')}<span>Mãos · ${hand.stream?'câmera ativa':'desativadas'}</span></button><button class="btn quick-item ${vision.active?'enabled':''}" data-id="vision">${icon('compass')}<span>Direção pela câmera · ${vision.active?'ativa':'desligada'}</span></button><button class="btn quick-item" data-id="rc">${icon('center')}<span>Centralizar visão</span></button><button class="btn quick-item ${S.vr?'enabled':''}" data-id="vr">${icon('headset')}<span>${S.vr?'Sair do VR Box':'Entrar no VR Box'}</span></button><button class="btn quick-item ${prefs.dwell?'enabled':''}" data-id="dwell-toggle">${icon('clock')}<span>Seleção por olhar</span></button><button class="btn quick-item" data-id="comfort">${icon('settings')}<span>Mais ajustes</span></button></div><label class="range-row">${icon('sun')}<span class="subtle">Luz do cenário</span><input class="brightness" type="range" min="35" max="110" value="${S.brightness}" aria-label="Luz do cenário"><output>${S.brightness}%</output></label><div class="row"><span>Distância dos painéis<small>${S.d} unidades</small></span><button class="btn" data-id="d-" aria-label="Aproximar painéis">−</button><button class="btn" data-id="d+" aria-label="Afastar painéis">+</button></div><p class="app-notice">Câmera e sensores exigem permissão. A luz altera o cenário, não o brilho físico da tela.</p>`;}
+function quick(){return header('Configurações rápidas','Controles do ambiente web')+`<div class="quick-grid"><button class="btn quick-item ${hand.stream?'enabled':''}" data-id="hands">${icon('hand')}<span>Mãos · ${hand.stream?'câmera ativa':'desativadas'}</span></button><button class="btn quick-item ${vision.active?'enabled':''}" data-id="vision">${icon('compass')}<span>Direção pela câmera · ${vision.active?'ativa':'desligada'}</span></button><button class="btn quick-item" data-id="rc">${icon('center')}<span>Centralizar visão</span></button><button class="btn quick-item ${S.vr?'enabled':''}" data-id="vr">${icon('headset')}<span>${S.vr?'Sair do VR Box':'Entrar no VR Box'}</span></button><button class="btn quick-item ${prefs.dwell?'enabled':''}" data-id="dwell-toggle">${icon('clock')}<span>Seleção por olhar</span></button><button class="btn quick-item" data-id="comfort">${icon('settings')}<span>Mais ajustes</span></button></div><label class="range-row">${icon('sun')}<span class="subtle">Luz do cenário</span><input class="brightness" type="range" min="35" max="110" value="${S.brightness}" aria-label="Luz do cenário"><output>${S.brightness}%</output></label><div class="row"><span>Distância dos painéis<small>${S.d} unidades</small></span><button class="btn" data-id="d-" aria-label="Aproximar painéis">−</button><button class="btn" data-id="d+" aria-label="Afastar painéis">+</button></div><p class="app-notice">A direção pede somente permissão de câmera. A luz altera o cenário, não o brilho físico da tela.</p>`;}
 function content(){
  if(S.view==='library')return library();
  if(S.view==='quick')return quick();
  if(S.view==='home')return header('Seu espaço')+`<div class="intro-card"><span class="eyebrow">Bem-vindo de volta</span><h2>Um momento para<br>mudar de perspectiva.</h2><p>Abra sua biblioteca, encontre um cenário tranquilo e faça deste espaço o seu lugar.</p></div><div class="toolbar"><span class="subtle">Escolha o seu ambiente</span><button class="tab" data-id="library">Ver biblioteca →</button></div>${environments()}<div class="footer-line"><span>Processamento das mãos no aparelho</span><span>Interface independente · não oficial</span></div>`;
  if(S.view==='gallery')return header('Ambientes','Um cenário para cada momento')+environments()+`<div class="intro-card" style="margin-top:22px;margin-bottom:0"><span class="eyebrow">Menos distrações</span><h2>Encontre seu ritmo.</h2><p>Ambientes gerados com CSS, sem downloads de imagens. Escolha um tema e ele será lembrado neste navegador.</p></div>`;
  if(S.view==='notes')return header('Notas','Seu rascunho, salvo neste navegador')+`<textarea class="note-editor" maxlength="20000" placeholder="O que você quer criar hoje?" aria-label="Suas notas">${escapeHTML(S.note)}</textarea><div class="footer-line"><span class="note-status">Salvo localmente · sem sincronização</span><span class="note-count">${S.note.length}/20000</span></div>`;
- if(S.view==='guide')return header('Primeiros passos')+`<div class="guide-list"><div class="guide-item"><b>01 · Olhe ao redor</b>Arraste com mouse ou dedo. No celular, ative os sensores, segure na posição de uso e centralize. R também centraliza.</div><div class="guide-item"><b>02 · Suas mãos são o controle</b>Ative as mãos, mostre a mão inteira e aponte com o indicador. Abra polegar e indicador antes de juntar os dois para selecionar.</div><div class="guide-item"><b>03 · Entre no VR Box</b>Coloque o celular na horizontal e ative a tela dividida. Cada olho recebe uma versão da interface. O botão Sair do VR permanece acessível.</div><div class="guide-item"><b>04 · Ajuste para você</b>Abra Conforto para sensibilidade, suavização, câmera frontal ou traseira e tempo de seleção.</div></div>`;
- return header('Sobre este espaço')+`<div class="intro-card"><span class="eyebrow">Horizon Web · 2.0</span><h2>Uma interface espacial.<br>No seu navegador.</h2><p>Biblioteca, menu universal, notas, ambientes e controles de conforto inspirados em interfaces de headsets.</p></div><div class="guide-list"><div class="guide-item"><b>O que funciona aqui</b>Mãos com 21 landmarks, seleção por pinça, sensores de orientação, controles por toque e mouse e modo VR Box.</div><div class="guide-item"><b>Sobre o hardware</b>Sem câmeras de profundidade, controles Touch, rastreamento 6DoF ou passthrough estereoscópico. Este projeto é independente e não é software oficial Meta.</div></div>`;
+ if(S.view==='guide')return header('Primeiros passos')+`<div class="guide-list"><div class="guide-item"><b>01 · Olhe ao redor</b>Arraste com mouse ou dedo. No celular, ative Direção pela câmera, mostre um cenário fixo e centralize. R também centraliza.</div><div class="guide-item"><b>02 · Suas mãos são o controle</b>Ative as mãos, mostre a mão inteira e aponte com o indicador. Abra polegar e indicador antes de juntar os dois para selecionar.</div><div class="guide-item"><b>03 · Entre no VR Box</b>Coloque o celular na horizontal e ative a tela dividida. Cada olho recebe uma versão da interface. O botão Sair do VR permanece acessível.</div><div class="guide-item"><b>04 · Ajuste para você</b>Abra Conforto para sensibilidade, suavização, câmera frontal ou traseira e tempo de seleção.</div></div>`;
+ return header('Sobre este espaço')+`<div class="intro-card"><span class="eyebrow">Horizon Web · 2.0</span><h2>Uma interface espacial.<br>No seu navegador.</h2><p>Biblioteca, menu universal, notas, ambientes e controles de conforto inspirados em interfaces de headsets.</p></div><div class="guide-list"><div class="guide-item"><b>O que funciona aqui</b>Mãos com 21 landmarks, seleção por pinça, rotação visual pela câmera, controles por toque e mouse e modo VR Box.</div><div class="guide-item"><b>Sobre o hardware</b>Sem câmeras de profundidade, controles Touch, rastreamento 6DoF ou passthrough estereoscópico. Este projeto é independente e não é software oficial Meta.</div></div>`;
 }
 function scene(){return `<section class="obj panel" style="width:670px;${pos(0,S.d,-22)}" aria-label="Janela principal">${content()}</section><nav class="obj dock" style="${pos(0,S.d*.85,278)}" aria-label="Menu universal"><button class="system-pill" data-id="quick" aria-label="Configurações rápidas">${icon('clock')}<span class="live-clock"></span></button><button class="btn profile" data-id="about" aria-label="Sobre este espaço">V</button><span class="divider"></span><button class="btn home ${S.view==='home'?'selected':''}" data-id="home" aria-label="Início">${icon('home')}</button><button class="btn ${S.view==='library'?'selected':''}" data-id="library" aria-label="Biblioteca">${icon('grid')}</button><button class="btn ${S.view==='gallery'?'selected':''}" data-id="gallery" aria-label="Ambientes">${icon('image')}</button><button class="btn ${S.view==='notes'?'selected':''}" data-id="notes" aria-label="Notas">${icon('note')}</button><span class="divider"></span><button class="btn ${S.view==='quick'?'selected':''}" data-id="quick" aria-label="Ajustes rápidos">${icon('settings')}</button><button class="btn" data-id="rc" aria-label="Centralizar visão">${icon('center')}</button></nav>`;}
 const stage=document.getElementById('stage');
@@ -198,7 +198,85 @@ function viewingAngles(alpha,beta,gamma,screenAngle=0){
 const angleDelta=(a,b)=>((a-b+540)%360)-180;
 // BEGIN VISUAL MOTION
 // Sparse, pyramidal block matching with forward/backward and spatial consensus checks.
-// Estimates image motion only; monocular translation and rotation are not separable here.
+// Fits a rotation-only camera model; monocular translation can still be ambiguous.
+// Fits a pinhole-camera rotation to distributed feature tracks, with robust consensus.
+class VisualRotationFit{
+ constructor(width,height,fov=65,pixelAspect=1){this.w=width;this.h=height;this.fx=width/(2*Math.tan(fov*Math.PI/360));this.fy=this.fx*pixelAspect;}
+ solve(matrix,vector){
+  const a=matrix.map((row,i)=>[...row,vector[i]]);
+  for(let col=0;col<3;col++){
+   let pivot=col;for(let r=col+1;r<3;r++)if(Math.abs(a[r][col])>Math.abs(a[pivot][col]))pivot=r;
+   if(Math.abs(a[pivot][col])<1e-9)return null;[a[col],a[pivot]]=[a[pivot],a[col]];
+   const d=a[col][col];for(let k=col;k<4;k++)a[col][k]/=d;
+   for(let r=0;r<3;r++)if(r!==col){const m=a[r][col];for(let k=col;k<4;k++)a[r][k]-=m*a[col][k];}
+  }return a.map(row=>row[3]);
+ }
+ linear(tracks){
+  const m=Array.from({length:3},()=>[0,0,0]),b=[0,0,0];
+  for(const p of tracks){const x=(p.x-this.w/2)/this.fx,y=(p.y-this.h/2)/this.fy;
+   const rows=[[this.fx*x*y,-this.fx*(1+x*x),this.fx*y],[this.fy*(1+y*y),-this.fy*x*y,-this.fy*x]];
+   rows.forEach((row,k)=>{const v=k?p.dy:p.dx;for(let i=0;i<3;i++){b[i]+=row[i]*v;for(let j=0;j<3;j++)m[i][j]+=row[i]*row[j];}});
+  }return this.solve(m,b);
+ }
+ quaternion(rotation){const angle=Math.hypot(...rotation),s=angle>1e-10?Math.sin(angle/2)/angle:.5;return [...rotation.map(v=>v*s),Math.cos(angle/2)];}
+ project(p,rotation){
+  const [x,y,z,w]=this.quaternion(rotation),u=(p.x-this.w/2)/this.fx,v=(p.y-this.h/2)/this.fy;
+  // Inverse camera rotation maps the old ray into the new image.
+  const a=(1-2*(y*y+z*z))*u+2*(x*y+w*z)*v+2*(x*z-w*y);
+  const b=2*(x*y-w*z)*u+(1-2*(x*x+z*z))*v+2*(y*z+w*x);
+  const c=2*(x*z+w*y)*u+2*(y*z-w*x)*v+1-2*(x*x+y*y);
+  if(c<.2)return [Infinity,Infinity];return [this.fx*(a/c-u),this.fy*(b/c-v)];
+ }
+ error(p,rotation){const [x,y]=this.project(p,rotation);return Math.hypot(x-p.dx,y-p.dy);}
+ refine(tracks,initial){
+  let rotation=[...initial];
+  for(let iteration=0;iteration<4;iteration++){
+   const m=Array.from({length:3},()=>[0,0,0]),b=[0,0,0];
+   for(const p of tracks){const base=this.project(p,rotation),residual=[p.dx-base[0],p.dy-base[1]],length=Math.hypot(...residual),weight=Math.min(1,1/Math.max(.001,length));
+    const derivatives=rotation.map((_,i)=>{const r=[...rotation];r[i]+=1e-5;const v=this.project(p,r);return [(v[0]-base[0])/1e-5,(v[1]-base[1])/1e-5];});
+    for(let k=0;k<2;k++)for(let i=0;i<3;i++){b[i]+=weight*derivatives[i][k]*residual[k];for(let j=0;j<3;j++)m[i][j]+=weight*derivatives[i][k]*derivatives[j][k];}
+   }
+   const step=this.solve(m,b);if(!step)return null;
+   if(!step.every(Number.isFinite))return null;rotation=rotation.map((r,i)=>r+Math.max(-.04,Math.min(.04,step[i])));
+   if(Math.hypot(...step)<1e-7)break;
+  }return rotation;
+ }
+ fit(tracks){
+  if(tracks.length<8)return null;
+  let best=[],rotation=null,seed=257;
+  for(let trial=0;trial<56;trial++){
+   const chosen=new Set();while(chosen.size<3){seed=(Math.imul(seed,1664525)+1013904223)>>>0;chosen.add(seed%tracks.length);}
+   const candidate=this.linear([...chosen].map(i=>tracks[i]));if(!candidate||Math.hypot(...candidate)>.18)continue;
+   const inliers=tracks.filter(p=>this.error(p,candidate)<1.5);
+   if(inliers.length>best.length){best=inliers;rotation=candidate;}if(best.length>=tracks.length*.92)break;
+  }
+  if(!rotation||best.length<8||best.length/tracks.length<.6)return null;
+  rotation=this.refine(best,rotation);if(!rotation||Math.hypot(...rotation)>.18)return null;
+  let inliers=tracks.filter(p=>this.error(p,rotation)<1.35);
+  if(inliers.length<8||inliers.length/tracks.length<.6)return null;
+  const quadrants=new Set(inliers.map(p=>(p.x>this.w/2?1:0)+(p.y>this.h/2?2:0)));if(quadrants.size<3)return null;
+  const spreadX=Math.max(...inliers.map(p=>p.x))-Math.min(...inliers.map(p=>p.x)),spreadY=Math.max(...inliers.map(p=>p.y))-Math.min(...inliers.map(p=>p.y));
+  if(spreadX<this.w*.35||spreadY<this.h*.35)return null;
+  const rms=Math.sqrt(inliers.reduce((s,p)=>s+this.error(p,rotation)**2,0)/inliers.length);if(rms>1)return null;
+  return {rotation,inliers,rms};
+ }
+}
+class VisualRotationSensor{
+ constructor(){this.reset();}
+ multiply(a,b){return [a[3]*b[0]+a[0]*b[3]+a[1]*b[2]-a[2]*b[1],a[3]*b[1]+a[1]*b[3]+a[2]*b[0]-a[0]*b[2],a[3]*b[2]+a[2]*b[3]+a[0]*b[1]-a[1]*b[0],a[3]*b[3]-a[0]*b[0]-a[1]*b[1]-a[2]*b[2]];}
+ reset(yaw=0,pitch=0,roll=0){const y=yaw*Math.PI/360,x=pitch*Math.PI/360,z=roll*Math.PI/360;this.q=this.multiply(this.multiply([0,Math.sin(y),0,Math.cos(y)],[Math.sin(x),0,0,Math.cos(x)]),[0,0,Math.sin(z),Math.cos(z)]);this.yaw=yaw;this.pitch=pitch;this.roll=roll;this.heading=((yaw+180)%360+360)%360-180;}
+ integrate(rotation,{front=false,sensitivity=1}={}){
+  const r=rotation.map((v,i)=>v*sensitivity*(front&&i>0?-1:1));const angle=Math.hypot(...r),s=angle>1e-10?Math.sin(angle/2)/angle:.5;
+  this.q=this.multiply(this.q,[...r.map(v=>v*s),Math.cos(angle/2)]);const norm=Math.hypot(...this.q);this.q=this.q.map(v=>v/norm);
+  const [x,y,z,w]=this.q,fx=2*(x*z+w*y),fy=2*(y*z-w*x),fz=1-2*(x*x+y*y);
+  const heading=Math.atan2(fx,fz)*180/Math.PI;
+  if(Math.hypot(fx,fz)>.12){this.yaw+=((heading-this.heading+180)%360+360)%360-180;this.heading=heading;}
+  this.pitch=Math.asin(Math.max(-1,Math.min(1,-fy)))*180/Math.PI;
+  this.roll=Math.atan2(2*(x*y+w*z),1-2*(x*x+z*z))*180/Math.PI;
+  return {yaw:this.yaw,pitch:this.pitch,roll:this.roll};
+ }
+}
+
 class VisualMotionTracker{
  constructor(width=160,height=120){this.width=width;this.height=height;this.reset();}
  reset(){this.previous=null;this.oldMasks=[];}
@@ -216,6 +294,10 @@ class VisualMotionTracker{
    const cost=this.cost(a,b,w,x,y,xx,yy,r);if(cost<best){second=best;best=cost;bx=xx;by=yy;}else if(cost<second)second=cost;
   }return {x:bx,y:by,cost:best,margin:second-best};
  }
+ correlation(a,b,x,y,bx,by){
+  const w=this.width;let ma=0,mb=0;for(let j=-2;j<=2;j++)for(let i=-2;i<=2;i++){ma+=a[(y+j)*w+x+i];mb+=b[(by+j)*w+bx+i];}ma/=25;mb/=25;
+  let aa=0,bb=0,ab=0;for(let j=-2;j<=2;j++)for(let i=-2;i<=2;i++){const u=a[(y+j)*w+x+i]-ma,v=b[(by+j)*w+bx+i]-mb;aa+=u*u;bb+=v*v;ab+=u*v;}return ab/Math.sqrt(Math.max(1,aa*bb));
+ }
  subpixel(a,b,x,y,bx,by){
   const w=this.width;let mean=0,xx=0,yy=0,xy=0,xt=0,yt=0;
   for(let j=-1;j<=1;j++)for(let i=-1;i<=1;i++)mean+=b[(by+j)*w+bx+i]-a[(y+j)*w+x+i];mean/=9;
@@ -228,7 +310,7 @@ class VisualMotionTracker{
   const limit=v=>Math.max(-.65,Math.min(.65,v));return {x:limit((xy*yt-yy*xt)/det),y:limit((xy*xt-xx*yt)/det)};
  }
  score(image,x,y){let xx=0,yy=0,xy=0;const w=this.width;for(let j=-2;j<=2;j++)for(let i=-2;i<=2;i++){const k=(y+j)*w+x+i,gx=(image[k+1]-image[k-1])/2,gy=(image[k+w]-image[k-w])/2;xx+=gx*gx;yy+=gy*gy;xy+=gx*gy;}return (xx*yy-xy*xy)/(xx+yy+1)/25;}
- process(image,masks=[]){
+ process(image,masks=[],{fov=65,pixelAspect=1}={}){
   const w=this.width,h=this.height;
   if(image.length!==w*h)throw new Error('Invalid image dimensions');
   const previous=this.previous,oldMasks=this.oldMasks;this.previous=new Float32Array(image);this.oldMasks=masks.map(m=>({...m}));
@@ -239,25 +321,24 @@ class VisualMotionTracker{
    const cx=Math.round(12+(w-24)*(col+.5)/8),cy=Math.round(12+(h-24)*(row+.5)/6);let x=cx,y=cy,score=0;
    for(let j=-3;j<=3;j+=3)for(let i=-3;i<=3;i+=3){const s=this.score(previous,cx+i,cy+j);if(s>score){score=s;x=cx+i;y=cy+j;}}
    if(score<12||this.blocked(x,y,oldMasks)||this.blocked(x,y,masks))continue;
-   const coarse=this.match(smallA,smallB,cw,ch,x>>1,y>>1,x>>1,y>>1,6,1);
-   if(Math.abs(coarse.x-(x>>1))>=6||Math.abs(coarse.y-(y>>1))>=6)continue;
+   const coarse=this.match(smallA,smallB,cw,ch,x>>1,y>>1,x>>1,y>>1,8,2);
+   if(Math.abs(coarse.x-(x>>1))>=8||Math.abs(coarse.y-(y>>1))>=8)continue;
    const fine=this.match(previous,image,w,h,x,y,x+(coarse.x-(x>>1))*2,y+(coarse.y-(y>>1))*2,2,2);
-   if(fine.cost>20||fine.margin<.9||this.blocked(fine.x,fine.y,masks))continue;
+   if(fine.cost>20||fine.margin<.9||this.blocked(fine.x,fine.y,masks)||this.correlation(previous,image,x,y,fine.x,fine.y)<.72)continue;
    const back=this.match(image,previous,w,h,fine.x,fine.y,x,y,2,2);
    if(Math.hypot(back.x-x,back.y-y)>1.1)continue;
    const sub=this.subpixel(previous,image,x,y,fine.x,fine.y);
    tracks.push({dx:fine.x-x+sub.x,dy:fine.y-y+sub.y,x,y});
   }
   if(tracks.length<8)return invalid('poucos detalhes estáveis',tracks.length);
-  const dx=this.median(tracks.map(t=>t.dx)),dy=this.median(tracks.map(t=>t.dy));
-  const inliers=tracks.filter(t=>Math.hypot(t.dx-dx,t.dy-dy)<=1.5);
-  const quadrants=new Set(inliers.map(t=>(t.x>w/2?1:0)+(t.y>h/2?2:0)));
-  if(inliers.length<8||inliers.length/tracks.length<.6||quadrants.size<3)return invalid('movimentos inconsistentes',tracks.length);
-  return {valid:true,dx:this.median(inliers.map(t=>t.dx)),dy:this.median(inliers.map(t=>t.dy)),reason:'referência estável',tracks:inliers.length,total:tracks.length};
+  const model=new VisualRotationFit(w,h,fov,pixelAspect).fit(tracks);
+  if(!model)return invalid('rotação visual inconsistente',tracks.length);
+  const inliers=model.inliers;
+  return {valid:true,dx:this.median(inliers.map(t=>t.dx)),dy:this.median(inliers.map(t=>t.dy)),rotation:model.rotation,rms:model.rms,reason:'rotação visual consistente',tracks:inliers.length,total:tracks.length};
  }
 }
 // END VISUAL MOTION
-const vision={active:false,starting:false,stream:null,run:0,lastVideo:-1,lastAt:0,lastGood:0,valid:false,reason:'desligada',tracks:0,total:0,yaw:0,pitch:0,tracker:null,canvas:document.createElement('canvas'),context:null};
+const vision={sensor:new VisualRotationSensor(),stableFrames:0,period:50,rms:0,active:false,starting:false,stream:null,run:0,lastVideo:-1,lastAt:0,lastGood:0,valid:false,reason:'desligada',tracks:0,total:0,yaw:0,pitch:0,tracker:null,canvas:document.createElement('canvas'),context:null};
 let sharedCameraRequest=null;
 function cameraError(error){const messages={NotAllowedError:'Permissão da câmera recusada. Libere a câmera no navegador e tente novamente.',NotFoundError:'Nenhuma câmera encontrada. Use o arraste.',NotReadableError:'A câmera está ocupada. Feche outros aplicativos de câmera.',OverconstrainedError:'Opções da câmera não suportadas. Experimente a outra câmera.'};return messages[error.name]||'Não foi possível iniciar a câmera. Verifique a conexão e tente novamente.';}
 function releaseUnusedCamera(stream){if(stream)setTimeout(()=>{if(hand.stream!==stream&&vision.stream!==stream)stream.getTracks().forEach(t=>t.stop());},0);}
@@ -281,7 +362,7 @@ async function startVisual(){
   tell('Autorize a câmera traseira. Este modo estima o movimento do cenário, sem giroscópio.');
   stream=await acquireCamera();if(run!==vision.run){releaseUnusedCamera(stream);return;}
   vision.stream=stream;const v=$('visionVideo');v.srcObject=stream;v.muted=true;await v.play();if(run!==vision.run){releaseUnusedCamera(stream);return;}
-  stopSensors(false);vision.active=true;vision.valid=false;vision.reason='preparando referência';vision.lastVideo=-1;vision.lastAt=0;vision.lastGood=0;vision.tracker=null;vision.yaw=S.yaw;vision.pitch=S.pitch;
+  stopSensors(false);vision.active=true;vision.valid=false;vision.reason='preparando referência';vision.lastVideo=-1;vision.lastAt=0;vision.lastGood=0;vision.tracker=null;vision.stableFrames=0;vision.period=50;vision.yaw=S.yaw;vision.pitch=S.pitch;vision.sensor.reset(S.yaw,S.pitch);
   v.hidden=false;v.style.transform=(stream.getVideoTracks()[0]?.getSettings().facingMode||prefs.facing)==='user'?'scaleX(-1)':'';
   $('bVision').textContent='Desativar direção visual';$('bVision').setAttribute('aria-pressed','true');
   stream.getVideoTracks()[0]?.addEventListener('ended',()=>{if(vision.stream===stream)stopVisual();},{once:true});
@@ -292,20 +373,21 @@ async function startVisual(){
 function visualMasks(w,h){return hand.points.map(points=>{const xs=points.map(p=>(prefs.facing==='user'?1-p.x:p.x)*w),ys=points.map(p=>p.y*h);return {x0:Math.min(...xs)-10,x1:Math.max(...xs)+10,y0:Math.min(...ys)-10,y1:Math.max(...ys)+10};});}
 function updateVisual(now){
  if(!vision.active||document.hidden)return;const v=$('visionVideo');
- if(v.readyState<2||v.currentTime===vision.lastVideo||now-vision.lastAt<50)return;
- if(drag){vision.tracker?.reset();vision.valid=false;vision.yaw=S.yaw;vision.pitch=S.pitch;return;}
+ if(v.readyState<2||v.currentTime===vision.lastVideo||now-vision.lastAt<vision.period)return;
+ if(drag){vision.tracker?.reset();vision.valid=false;vision.stableFrames=0;vision.yaw=S.yaw;vision.pitch=S.pitch;vision.sensor.reset(S.yaw,S.pitch,vision.sensor.roll);return;}
  const w=160,h=Math.max(64,Math.min(192,Math.round(160*(v.videoHeight||480)/(v.videoWidth||640)/2)*2));
- if(!vision.tracker||vision.tracker.width!==w||vision.tracker.height!==h){vision.tracker=new VisualMotionTracker(w,h);vision.canvas.width=w;vision.canvas.height=h;vision.context=vision.canvas.getContext('2d',{willReadFrequently:true});}
+ if(!vision.tracker||vision.tracker.width!==w||vision.tracker.height!==h){vision.tracker=new VisualMotionTracker(w,h);vision.stableFrames=0;vision.sensor.reset(S.yaw,S.pitch);vision.canvas.width=w;vision.canvas.height=h;vision.context=vision.canvas.getContext('2d',{willReadFrequently:true});}
  if(now-vision.lastAt>250)vision.tracker.reset();vision.lastVideo=v.currentTime;vision.lastAt=now;
- let result;
- try{vision.context.drawImage(v,0,0,w,h);const pixels=vision.context.getImageData(0,0,w,h).data,gray=new Float32Array(w*h);for(let i=0;i<gray.length;i++)gray[i]=pixels[i*4]*.299+pixels[i*4+1]*.587+pixels[i*4+2]*.114;result=vision.tracker.process(gray,visualMasks(w,h));}
+ let result;const processingStart=performance.now();
+ try{vision.context.drawImage(v,0,0,w,h);const pixels=vision.context.getImageData(0,0,w,h).data,gray=new Float32Array(w*h);for(let i=0;i<gray.length;i++)gray[i]=pixels[i*4]*.299+pixels[i*4+1]*.587+pixels[i*4+2]*.114;result=vision.tracker.process(gray,visualMasks(w,h),{fov:prefs.cameraFov,pixelAspect:(h*(v.videoWidth||640))/(w*(v.videoHeight||480))});}
  catch{vision.valid=false;vision.reason='imagem indisponível';return;}
- vision.valid=result.valid;vision.reason=result.reason;vision.tracks=result.tracks;vision.total=result.total;
- if(!result.valid){vision.yaw=S.yaw;vision.pitch=S.pitch;resetDirection(true);return;}
- const focal=w/(2*Math.tan(prefs.cameraFov*Math.PI/360));const front=(vision.stream.getVideoTracks()[0]?.getSettings().facingMode||prefs.facing)==='user';
- vision.yaw-=Math.atan(result.dx/focal)*180/Math.PI*prefs.sensitivity*(front?-1:1);
- const focalY=focal*(h*(v.videoWidth||640))/(w*(v.videoHeight||480));
- vision.pitch=clamp(vision.pitch+Math.atan(result.dy/focalY)*180/Math.PI*prefs.sensitivity,-75,75);vision.lastGood=now;
+ vision.period=clamp((performance.now()-processingStart)*2.5,40,110);
+ vision.stableFrames=result.valid?Math.min(3,vision.stableFrames+1):0;
+ vision.valid=result.valid&&vision.stableFrames>=2;vision.reason=result.valid&&!vision.valid?'confirmando referência':result.reason;vision.tracks=result.tracks;vision.total=result.total;vision.rms=result.rms||0;
+ if(!vision.valid){vision.yaw=S.yaw;vision.pitch=S.pitch;vision.sensor.reset(S.yaw,S.pitch,vision.sensor.roll);resetDirection(true);return;}
+ const front=(vision.stream.getVideoTracks()[0]?.getSettings().facingMode||prefs.facing)==='user';
+ const pose=vision.sensor.integrate(result.rotation,{front,sensitivity:prefs.sensitivity});
+ vision.yaw=pose.yaw;vision.pitch=clamp(pose.pitch,-75,75);vision.lastGood=now;
  // Keep prediction off for vision: monocular image flow is an approximate reference.
  direction.sample(vision.yaw,vision.pitch,now,{gyro:null,smoothing:prefs.smoothing,adaptive:prefs.directionAI});
 }
@@ -424,16 +506,16 @@ function resetDirection(preserve=true,forgetRaw=false){
 }
 function updateDirectionHealth(now){
  if(now-motion.healthAt<400)return;motion.healthAt=now;
- const usable=vision.valid&&now-vision.lastGood<250;const visualText=vision.active?`Câmera · ${usable?'referência utilizável':vision.valid?'aguardando quadros':vision.reason} · ${vision.tracks} pontos coerentes`:'Direção visual desligada';
+ const usable=vision.valid&&now-vision.lastGood<250;const visualText=vision.active?`Câmera · ${usable?'referência utilizável':vision.valid?'aguardando quadros':vision.reason} · ${vision.tracks} pontos · erro ${vision.rms.toFixed(2)} px`:'Direção visual desligada';
  const badge=$('visionState');if(badge){badge.hidden=!vision.active;if(badge.textContent!==visualText)badge.textContent=visualText;}
  const visual=$('visualHealth');if(visual&&visual.textContent!==visualText)visual.textContent=visualText;
  const out=$('orientationHealth');if(!out)return;
  const stale=!motion.raw||now-motion.lastAt>300;
- out.textContent=vision.active?'Modo visual ativo · giroscópio não é necessário':!motion.active?'Sensores desligados':motion.calibration?'Calibrando · mantenha o aparelho parado':stale?'Aguardando sinal dos sensores':`${prefs.directionAI?'Assistente local':'Filtro básico'} · ${Math.round(direction.hz)||'—'} Hz · ${direction.confidence} · ${direction.rejected} saltos filtrados`;
+ out.textContent=vision.active?'Sensor visual ativo · 3 eixos · horizonte nivelado':!motion.active?'Ative Direção pela câmera para medir a rotação visual':motion.calibration?'Calibrando · mantenha o aparelho parado':stale?'Aguardando sinal dos sensores':`${prefs.directionAI?'Assistente local':'Filtro básico'} · ${Math.round(direction.hz)||'—'} Hz · ${direction.confidence} · ${direction.rejected} saltos filtrados`;
 }
 function calibrateDirection(){
  if(vision.active){recenter();tell('Referência visual renovada. Use um cenário fixo e mova o aparelho devagar.');return;}
- if(!motion.active||!motion.raw){tell('Ative os sensores e aguarde o sinal antes de calibrar.');return;}
+ if(!motion.active||!motion.raw){tell('Ative Direção pela câmera antes de renovar a referência visual.');return;}
  motion.calibration={started:performance.now(),samples:[]};resetSelection();
  tell('Calibração: olhe para frente e mantenha o aparelho parado por um segundo.');
 }
@@ -495,8 +577,8 @@ async function toggleSensors(){
  }catch{tell('Toque em Ativar sensores para conceder permissão. Use HTTPS e um aparelho com sensores.');}
  finally{motion.starting=false;$('bGyro').disabled=false;}
 }
-function recenter(){resetDirection(false);S.yaw=S.pitch=0;if(vision.active){vision.yaw=vision.pitch=0;vision.valid=false;vision.tracker?.reset();}size();tell('Visão centralizada.');}
-function screenChanged(){resetDirection(true,true);if(vision.active){vision.yaw=S.yaw;vision.pitch=S.pitch;vision.valid=false;vision.tracker?.reset();}size();}
+function recenter(){resetDirection(false);S.yaw=S.pitch=0;if(vision.active){vision.yaw=vision.pitch=0;vision.valid=false;vision.stableFrames=0;vision.sensor.reset();vision.tracker?.reset();}size();tell('Visão centralizada.');}
+function screenChanged(){resetDirection(true,true);if(vision.active){vision.yaw=S.yaw;vision.pitch=S.pitch;vision.valid=false;vision.stableFrames=0;vision.sensor.reset(S.yaw,S.pitch);vision.tracker?.reset();}size();}
 screen.orientation?.addEventListener('change',screenChanged);window.addEventListener('orientationchange',screenChanged);
 
 // Drag is always available, including when sensors are active. Click is suppressed after dragging.
@@ -510,7 +592,7 @@ stage.addEventListener('pointermove',e=>{
  if(!drag.moved)return;
  if(!stage.hasPointerCapture(e.pointerId))stage.setPointerCapture(e.pointerId);
  S.yaw=drag.yaw-dx*.18*prefs.sensitivity;S.pitch=clamp(drag.pitch+dy*.18*prefs.sensitivity,-75,75);size();
- if(motion.active||vision.active){resetDirection(true);vision.yaw=S.yaw;vision.pitch=S.pitch;}
+ if(motion.active||vision.active){resetDirection(true);vision.yaw=S.yaw;vision.pitch=S.pitch;vision.sensor.reset(S.yaw,S.pitch,vision.sensor.roll);}
 });
 function endDrag(e){if(!drag||e.pointerId!==drag.id)return;if(drag.moved)suppressClickUntil=performance.now()+350;drag=null;resetSelection();}
 stage.addEventListener('pointerup',endDrag);stage.addEventListener('pointercancel',endDrag);stage.addEventListener('lostpointercapture',endDrag);
@@ -518,7 +600,7 @@ window.addEventListener('keydown',e=>{
  if($('settings').open||e.target.closest('input,textarea,select'))return;
  if(e.key==='Escape'&&S.vr){exitVR();return;}
  if(e.code==='KeyR'&&!e.repeat)recenter();
- if(!motion.active&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)&&!e.target.closest('button,input,select,[data-id]')){e.preventDefault();S.yaw+=e.key==='ArrowLeft'?5:e.key==='ArrowRight'?-5:0;S.pitch=clamp(S.pitch+(e.key==='ArrowUp'?-5:e.key==='ArrowDown'?5:0),-75,75);resetSelection();size();}
+ if(!motion.active&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)&&!e.target.closest('button,input,select,[data-id]')){e.preventDefault();S.yaw+=e.key==='ArrowLeft'?5:e.key==='ArrowRight'?-5:0;S.pitch=clamp(S.pitch+(e.key==='ArrowUp'?-5:e.key==='ArrowDown'?5:0),-75,75);if(vision.active){vision.yaw=S.yaw;vision.pitch=S.pitch;vision.sensor.reset(S.yaw,S.pitch,vision.sensor.roll);resetDirection(true);}resetSelection();size();}
 });
 function exitVR(){if(S.vr){S.vr=false;build();}if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});screen.orientation?.unlock?.();}
 $('bVR').onclick=()=>act('vr');$('bExit').onclick=exitVR;
@@ -530,7 +612,7 @@ $('sensitivity').oninput=e=>{prefs.sensitivity=Number(e.target.value);$('sensiti
 $('smoothing').oninput=e=>{prefs.smoothing=Number(e.target.value);$('smoothingValue').value=prefs.smoothing+' ms';};
 $('dwellEnabled').onchange=e=>{prefs.dwell=e.target.checked;resetSelection();};$('showHands').onchange=e=>prefs.hands=e.target.checked;
 document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&S.vr){S.vr=false;build();}});
-document.addEventListener('visibilitychange',()=>{new Set([hand.stream,vision.stream].filter(Boolean)).forEach(s=>s.getVideoTracks().forEach(t=>t.enabled=!document.hidden));vision.tracker?.reset();vision.valid=false;vision.yaw=S.yaw;vision.pitch=S.pitch;clearHands();drag=null;frameAt=performance.now();resetDirection(true,true);});
+document.addEventListener('visibilitychange',()=>{new Set([hand.stream,vision.stream].filter(Boolean)).forEach(s=>s.getVideoTracks().forEach(t=>t.enabled=!document.hidden));vision.tracker?.reset();vision.valid=false;vision.stableFrames=0;vision.yaw=S.yaw;vision.pitch=S.pitch;vision.sensor.reset(S.yaw,S.pitch);clearHands();drag=null;frameAt=performance.now();resetDirection(true,true);});
 window.addEventListener('pagehide',()=>{const streams=new Set([vision.stream,hand.stream].filter(Boolean));stopVisual(false);stopCamera('');streams.forEach(s=>s.getTracks().forEach(t=>t.stop()));stopSensors(false);hand.engine?.close();hand.engine=null;});
 
 // Reuse SVG nodes instead of rebuilding the skeleton on every display frame.
@@ -600,8 +682,8 @@ try{
   }
  }
 }catch{ /* Blocked storage or an invalid saved value does not prevent startup. */ }
-$('cameraFov').value=prefs.cameraFov;$('cameraFovValue').value=prefs.cameraFov+'°';$('cameraFov').oninput=e=>{prefs.cameraFov=Number(e.target.value);$('cameraFovValue').value=prefs.cameraFov+'°';};
-$('directionAI').checked=prefs.directionAI;$('prediction').value=prefs.prediction;$('predictionValue').value=prefs.prediction+' ms';
+$('cameraFov').value=prefs.cameraFov;$('cameraFovValue').value=prefs.cameraFov+'°';$('cameraFov').oninput=e=>{prefs.cameraFov=Number(e.target.value);$('cameraFovValue').value=prefs.cameraFov+'°';if(vision.active)screenChanged();};
+$('directionAI').checked=prefs.directionAI;$('prediction').value=0;$('predictionValue').value='desligada';
 $('directionAI').onchange=e=>{prefs.directionAI=e.target.checked;resetDirection(true);};
 $('prediction').oninput=e=>{prefs.prediction=Number(e.target.value);$('predictionValue').value=prefs.prediction+' ms';};
 $('calibrateDirection').onclick=calibrateDirection;

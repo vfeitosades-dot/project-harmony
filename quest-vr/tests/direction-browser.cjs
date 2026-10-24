@@ -32,7 +32,7 @@ const testURL=process.env.QUEST_TEST_URL||'http://127.0.0.1:8766/';
    DeviceOrientationEvent.requestPermission=async()=>'granted';DeviceMotionEvent.requestPermission=()=>{throw new Error('Motion denied')};await toggleSensors();const active=motion.active;stopSensors(false);
    DeviceOrientationEvent.requestPermission=async()=>'denied';await toggleSensors();return {active,denied:!motion.active,enabled:!document.getElementById('bGyro').disabled};
   });assert.deepEqual(fallback,{active:true,denied:true,enabled:true});
-  await page.locator('#bSettings').click();await page.locator('#directionAI').uncheck();await page.locator('#prediction').fill('12');await page.locator('.settings-close').click();await page.reload();const saved=await page.evaluate(()=>({enabled:prefs.directionAI,prediction:prefs.prediction}));assert.deepEqual(saved,{enabled:false,prediction:12});
+  await page.locator('#bSettings').click();await page.locator('#directionAI').uncheck();assert.equal(await page.locator('#prediction').isDisabled(),true);await page.locator('.settings-close').click();await page.reload();const saved=await page.evaluate(()=>({enabled:prefs.directionAI,prediction:prefs.prediction}));assert.deepEqual(saved,{enabled:false,prediction:18});
   assert.deepEqual(errors,[]);assert.deepEqual(external,[],'Direction assistant must not request a remote model or server');
   console.log('PASS: wrap, invalid events, continuous view on screen rotation/resume, pole handling, recenter, guided calibration, stale-signal dwell guard, optional Motion permission failure, Orientation denial, persistent assistant controls; no external requests or page errors.');
  }finally{await browser.close();}
