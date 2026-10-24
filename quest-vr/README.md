@@ -242,3 +242,15 @@ com o detector é testada com resultados simulados; **o modelo real de objetos
 não foi executado neste ambiente**. Seu endereço foi confirmado no exemplo
 oficial do MediaPipe. As mãos são testadas com landmarks simulados: pinça sem
 acionamento, círculo que seleciona uma vez e saída do alvo para rearmar.
+
+### Ponto inicial de direção
+
+Use **Fixar ponto de direção**, toque em um objeto parado ou arraste sua área.
+O objeto define a frente inicial. Ao sair da imagem, a direção continua pela
+rotação estimada dos detalhes do cenário, sem precisar manter o objeto visível.
+O estado informa quando o ponto está memorizado e quando falta textura.
+Ao voltar a ver o objeto, a correção só começa após três quadros confirmados.
+Sem giroscópio, essa orientação é relativa e pode acumular desvio; pouca luz,
+paredes lisas ou movimentos rápidos impedem acompanhar. Não há orientação
+absoluta nem garantia de retorno exato após uma volta completa.
+A confiança da IA é suavizada entre detecções próximas da mesma categoria.
