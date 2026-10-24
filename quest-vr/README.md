@@ -46,6 +46,45 @@ proteção contra repetição; cliques e toques diretos continuam imediatos.
 são solicitadas quando o navegador permite. **Sair do VR** permanece visível;
 Escape também sai. Se o bloqueio de orientação falhar, gire o celular à mão.
 
+## Celular sem giroscópio
+
+Use **Direção pela câmera**, no topo da interface ou nos ajustes rápidos.
+Esse modo não depende de `DeviceOrientation` ou `DeviceMotion`, não solicita
+permissão de sensores e não precisa baixar o modelo de mãos.
+
+1. Sirva o projeto em HTTPS no celular e autorize a câmera.
+2. Em Conforto, prefira **Câmera traseira · VR Box**. A lente precisa ficar
+   descoberta no suporte VR Box.
+3. Aponte para um ambiente fixo, iluminado e com detalhes. Faça movimentos
+   lentos; use **Centralizar** para renovar a referência.
+4. Se a rotação parecer forte ou fraca, ajuste Sensibilidade ou Campo visual
+   estimado. O campo visual é uma aproximação, não uma calibração óptica do
+   aparelho. A antecipação é desativada neste modo para evitar extrapolações.
+
+O rastreador visual compara pequenos pontos entre quadros em duas escalas,
+verifica os correspondentes nos dois sentidos, refina deslocamentos menores
+que um pixel e exige consenso em pelo menos três regiões da imagem. Quando
+as mãos estão sendo rastreadas, suas regiões são excluídas dessa estimativa.
+O assistente adaptativo local suaviza os ângulos estimados.
+
+Poucos detalhes, correspondências inconsistentes, oclusões e movimentos fora
+da janela de busca suspendem a integração. A referência é renovada, sem
+continuar uma virada inventada. O painel mostra quantos pontos são coerentes.
+Arrastar com mouse ou dedo continua disponível.
+
+Este é **movimento relativo estimado pela imagem**, não um giroscópio virtual
+preciso, rastreamento 6DoF ou odometria visual completa. Câmera monocular não
+separa, neste método, o deslocamento lateral de uma rotação. Objetos móveis,
+uma mão cobrindo grande parte da câmera sem landmarks disponíveis, mudanças
+de iluminação e erro acumulado podem afetar a direção. Recentralize quando
+necessário. A qualidade real depende do celular e do cenário.
+
+Mãos e direção visual compartilham uma única câmera, mas podem ser ligadas e
+desligadas separadamente. Se o modelo externo das mãos falhar, a direção
+visual continua. Câmera e sensores de orientação são modos de direção
+alternativos: iniciar um desativa o outro, preservando a posição atual.
+Os quadros são processados localmente, sem uploads ou API de IA.
+
 ## Direção assistida · IA local
 
 Em **Conforto → Assistente de direção**, mantenha o assistente adaptativo
@@ -57,8 +96,9 @@ expira em sete segundos. Centralizar com R continua disponível imediatamente.
 O assistente é um pequeno modelo de aprendizado online, não uma rede neural
 pré-treinada: compara três previsores (repouso, velocidade constante e
 velocidade amortecida), atualiza os pesos conforme os erros observados e estima
-o ruído do sinal nesta sessão. Não baixa modelos, não usa a câmera e não envia
-dados para uma API. O modelo de mãos MediaPipe é um recurso separado.
+o ruído do sinal nesta sessão. Não baixa modelos nem envia dados para uma API. No modo visual, recebe
+ângulos derivados da câmera processada localmente; no modo de sensores,
+recebe as leituras de orientação. O modelo de mãos MediaPipe é um recurso separado.
 
 - Filtro mais firme em repouso e resposta mais rápida durante movimentos.
 - Tendência de movimento estimada por uma pequena janela de amostras.
@@ -101,13 +141,14 @@ Notas e preferências ficam no armazenamento deste navegador; não há backup ou
 sincronização automática. Se o armazenamento estiver bloqueado, a interface
 avisa que o texto existe somente na sessão atual.
 
-O rastreamento baixa MediaPipe Tasks Vision **0.10.21**, seus arquivos WASM e
+O rastreamento de mãos baixa MediaPipe Tasks Vision **0.10.21**, seus arquivos WASM e
 o modelo oficial Hand Landmarker. Estes destinos precisam estar acessíveis:
 
 - `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/`
 - `https://storage.googleapis.com/mediapipe-models/hand_landmarker/`
 
-A primeira ativação exige internet. GPU é tentada primeiro, com alternativa
+A primeira ativação das mãos exige internet; a direção visual não depende
+desse download. GPU é tentada primeiro, com alternativa
 em CPU. O processamento ajusta a frequência de inferência. Permissões, sensores,
 desempenho e iluminação dependem do aparelho. Se o modelo não carregar, o erro é
 exibido e os demais controles permanecem disponíveis.
@@ -133,6 +174,8 @@ NODE_PATH=/tmp/horizon-web-tests/node_modules node tests/interface.cjs
 NODE_PATH=/tmp/horizon-web-tests/node_modules node tests/hands.cjs
 node tests/direction.cjs
 NODE_PATH=/tmp/horizon-web-tests/node_modules node tests/direction-browser.cjs
+node tests/visual-motion.cjs
+NODE_PATH=/tmp/horizon-web-tests/node_modules node tests/visual-browser.cjs
 ```
 
 Variáveis opcionais: `QUEST_TEST_URL`, `QUEST_ARTIFACT_DIR` e `CHROMIUM_PATH`.
@@ -143,3 +186,9 @@ O download do modelo externo foi bloqueado no ambiente de desenvolvimento
 (HTTP 403 na versão anterior). A inferência com mãos reais, a precisão dos
 sensores físicos e o conforto com lentes precisam ser validados em um celular
 real. Os testes simulados não comprovam esses resultados.
+
+Os testes visuais usam quadros sintéticos e uma câmera gerada por canvas no
+Chromium, sem emitir eventos de orientação. Cobrem direção dos eixos, movimento
+subpixel, exposição, regiões móveis, falta de textura, compartilhamento da
+câmera, falha do modelo de mãos e permissões. Não foram executados em uma
+câmera física; precisão e conforto devem ser verificados no seu celular.
