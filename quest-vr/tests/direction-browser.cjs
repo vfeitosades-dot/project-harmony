@@ -3,7 +3,7 @@ const testURL=process.env.QUEST_TEST_URL||'http://127.0.0.1:8766/';
 (async()=>{
  const browser=await chromium.launch({...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}),headless:true,args:process.env.CHROMIUM_NO_SANDBOX==='1'?['--no-sandbox']:[]});
  try{
-  const page=await browser.newPage(),errors=[],external=[];page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(new URL(r.url()).origin!==new URL(testURL).origin)external.push(r.url());});await page.goto(testURL);
+  const page=await browser.newPage(),errors=[],external=[];page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(new URL(r.url()).origin!==new URL(testURL).origin)external.push(r.url());});await page.goto(testURL);if(await page.locator('#cameraAccess').evaluate(n=>n.open))await page.locator('#cameraLater').click();
   const results=await page.evaluate(()=>{
    const originalNow=performance.now.bind(performance);let clock=1000;performance.now=()=>clock;
    try{

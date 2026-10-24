@@ -3,10 +3,10 @@
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;color:var(--text);background:#b8c4d8}button,input,select,textarea{font:inherit}button{cursor:pointer}button:focus-visible,[data-id]:focus-visible{outline:3px solid #99bcff;outline-offset:4px}button{color:inherit}#stage{position:fixed;inset:0;display:flex;background:#b7bed1}.eye{flex:1;position:relative;overflow:hidden;perspective:1100px;touch-action:none;background:radial-gradient(ellipse at 76% 21%,#fff3dd 0,transparent 31%),linear-gradient(180deg,#8e9cbb,#ccd1df 42%,#edf0eb 58%,#adbac5 58.2%,#6e8c9f 100%)}
 .eye:before{content:"";position:absolute;width:160%;height:80%;bottom:-48%;left:-30%;border-radius:50%;background:repeating-radial-gradient(ellipse at 50% 0%,#d9e1df66 0 1px,transparent 2px 32px);transform:rotate(-5deg)}.eye:after{content:"";position:absolute;left:-12%;bottom:38%;width:65%;height:18%;border-radius:60% 90% 0 0;background:linear-gradient(140deg,#788aa666,#7b8b9f11);filter:blur(1px);pointer-events:none}.eye[data-env=night]{background:radial-gradient(ellipse at 60% 15%,#7789d866,transparent 40%),linear-gradient(#121b36,#344c72 58%,#223d57 58.2%,#0c203b)}.eye[data-env=sunset]{background:radial-gradient(circle at 70% 37%,#fff1c3 0 3%,#ffc5ad66 4%,transparent 28%),linear-gradient(#9a8abb,#e2b0b5 57%,#bba8bc 57.2%,#717a9b)}.scenery{position:absolute;inset:0;background:inherit;filter:brightness(var(--scene-brightness,1));pointer-events:none}.world{z-index:1;position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d}.obj{position:absolute;left:0;top:0;transform-style:preserve-3d}.panel{background:var(--panel);border:1px solid #ffffff21;border-radius:26px;box-shadow:0 32px 95px #10253f45,0 2px 1px #ffffff08 inset;backdrop-filter:blur(30px);padding:28px}.window-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:23px}.window-header h1,.window-header h2{font-size:23px;font-weight:600;letter-spacing:-.7px;margin:0}.subtle{font-size:12px;color:var(--muted)}.icon{width:23px;height:23px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.round{display:grid;place-items:center;width:36px;height:36px;border:0;border-radius:50%;background:#ffffff0b;color:#c4cbd7}.head-actions{display:flex;align-items:center;gap:9px}.toolbar{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:23px}.tabs{display:flex;background:#ffffff08;padding:4px;border-radius:12px;gap:3px}.tab{border:0;border-radius:9px;background:transparent;padding:9px 16px;font-size:12px;color:var(--muted)}.tab.active{background:#535a6b;color:white;box-shadow:0 3px 8px #0002}.search{height:37px;display:flex;align-items:center;gap:9px;background:#ffffff08;border:1px solid #ffffff0b;border-radius:11px;padding:0 12px;color:#aab2bf;max-width:220px}.search .icon{width:16px}.search input{width:100%;background:none;color:white;border:0;outline:none;font-size:12px;min-width:0}.search:focus-within{border-color:#88b5ff}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:23px 17px}.tile{position:relative;border:0;background:none;text-align:left;padding:0;color:white;min-width:0;cursor:pointer;border-radius:15px}.app-art{height:108px;border-radius:17px;position:relative;overflow:hidden;display:grid;place-items:center;border:1px solid #ffffff13;background:var(--art);transition:transform .18s,box-shadow .18s}.app-art:before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 25% 0%,#ffffff38,transparent 65%)}.app-art .icon{width:43px;height:43px;filter:drop-shadow(0 8px 10px #0003);stroke-width:1.4;z-index:1}.tile-title{font-size:12px;display:block;margin-top:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tile-meta{display:block;font-size:10px;color:#9ca6b6;margin-top:4px}.hov .app-art,.tile:hover .app-art{transform:translateY(-3px);box-shadow:0 0 0 3px #a6caff,0 12px 24px #0004}.hov.btn,.hov.tab,.hov.round,.btn:hover{background:#667084;color:white}.badge{position:absolute;right:8px;top:8px;width:7px;height:7px;border-radius:50%;background:#95ceff;box-shadow:0 0 9px #95ceff66}.footer-line{display:flex;justify-content:space-between;border-top:1px solid var(--line);padding-top:18px;margin-top:23px;color:#9aa5b7;font-size:10px}.dock{display:flex;gap:8px;align-items:center;background:rgba(32,36,45,.97);padding:11px 14px;border:1px solid #ffffff23;border-radius:28px;box-shadow:0 20px 60px #10253f55;backdrop-filter:blur(22px)}.dock .btn{display:grid;place-items:center;width:47px;height:47px;border:0;background:#ffffff0a;border-radius:15px;padding:0;color:#c9d0de;transition:background .2s}.dock .btn.selected{color:#b8d4ff;background:#3e567d}.dock .btn.home{background:#3170dc;color:white}.divider{width:1px;height:29px;background:#ffffff18;margin:0 4px}.system-pill{display:flex;align-items:center;gap:10px;border:0;background:#ffffff09;border-radius:17px;padding:10px 13px;margin-right:4px;font-size:12px;white-space:nowrap}.system-pill .icon{width:17px;height:17px}.profile{background:linear-gradient(140deg,#a3bcf1,#7478a7)!important;color:#202c51!important;font-size:16px;font-weight:700}.btn{border:1px solid #ffffff12;background:#ffffff09;border-radius:13px;padding:12px 16px;color:#d8dfed}.row{display:flex;gap:14px;align-items:center;margin:18px 0}.row>span{flex:1;font-size:13px}.row small{display:block;color:var(--muted);margin-top:5px;font-size:11px}.row .btn{min-width:38px}.quick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:22px 0}.quick-item{display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:18px;min-height:93px;text-align:left;font-size:11px}.quick-item.enabled{background:#3766ae;border-color:#84acdf;color:white}.quick-item .icon{width:23px}.range-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid var(--line)}.range-row .icon{color:#a5afbf;width:18px}.range-row input{flex:1;min-width:0;accent-color:#a7caff}.range-row output{font-size:11px;color:#aeb9c9;min-width:34px}.intro-card{padding:23px;background:radial-gradient(ellipse at right,#a698de55,transparent 65%),linear-gradient(120deg,#303d61,#4b536f);border-radius:18px;margin-bottom:22px}.intro-card h2{font-size:25px;line-height:1.25;font-weight:500;margin:9px 0;letter-spacing:-.6px}.intro-card p{font-size:12px;color:#c4cfe3;line-height:1.7;margin:0;max-width:380px}.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:#c0d5ff}.environment-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}.environment{height:117px;display:flex;align-items:flex-end;padding:13px;border-radius:15px;border:2px solid transparent;font-size:12px;background:linear-gradient(#a1aec9,#e6e9e7 58%,#728da4 59%,#4e667e)}.environment.night{background:radial-gradient(circle at 70% 30%,#c4cfff 0 3%,transparent 4%),linear-gradient(#14203f,#4a6087 58%,#162e4b 59%)}.environment.sunset{background:linear-gradient(#8d87b5,#edb6ae 58%,#987d9a 59%)}.environment.chosen{border-color:#a6caff}.note-editor{width:100%;height:205px;resize:none;background:#151b26;border:1px solid #ffffff13;border-radius:13px;padding:16px;color:#e0e9fa;line-height:1.7;font-size:14px;outline:none;user-select:text}.note-editor:focus{border-color:#88b5ff}.empty[hidden]{display:none}.empty{grid-column:1/-1;text-align:center;padding:44px;color:#aebbd1;font-size:13px}.guide-list{display:grid;gap:13px}.guide-item{padding:15px;background:#ffffff05;border:1px solid var(--line);border-radius:13px;font-size:12px;line-height:1.7;color:#b7c2d3}.guide-item b{display:block;color:#e2e9f7;margin-bottom:4px}.welcome{position:fixed;left:27px;top:24px;z-index:8;pointer-events:none}.wordmark{font-size:18px;letter-spacing:-.6px;color:#33425f;display:flex;gap:8px;align-items:center}.wordmark .infinity{font-size:29px;line-height:1}.welcome small{color:#566781;font-size:10px;letter-spacing:1px;display:block;margin-top:4px}#ui{position:fixed;right:22px;top:23px;display:flex;gap:8px;flex-wrap:wrap;max-width:75vw;justify-content:flex-end;z-index:10}#ui button{min-height:37px;border:1px solid #ffffff75;border-radius:20px;background:#eef3fa88;color:#344463;font-size:11px;padding:9px 14px;backdrop-filter:blur(14px)}#ui button[aria-pressed=true]{background:#31588c;color:white;border-color:#6088b5}#ui #bVR{background:#263b5b;color:#f1f5ff;border-color:#263b5b}.vr #ui button:not(#bExit){display:none}.vr .welcome{display:none}.vr .eye+.eye{border-left:2px solid #000}.vr #ret{display:none}#bExit[hidden]{display:none}#status{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);padding:10px 18px;background:#23344ad9;border:1px solid #ffffff22;border-radius:20px;font-size:11px;color:#dce8fb;z-index:9;pointer-events:none;text-align:center;max-width:min(680px,94vw);width:max-content;backdrop-filter:blur(12px)}.vr #status{max-width:43vw;left:25%;font-size:10px}.r,#ret{position:absolute;width:20px;height:20px;margin:-10px;border:2px solid #fff;border-radius:50%;pointer-events:none;z-index:7;box-shadow:0 1px 10px #0007;background:conic-gradient(#91c6ff calc(var(--p,0)*1%),#23334c44 0)}#ret{position:fixed}.pinching #ret,.pinching .r{border-color:#8cface;box-shadow:0 0 18px #8cface88}#cv{position:fixed;right:18px;bottom:22px;width:130px;border-radius:15px;border:1px solid #ffffff80;opacity:.85;z-index:8;pointer-events:none}#cv:not([data-active]),.vr #cv{display:none}dialog{width:min(490px,92vw);max-height:85dvh;overflow:auto;background:#222936;border:1px solid #ffffff2b;border-radius:25px;color:#eff4ff;padding:27px;box-shadow:0 30px 120px #0007}dialog::backdrop{background:#131f3d88;backdrop-filter:blur(12px)}dialog h2{font-size:21px;letter-spacing:-.5px;margin:0 0 16px}dialog p{font-size:12px;line-height:1.7;color:#b1bdd2}dialog label{display:flex;align-items:center;gap:10px;margin:21px 0;font-size:12px}dialog input[type=range]{flex:1;min-width:30px;accent-color:#9ac5ff}dialog output{font-size:11px;min-width:45px}dialog select,dialog button{background:#394a68;border:1px solid #ffffff20;border-radius:10px;padding:10px;color:white}dialog .settings-close{width:100%}.sk{z-index:5;pointer-events:none}.eye .sk{position:absolute;inset:0;width:100%;height:100%}body[data-theme=night] .wordmark,body[data-theme=night] .welcome small{color:#dce5ff}.app-notice{font-size:11px;line-height:1.7;color:#aab7ce;margin:0 0 16px}.tile[hidden]{display:none}@media(max-width:650px){.welcome{top:17px;left:16px}.wordmark{font-size:16px}.welcome small{display:none}#ui{top:58px;right:12px;left:12px;max-width:none;justify-content:center;gap:5px}#ui button{padding:8px 11px;font-size:10px;min-height:32px}#status{font-size:10px;bottom:14px;padding:9px 13px}#cv{bottom:62px;width:95px}}@media(prefers-reduced-motion:reduce){*{transition:none!important}}
 @media(max-width:650px){body:not(.vr) .panel{width:420px!important;padding:20px;max-height:550px;overflow-y:auto;scrollbar-width:thin;touch-action:pan-y}body:not(.vr) .grid{grid-template-columns:repeat(2,1fr);gap:19px 16px}body:not(.vr) .app-art{height:82px}body:not(.vr) .tile-title{font-size:14px}body:not(.vr) .tile-meta{font-size:11px}body:not(.vr) .toolbar{flex-wrap:wrap;gap:12px}body:not(.vr) .search{max-width:none;width:100%}body:not(.vr) .dock{margin-top:38px;padding:9px;gap:5px}body:not(.vr) .dock .btn{width:35px;height:35px;border-radius:11px}body:not(.vr) .dock .profile,body:not(.vr) .dock .divider{display:none}body:not(.vr) .system-pill{padding:8px;font-size:11px;gap:6px;margin:0}body:not(.vr) .eye{touch-action:pan-y}body:not(.vr) .quick-grid{grid-template-columns:repeat(2,1fr)}body:not(.vr) .environment-grid{grid-template-columns:1fr}body:not(.vr) .environment{height:90px}body:not(.vr) .intro-card h2{font-size:23px}}
-.direction-controls{margin:24px 0;padding:16px;border:1px solid #ffffff20;border-radius:16px}.direction-controls legend{font-size:13px;color:#bed7ff;padding:0 7px}.direction-controls label{margin:14px 0}.direction-controls p{font-size:11px}.direction-controls button{width:100%}#orientationHealth{font-variant-numeric:tabular-nums;min-height:32px;margin-bottom:0}#visionVideo{position:fixed;right:18px;bottom:110px;width:120px;border:1px solid #ffffff88;border-radius:14px;z-index:8;pointer-events:none}#visionVideo[hidden],.vr #visionVideo{display:none}#visionState{position:fixed;right:18px;bottom:94px;max-width:200px;padding:5px 9px;border-radius:9px;background:#15283ee8;color:#d8e8ff;font-size:10px;z-index:9;pointer-events:none}#visionState[hidden],.vr #visionState{display:none}</style></head><body>
-<div class="welcome"><div class="wordmark"><span class="infinity">∞</span> horizon <b>web</b></div><small>SEU ESPAÇO. OUTRA PERSPECTIVA.</small></div><main id="stage" aria-label="Ambiente virtual"></main><div id="ret"></div><div id="visionState" hidden role="status" aria-live="polite"></div><video id="visionVideo" playsinline muted hidden aria-label="Prévia da direção pela câmera"></video><video id="cv" playsinline muted aria-label="Prévia local da câmera"></video>
-<nav id="ui" aria-label="Controles do ambiente"><button id="bCam">Ativar mãos</button><button id="bVision">Direção pela câmera</button><button id="bGyro" hidden>Ativar sensores</button><button id="bCenter">Centralizar</button><button id="bSettings">Conforto</button><button id="bVR">Entrar no VR Box</button><button id="bExit" hidden>Sair do VR</button></nav><div id="status" role="status" aria-live="polite">Arraste para explorar · clique para abrir · R para centralizar</div><dialog id="settings"><form method="dialog"><h2>Conforto e rastreamento</h2><p>Interface web inspirada em headsets VR. O VR Box usa tela dividida, sem rastreamento de posição ou passthrough estereoscópico.</p>
-<label>Câmera <select id="facing"><option value="user">Frontal · espelhada</option></select></label>
+.direction-controls{margin:24px 0;padding:16px;border:1px solid #ffffff20;border-radius:16px}.direction-controls legend{font-size:13px;color:#bed7ff;padding:0 7px}.direction-controls label{margin:14px 0}.direction-controls p{font-size:11px}.direction-controls button{width:100%}#orientationHealth{font-variant-numeric:tabular-nums;min-height:32px;margin-bottom:0}#visionVideo{position:fixed;right:18px;bottom:110px;width:120px;border:1px solid #ffffff88;border-radius:14px;z-index:8;pointer-events:none}#visionVideo[hidden],.vr #visionVideo{display:none}#visionState{position:fixed;right:18px;bottom:94px;max-width:200px;padding:5px 9px;border-radius:9px;background:#15283ee8;color:#d8e8ff;font-size:10px;z-index:9;pointer-events:none}#visionState[hidden],.vr #visionState{display:none}.camera-actions{display:grid;gap:10px}.camera-actions #cameraAllow{background:#2960b1;font-weight:600}.camera-actions button:disabled{opacity:.6;cursor:wait}#cameraAccess{z-index:40}#cameraOpen[hidden]{display:none}#cameraAccess:not([open]){display:none}#cameraAccess.camera-fallback[open]{display:block;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;box-shadow:0 0 0 100vmax #10182bbb,0 30px 120px #0007}#objectPanel{width:min(720px,94vw);z-index:45}#objectPanel:not([open]){display:none}#objectPanel.camera-fallback[open]{display:block;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;box-shadow:0 0 0 100vmax #10182bbb}#objectPreview{display:block;width:100%;border-radius:14px;background:#000;touch-action:none;cursor:crosshair}#objectList{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}#anchorState{position:fixed;left:12px;bottom:64px;max-width:55vw;padding:7px 10px;background:#15283edb;border-radius:12px;color:#c9ebda;font-size:11px;z-index:9;pointer-events:none}.vr #anchorState{left:8px;max-width:44vw;font-size:9px}#ret,.r{width:28px;height:28px;margin:-14px}#ret:after,.r:after{content:"";position:absolute;inset:5px;border-radius:50%;background:#17304c80;pointer-events:none}</style></head><body>
+<div class="welcome"><div class="wordmark"><span class="infinity">∞</span> horizon <b>web</b></div><small>SEU ESPAÇO. OUTRA PERSPECTIVA.</small></div><main id="stage" aria-label="Ambiente virtual"></main><div id="ret"></div><div id="visionState" hidden role="status" aria-live="polite"></div><video id="visionVideo" playsinline webkit-playsinline autoplay muted hidden aria-label="Prévia da direção pela câmera"></video><video id="cv" playsinline webkit-playsinline autoplay muted aria-label="Prévia local da câmera"></video>
+<nav id="ui" aria-label="Controles do ambiente"><button id="bCam">Ativar mãos</button><button id="bVision">Direção pela câmera</button><button id="bObjects">Objetos / referência</button><button id="bGyro" hidden>Ativar sensores</button><button id="bCenter">Centralizar</button><button id="bSettings">Conforto</button><button id="bVR">Entrar no VR Box</button><button id="bExit" hidden>Sair do VR</button></nav><div id="status" role="status" aria-live="polite">Arraste para explorar · clique para abrir · R para centralizar</div><dialog id="settings"><form method="dialog"><h2>Conforto e rastreamento</h2><p>Interface web inspirada em headsets VR. O VR Box usa tela dividida, sem rastreamento de posição ou passthrough estereoscópico.</p>
+<label>Câmera <select id="facing"><option value="environment">Traseira · ambiente</option><option value="user">Frontal · espelhada</option></select></label>
 <label>Sensibilidade <input id="sensitivity" type="range" min="0.5" max="1.8" step="0.1" value="1"><output id="sensitivityValue">1.0×</output></label>
 <label>Suavização <input id="smoothing" type="range" min="40" max="220" step="10" value="90"><output id="smoothingValue">90 ms</output></label>
 <fieldset class="direction-controls"><legend>Assistente de direção · IA local</legend><p>Sensor visual de rotação: usa somente a câmera para estimar giros nos três eixos, com horizonte nivelado. Precisa de luz, detalhes e um cenário fixo. Não requer sensores físicos de movimento.</p><label>Campo visual estimado <input id="cameraFov" type="range" min="40" max="95" step="1" value="65"><output id="cameraFovValue">65°</output></label><p id="visualHealth" role="status" aria-live="polite">Direção visual desligada</p>
@@ -15,19 +15,21 @@
 <label>Antecipação automática desligada na câmera <input disabled id="prediction" type="range" min="0" max="35" step="1" value="18"><output id="predictionValue">18 ms</output></label>
 <button id="calibrateDirection" type="button">Renovar referência visual</button>
 <p id="orientationHealth" role="status" aria-live="polite">Sensores desligados</p></fieldset>
-<label><input type="checkbox" id="dwellEnabled" checked> Selecionar ao manter o cursor parado</label>
+<label><input type="checkbox" id="dwellEnabled" checked> Também selecionar com o olhar (sem mão)</label>
 <label><input type="checkbox" id="showHands" checked> Mostrar articulações das mãos</label>
-<label>Seleção pelo olhar <input id="dwellTime" type="range" min="700" max="2400" step="100" value="1200"><output id="dwellValue">1.2 s</output></label>
+<label>Tempo de seleção <input id="dwellTime" type="range" min="700" max="2400" step="100" value="1200"><output id="dwellValue">1.2 s</output></label>
 <label>Alcance da mão <input id="reachControl" type="range" min="1" max="2.4" step="0.1" value="1.6"><output id="reachValue">1.6×</output></label>
-<p>Aponte com o indicador. Junte polegar e indicador para selecionar; solte antes do próximo clique. Sem mãos, o cursor segue o centro da visão.</p>
+<p>Aponte com o indicador e mantenha o cursor sobre o botão até completar o círculo. Tire o dedo do botão antes de selecioná-lo de novo. Sem mãos, o cursor segue o centro da visão.</p>
 <p>Use HTTPS ou localhost. Câmera e sensores dependem de permissão. O modelo é baixado ao ativar; as imagens são processadas neste aparelho.</p>
 <button class="settings-close">Concluir</button></form></dialog>
+<dialog id="cameraAccess" role="dialog" aria-modal="true" aria-labelledby="cameraAccessTitle"><h2 id="cameraAccessTitle">Ativar câmera do dispositivo</h2><p id="cameraAccessMessage" role="status" aria-live="polite">Toque no botão abaixo. O navegador solicitará acesso à câmera selecionada. Se a permissão já estiver salva, a câmera poderá abrir diretamente.</p><p>As imagens são processadas no aparelho. Use o site em HTTPS no Chrome ou Safari; uma prévia do GitHub ou de ZIP não executa este aplicativo.</p><div class="camera-actions"><button id="cameraAllow" type="button">Permitir câmera traseira</button><button id="cameraOpen" type="button">Abrir página em outra aba</button><button id="cameraLater" type="button">Agora não</button></div></dialog>
+<dialog id="objectPanel" role="dialog" aria-modal="true" aria-labelledby="objectTitle"><h2 id="objectTitle">Escolha sua referência</h2><p>Toque em um objeto na imagem ou arraste para marcar sua área. Ele precisa ficar parado. A IA reconhece uma lista limitada de objetos; você pode marcar uma caixa manualmente mesmo sem reconhecimento.</p><canvas id="objectPreview" width="640" height="480" aria-label="Imagem da câmera: toque ou arraste para marcar um objeto"></canvas><label>Nome <input id="anchorName" maxlength="40" placeholder="Ex.: caixa"></label><p id="objectInfo" role="status">Você já pode marcar uma área. O download da IA é opcional e as imagens ficam no aparelho.</p><div id="objectList"></div><div class="camera-actions"><button id="objectAI" type="button">Identificar objetos com IA</button><button id="objectClear" type="button">Limpar referência</button><button id="objectClose" type="button">Voltar</button></div></dialog><div id="anchorState" role="status">Sem objeto fixado</div>
 <script>
 'use strict';
 const S={reach:1.6,hand:false,hx:.5,hy:.5,d:520,dwell:1200,vr:false,apps:[],yaw:0,pitch:0,view:'library',filter:'all',env:'coast',brightness:100,note:'',recents:[]};
 const ICONS={grid:'<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',home:'<path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>',compass:'<circle cx="12" cy="12" r="9"/><path d="m16 8-3 5-5 3 3-5z"/>',settings:'<path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3" fill="currentColor"/><circle cx="16" cy="17" r="3" fill="currentColor"/>',note:'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5"/>',image:'<rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1.5"/><path d="m3 17 6-6 4 4 3-3 5 5"/>',hand:'<path d="M8 12V5a1.5 1.5 0 0 1 3 0v6-8a1.5 1.5 0 0 1 3 0v8-6a1.5 1.5 0 0 1 3 0v7-4a1.5 1.5 0 0 1 3 0v6c0 5-2 7-6 7h-1c-3 0-4-1-6-4l-3-4c-1-2 1-3 2-2l2 2"/>',globe:'<circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18M5 6h14M5 18h14"/>',moon:'<path d="M21 13A9 9 0 0 1 11 3a9 9 0 1 0 10 10Z"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1 1m12 12 1 1M5 19l1-1M18 6l1-1"/>',search:'<circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/>',close:'<path d="m6 6 12 12M18 6 6 18"/>',back:'<path d="m15 5-7 7 7 7"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7v.01"/>',center:'<path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/><circle cx="12" cy="12" r="3"/>',battery:'<rect x="2" y="7" width="17" height="10" rx="2"/><path d="M22 10v4M6 10v4m4-4v4m4-4v4"/>',check:'<path d="m5 12 4 4L19 6"/>',star:'<path d="m12 3 3 6 6 1-4.5 4.5 1 6.5-5.5-3-5.5 3 1-6.5L3 10l6-1z"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',headset:'<path d="M3 9c0-4 18-4 18 0v7c0 3-6 4-8 1l-1-1-1 1c-2 3-8 2-8-1Z"/><path d="M3 10h18"/>',bolt:'<path d="m13 2-9 12h7l-1 8 10-13h-7z"/>'};
 const icon=name=>`<svg class="icon" aria-hidden="true" viewBox="0 0 24 24">${ICONS[name]||ICONS.grid}</svg>`;
-const APPS=[['notes','Notas','note','#b78f69,#785c50','Escreva e salve neste aparelho'],['gallery','Ambientes','image','#6895a5,#49617c','Escolha seu cenário'],['guide','Primeiros passos','compass','#8e8bc8,#55518c','Domine mãos e movimentos'],['hands','Rastreamento','hand','#6eac9a,#33756a','Aponte. Faça uma pinça.'],['set','Configurações','settings','#739acb,#3d64a0','Seu espaço, do seu jeito'],['comfort','Conforto','headset','#a47cb5,#6c4c8c','Ajuste foco e movimento'],['focus','Modo foco','moon','#627da7,#344c77','Um ambiente mais tranquilo'],['about','Sobre este espaço','info','#6f869d,#435366','Recursos e compatibilidade']];
+const APPS=[['notes','Notas','note','#b78f69,#785c50','Escreva e salve neste aparelho'],['gallery','Ambientes','image','#6895a5,#49617c','Escolha seu cenário'],['guide','Primeiros passos','compass','#8e8bc8,#55518c','Domine mãos e movimentos'],['hands','Rastreamento','hand','#6eac9a,#33756a','Aponte e complete o círculo.'],['set','Configurações','settings','#739acb,#3d64a0','Seu espaço, do seu jeito'],['comfort','Conforto','headset','#a47cb5,#6c4c8c','Ajuste foco e movimento'],['focus','Modo foco','moon','#627da7,#344c77','Um ambiente mais tranquilo'],['about','Sobre este espaço','info','#6f869d,#435366','Recursos e compatibilidade']];
 const A=id=>APPS.find(a=>a[0]===id),COL=c=>`linear-gradient(135deg,${c})`;
 const escapeHTML=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pos=(angle,d,y=0)=>`transform:translate(-50%,-50%) rotateY(${angle}deg) translateZ(${-d}px) translateY(${y}px)`;
@@ -43,8 +45,8 @@ function content(){
  if(S.view==='home')return header('Seu espaço')+`<div class="intro-card"><span class="eyebrow">Bem-vindo de volta</span><h2>Um momento para<br>mudar de perspectiva.</h2><p>Abra sua biblioteca, encontre um cenário tranquilo e faça deste espaço o seu lugar.</p></div><div class="toolbar"><span class="subtle">Escolha o seu ambiente</span><button class="tab" data-id="library">Ver biblioteca →</button></div>${environments()}<div class="footer-line"><span>Processamento das mãos no aparelho</span><span>Interface independente · não oficial</span></div>`;
  if(S.view==='gallery')return header('Ambientes','Um cenário para cada momento')+environments()+`<div class="intro-card" style="margin-top:22px;margin-bottom:0"><span class="eyebrow">Menos distrações</span><h2>Encontre seu ritmo.</h2><p>Ambientes gerados com CSS, sem downloads de imagens. Escolha um tema e ele será lembrado neste navegador.</p></div>`;
  if(S.view==='notes')return header('Notas','Seu rascunho, salvo neste navegador')+`<textarea class="note-editor" maxlength="20000" placeholder="O que você quer criar hoje?" aria-label="Suas notas">${escapeHTML(S.note)}</textarea><div class="footer-line"><span class="note-status">Salvo localmente · sem sincronização</span><span class="note-count">${S.note.length}/20000</span></div>`;
- if(S.view==='guide')return header('Primeiros passos')+`<div class="guide-list"><div class="guide-item"><b>01 · Olhe ao redor</b>Arraste com mouse ou dedo. No celular, ative Direção pela câmera, mostre um cenário fixo e centralize. R também centraliza.</div><div class="guide-item"><b>02 · Suas mãos são o controle</b>Ative as mãos, mostre a mão inteira e aponte com o indicador. Abra polegar e indicador antes de juntar os dois para selecionar.</div><div class="guide-item"><b>03 · Entre no VR Box</b>Coloque o celular na horizontal e ative a tela dividida. Cada olho recebe uma versão da interface. O botão Sair do VR permanece acessível.</div><div class="guide-item"><b>04 · Ajuste para você</b>Abra Conforto para sensibilidade, suavização, câmera frontal ou traseira e tempo de seleção.</div></div>`;
- return header('Sobre este espaço')+`<div class="intro-card"><span class="eyebrow">Horizon Web · 2.0</span><h2>Uma interface espacial.<br>No seu navegador.</h2><p>Biblioteca, menu universal, notas, ambientes e controles de conforto inspirados em interfaces de headsets.</p></div><div class="guide-list"><div class="guide-item"><b>O que funciona aqui</b>Mãos com 21 landmarks, seleção por pinça, rotação visual pela câmera, controles por toque e mouse e modo VR Box.</div><div class="guide-item"><b>Sobre o hardware</b>Sem câmeras de profundidade, controles Touch, rastreamento 6DoF ou passthrough estereoscópico. Este projeto é independente e não é software oficial Meta.</div></div>`;
+ if(S.view==='guide')return header('Primeiros passos')+`<div class="guide-list"><div class="guide-item"><b>01 · Olhe ao redor</b>Arraste com mouse ou dedo. No celular, ative Direção pela câmera, mostre um cenário fixo e centralize. R também centraliza.</div><div class="guide-item"><b>02 · Suas mãos são o controle</b>Ative as mãos, mostre a mão inteira e aponte com o indicador. Mantenha o indicador sobre um botão até o círculo completar. Afaste o cursor antes de repetir.</div><div class="guide-item"><b>03 · Entre no VR Box</b>Coloque o celular na horizontal e ative a tela dividida. Cada olho recebe uma versão da interface. O botão Sair do VR permanece acessível.</div><div class="guide-item"><b>04 · Ajuste para você</b>Abra Conforto para sensibilidade, suavização, câmera selecionada ou traseira e tempo de seleção.</div></div>`;
+ return header('Sobre este espaço')+`<div class="intro-card"><span class="eyebrow">Horizon Web · 2.0</span><h2>Uma interface espacial.<br>No seu navegador.</h2><p>Biblioteca, menu universal, notas, ambientes e controles de conforto inspirados em interfaces de headsets.</p></div><div class="guide-list"><div class="guide-item"><b>O que funciona aqui</b>Mãos com 21 landmarks, seleção por permanência, rotação visual pela câmera, controles por toque e mouse e modo VR Box.</div><div class="guide-item"><b>Sobre o hardware</b>Sem câmeras de profundidade, controles Touch, rastreamento 6DoF ou passthrough estereoscópico. Este projeto é independente e não é software oficial Meta.</div></div>`;
 }
 function scene(){return `<section class="obj panel" style="width:670px;${pos(0,S.d,-22)}" aria-label="Janela principal">${content()}</section><nav class="obj dock" style="${pos(0,S.d*.85,278)}" aria-label="Menu universal"><button class="system-pill" data-id="quick" aria-label="Configurações rápidas">${icon('clock')}<span class="live-clock"></span></button><button class="btn profile" data-id="about" aria-label="Sobre este espaço">V</button><span class="divider"></span><button class="btn home ${S.view==='home'?'selected':''}" data-id="home" aria-label="Início">${icon('home')}</button><button class="btn ${S.view==='library'?'selected':''}" data-id="library" aria-label="Biblioteca">${icon('grid')}</button><button class="btn ${S.view==='gallery'?'selected':''}" data-id="gallery" aria-label="Ambientes">${icon('image')}</button><button class="btn ${S.view==='notes'?'selected':''}" data-id="notes" aria-label="Notas">${icon('note')}</button><span class="divider"></span><button class="btn ${S.view==='quick'?'selected':''}" data-id="quick" aria-label="Ajustes rápidos">${icon('settings')}</button><button class="btn" data-id="rc" aria-label="Centralizar visão">${icon('center')}</button></nav>`;}
 const stage=document.getElementById('stage');
@@ -74,7 +76,7 @@ function act(id){
 // Rastreamento por landmarks reais; não usa cor da pele nem movimento do fundo.
 const $=id=>document.getElementById(id), clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const aName=id=>A(id)?.[1]||id;
-const prefs={sensitivity:1,smoothing:90,dwell:true,hands:true,facing:'user',directionAI:true,prediction:18,cameraFov:65};
+const prefs={sensitivity:1,smoothing:90,dwell:true,hands:true,facing:'environment',cameraModeVersion:2,directionAI:true,prediction:18,cameraFov:65};
 const motion={active:false,raw:null,base:null,lastHeading:null,unwrapped:0,targetYaw:0,targetPitch:0,offsetYaw:0,offsetPitch:0,lastAt:0,gyroAt:-Infinity,gyroSpeed:0,healthAt:0,calibration:null,starting:false,session:0,pole:false};
 const hand={engine:null,loading:null,stream:null,starting:false,run:0,lastVideo:-1,lastInfer:0,lastSeen:0,acquired:0,candidateAt:0,points:[],primary:null,wrist:null,filters:[],pinched:false,pinchAt:0,releaseAt:0,armed:false,fps:24};
 const selection={id:null,since:0,fired:false,cooldown:0,source:'gaze'};
@@ -88,14 +90,14 @@ build=function(){oldBuild();resetSelection();document.querySelectorAll('[data-id
 const oldAct=act;
 act=function(id){if(!id)return;oldAct(id);};
 function activate(id,now=performance.now(),direct=false){
- if(!id||(!direct&&now<selection.cooldown)||$('settings').open||document.hidden)return;
+ if(!id||(!direct&&now<selection.cooldown)||$('settings').open||$('cameraAccess').hasAttribute('open')||objectsOpen()||document.hidden)return;
  selection.cooldown=now+550;selection.fired=true;
  act(id);refreshHover(id);selection.id=id;selection.since=now;selection.fired=true;
  if(navigator.vibrate)navigator.vibrate(18);
 }
 function point(){const e=stage.firstElementChild.getBoundingClientRect();return [e.left+(S.hand?S.hx:.5)*e.width,e.top+(S.hand?S.hy:.5)*e.height];}
 function targetAt(x,y){
- if($('settings').open||document.activeElement?.matches('input,textarea,select'))return null;
+ if($('settings').open||$('cameraAccess').hasAttribute('open')||objectsOpen()||document.activeElement?.matches('input,textarea,select'))return null;
  // Only the topmost painted element may select a target (no clicks through panels).
  const hit=document.elementFromPoint(x,y);
  return hit&&stage.contains(hit)?hit.closest('[data-id]')?.dataset.id||null:null;
@@ -143,8 +145,8 @@ async function startCamera(){
   video.setAttribute('data-active','');hand.lastVideo=-1;hand.lastInfer=0;hand.fps=24;
   $('bCam').textContent='Desativar mãos';$('bCam').setAttribute('aria-pressed','true');
   stream.getVideoTracks()[0]?.addEventListener('ended',()=>{if(hand.stream===stream)stopCamera('A câmera foi interrompida. Ative as mãos novamente.');},{once:true});
-  tell('Mostre a mão inteira para a câmera. Aponte com o indicador e faça uma pinça para selecionar.');
- }catch(error){if(run===hand.run){stopCamera('');tell(error.message.startsWith('Use HTTPS')?error.message:error.name==='Error'?'Não foi possível carregar o rastreador de mãos. A direção visual pode funcionar sem esse modelo.':cameraError(error));}releaseUnusedCamera(stream);}
+  tell('Mostre a mão inteira para a câmera. Aponte com o indicador e mantenha-o sobre o botão até completar o círculo.');
+ }catch(error){if(run===hand.run){stopCamera('');if(error.cameraAccess){showCameraProblem(error);}else{tell('Não foi possível carregar o rastreador de mãos. A direção visual pode funcionar sem esse modelo.');}}releaseUnusedCamera(stream);}
  finally{hand.starting=false;$('bCam').disabled=false;updateCameraBusy();}
 }
 function updateHands(now){
@@ -165,24 +167,14 @@ function updateHands(now){
  hand.wrist={...primary[0]};hand.lastSeen=now;
  if(!hand.candidateAt)hand.candidateAt=now;
  if(now-hand.candidateAt<120)return;
- if(!hand.acquired){hand.acquired=now;hand.filters=[];resetSelection();tell('Mão detectada · indicador para apontar · pinça para selecionar.');}
+ if(!hand.acquired){hand.acquired=now;hand.filters=[];resetSelection();tell('Mão detectada · indicador para apontar · mantenha o indicador sobre o botão para selecionar.');}
  primary=primary.map((p,i)=>{if(!hand.filters[i])hand.filters[i]=[new OneEuro(),new OneEuro()];return {x:hand.filters[i][0].step(p.x,now),y:hand.filters[i][1].step(p.y,now),z:p.z};});
  hand.points[index]=primary;hand.primary=primary;
  const tip=primary[8];const x=clamp(.5+(tip.x-.5)*S.reach, .025,.975),y=clamp(.5+(tip.y-.5)*S.reach,.025,.975);
  if(!S.hand){S.hx=x;S.hy=y;resetSelection();}else{const dt=clamp((now-(hand.pointerAt||now-40))/1000,.005,.2);const speed=1-Math.exp(-dt/(prefs.smoothing/1000));S.hx+=(x-S.hx)*speed;S.hy+=(y-S.hy)*speed;}
  hand.pointerAt=now;S.hand=true;
- // Pinch normalized by palm size: thresholds remain useful at different distances.
- const scale=Math.max(.03,(distance(primary[0],primary[9])+distance(primary[5],primary[17]))/2);
- const ratio=distance(primary[4],primary[8])/scale;
- if(ratio>.48){hand.pinchAt=0;if(!hand.releaseAt)hand.releaseAt=now;if(now-hand.releaseAt>=110){hand.pinched=false;hand.armed=true;}}
- else if(ratio<.29){hand.releaseAt=0;if(!hand.pinchAt)hand.pinchAt=now;
-  if(!hand.pinched&&hand.armed&&now-hand.pinchAt>=70&&now-hand.acquired>220){
-   hand.pinched=true;hand.armed=false;
-   const [x,y]=point(),id=targetAt(x,y);
-   if(id&&id===selection.id&&now-selection.since>=100&&!selection.fired)activate(id,now);
-  }
- }else{hand.pinchAt=0;hand.releaseAt=0;}
- document.body.classList.toggle('pinching',hand.pinched);
+ // Selection uses dwell only: pinching no longer activates targets.
+ hand.pinched=false;hand.armed=false;document.body.classList.remove('pinching');
 }
 
 // DeviceOrientation -> quaternion -> viewing vector. Screen rotation is included.
@@ -339,19 +331,71 @@ class VisualMotionTracker{
 }
 // END VISUAL MOTION
 const vision={sensor:new VisualRotationSensor(),stableFrames:0,period:50,rms:0,active:false,starting:false,stream:null,run:0,lastVideo:-1,lastAt:0,lastGood:0,valid:false,reason:'desligada',tracks:0,total:0,yaw:0,pitch:0,tracker:null,canvas:document.createElement('canvas'),context:null};
-let sharedCameraRequest=null;
-function cameraError(error){const messages={NotAllowedError:'Permissão da câmera recusada. Libere a câmera no navegador e tente novamente.',NotFoundError:'Nenhuma câmera encontrada. Use o arraste.',NotReadableError:'A câmera está ocupada. Feche outros aplicativos de câmera.',OverconstrainedError:'A câmera frontal não está disponível neste aparelho.'};return messages[error.name]||'Não foi possível iniciar a câmera. Verifique a conexão e tente novamente.';}
+let sharedCameraRequest=null,cancelCameraRequest=null;
 function releaseUnusedCamera(stream){if(stream)setTimeout(()=>{if(hand.stream!==stream&&vision.stream!==stream)stream.getTracks().forEach(t=>t.stop());},0);}
+function cameraAccessError(code,message){const error=new Error(message);error.name=code;error.cameraAccess=true;return error;}
+function cameraEnvironmentError(){
+ if(!window.isSecureContext)return cameraAccessError('CameraHTTPS','A câmera exige uma página HTTPS. Abra o projeto como site seguro no Chrome ou Safari; uma prévia de ZIP ou uma página HTTP pode bloquear a solicitação.');
+ if(!navigator.mediaDevices?.getUserMedia)return cameraAccessError('CameraUnsupported','Este navegador ou visualizador não oferece acesso à câmera. Abra o site HTTPS diretamente no Chrome ou Safari, fora da prévia do aplicativo.');
+ const policy=document.permissionsPolicy||document.featurePolicy;
+ if(policy?.allowsFeature&&!policy.allowsFeature('camera'))return cameraAccessError('CameraPolicy','Esta prévia não tem autorização para solicitar câmera. Abra a página diretamente no navegador. Um site incorporado precisa permitir câmera no iframe e no servidor.');
+ return null;
+}
+function cameraError(error){
+ const messages={NotAllowedError:'O navegador bloqueou a câmera. No ícone ao lado do endereço, abra as permissões do site e permita Câmera. Confira também a permissão do Chrome ou Safari nas configurações do celular. Depois, tente novamente.',SecurityError:'O navegador ou a política desta página bloqueou a câmera. Abra o projeto por HTTPS diretamente no Chrome ou Safari.',NotFoundError:'Nenhuma câmera acessível foi encontrada. Verifique se o dispositivo tem câmera selecionada disponível.',NotReadableError:'Não foi possível abrir a câmera. Feche outros aplicativos que estejam usando a câmera e tente novamente.',OverconstrainedError:'A câmera selecionada não aceitou a configuração. Abra em um navegador atualizado e tente novamente.'};
+ return error.cameraAccess&&error.name.startsWith('Camera')?error.message:messages[error.name]||'Não foi possível iniciar a câmera. Abra o projeto diretamente no Chrome ou Safari e tente novamente.';
+}
+function closeCameraPanel(){const panel=$('cameraAccess');if(typeof panel.close==='function')panel.close();else{panel.removeAttribute('open');resetSelection();}}
+function cameraPanel(message,pending=false){
+ const panel=$('cameraAccess');$('cameraAccessMessage').textContent=message;
+ $('cameraAllow').disabled=pending;$('cameraAllow').textContent=pending?'Aguardando autorização…':'Permitir câmera '+(prefs.facing==='user'?'frontal':'traseira');
+ $('cameraOpen').hidden=!/^https?:$/.test(location.protocol);
+ if(!panel.hasAttribute('open')){if(typeof panel.showModal==='function')panel.showModal();else{panel.classList.add('camera-fallback');panel.setAttribute('open','');$('cameraAllow').focus();}}
+}
+function showCameraProblem(error){const message=cameraError(error);cameraPanel(message);tell(message);}
+function nativeCameraRequest(constraints={audio:false,video:{facingMode:{ideal:prefs.facing},width:{ideal:640},height:{ideal:480},frameRate:{ideal:30,max:30}}}){
+ // Request synchronously inside the user's click, before any query or await.
+ let request;try{request=navigator.mediaDevices.getUserMedia(constraints);}catch(error){return Promise.reject(error);}
+ return new Promise((resolve,reject)=>{
+  let settled=false;
+  const clear=()=>{clearTimeout(reminder);clearTimeout(timeout);if(cancelCameraRequest===cancel)cancelCameraRequest=null;};
+  const fail=error=>{if(settled)return;settled=true;clear();reject(error);};
+  const cancel=()=>fail(cameraAccessError('CameraCancelled','Solicitação cancelada. Você pode tentar novamente.'));
+  const reminder=setTimeout(()=>{if($('cameraAccess').hasAttribute('open'))$('cameraAccessMessage').textContent='Procure o pedido de câmera do navegador e toque em Permitir. Se ele não aparecer, verifique as permissões pelo ícone ao lado do endereço ou abra esta página fora da prévia do aplicativo.';},8000);
+  const timeout=setTimeout(()=>fail(cameraAccessError('CameraTimeout','O pedido de câmera ficou sem resposta. Confira as permissões no navegador e tente novamente.')),30000);
+  cancelCameraRequest=cancel;
+  Promise.resolve(request).then(stream=>{if(settled){stream.getTracks().forEach(t=>t.stop());return;}settled=true;clear();resolve(stream);},fail);
+ });
+}
 async function acquireCamera(){
- if(!isSecureContext||!navigator.mediaDevices?.getUserMedia)throw new Error('Use HTTPS ou localhost para acessar a câmera.');
+ const environmentError=cameraEnvironmentError();if(environmentError)throw environmentError;
  if(hand.stream?.getVideoTracks().some(t=>t.readyState==='live'))return hand.stream;
  if(vision.stream?.getVideoTracks().some(t=>t.readyState==='live'))return vision.stream;
- if(!sharedCameraRequest)sharedCameraRequest=navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{exact:'user'},width:{ideal:640},height:{ideal:480},frameRate:{ideal:30,max:30}}});
+ if(!sharedCameraRequest){
+  cameraPanel('Toque em Permitir no pedido do navegador para usar a câmera selecionada. As imagens serão processadas somente neste aparelho.',true);
+  sharedCameraRequest=nativeCameraRequest().then(async stream=>{
+   const facing=stream.getVideoTracks()[0]?.getSettings?.()?.facingMode;if(facing&&facing!==prefs.facing){
+    // Some browsers ignore facingMode. Never silently retain a camera different from the selected facing.
+    stream.getTracks().forEach(t=>t.stop());
+    const devices=await navigator.mediaDevices.enumerateDevices();const wanted=prefs.facing==='user'?/front|frontal|user|selfie|facetime/i:/back|rear|traseira|environment/i;const front=devices.find(d=>d.kind==='videoinput'&&wanted.test(d.label));
+    if(!front)throw cameraAccessError('CameraFrontUnavailable','A câmera selecionada não foi identificada. Selecione a câmera selecionada nas permissões do navegador ou abra a página em um navegador atualizado.');
+    stream=await nativeCameraRequest({audio:false,video:{deviceId:{exact:front.deviceId}}});
+   }
+   closeCameraPanel();return stream;
+  }).catch(error=>{error.cameraAccess=true;throw error;});
+ }
  const pending=sharedCameraRequest;try{return await pending;}finally{if(sharedCameraRequest===pending)sharedCameraRequest=null;}
 }
+function openCameraPage(){window.open(location.href,'_blank','noopener,noreferrer');}
+function cameraButton(){
+ if(vision.starting||hand.starting)return;
+ if(vision.active){closeCameraPanel();return;}
+ $('cameraAllow').disabled=true;void startVisual();
+}
+
 function updateCameraBusy(){$('facing').disabled=hand.starting||vision.starting;}
 function stopVisual(message=true){
- vision.run++;const stream=vision.stream;vision.stream=null;vision.active=false;vision.valid=false;vision.reason='desligada';vision.tracker?.reset();
+ vision.run++;clearObjectReference();objects.detections=[];if(objectsOpen())closeObjects();const stream=vision.stream;vision.stream=null;vision.active=false;vision.valid=false;vision.reason='desligada';vision.tracker?.reset();
  $('visionVideo').srcObject=null;$('visionVideo').hidden=true;$('bVision').textContent='Direção pela câmera';$('bVision').setAttribute('aria-pressed','false');
  if(!motion.active)resetDirection(true);releaseUnusedCamera(stream);if(message)tell('Direção visual desativada. Arraste para olhar.');
 }
@@ -359,15 +403,15 @@ async function startVisual(){
  if(vision.starting)return;if(vision.active){stopVisual();return;}
  vision.starting=true;updateCameraBusy();$('bVision').disabled=true;const run=++vision.run;let stream=null;
  try{
-  tell('Permita o acesso à câmera frontal quando o navegador solicitar. As imagens são processadas neste aparelho.');
+  tell('Permita o acesso à câmera selecionada quando o navegador solicitar. As imagens são processadas neste aparelho.');
   stream=await acquireCamera();if(run!==vision.run){releaseUnusedCamera(stream);return;}
   vision.stream=stream;const v=$('visionVideo');v.srcObject=stream;v.muted=true;await v.play();if(run!==vision.run){releaseUnusedCamera(stream);return;}
   stopSensors(false);vision.active=true;vision.valid=false;vision.reason='preparando referência';vision.lastVideo=-1;vision.lastAt=0;vision.lastGood=0;vision.tracker=null;vision.stableFrames=0;vision.period=50;vision.yaw=S.yaw;vision.pitch=S.pitch;vision.sensor.reset(S.yaw,S.pitch);
-  v.hidden=false;v.style.transform=(stream.getVideoTracks()[0]?.getSettings().facingMode||prefs.facing)==='user'?'scaleX(-1)':'';
+  v.hidden=false;v.style.transform=(stream.getVideoTracks()[0]?.getSettings?.()?.facingMode||prefs.facing)==='user'?'scaleX(-1)':'';
   $('bVision').textContent='Desativar direção visual';$('bVision').setAttribute('aria-pressed','true');
   stream.getVideoTracks()[0]?.addEventListener('ended',()=>{if(vision.stream===stream)stopVisual();},{once:true});
   tell('Direção pela câmera ativa: mova devagar, com luz e um cenário fixo. É uma estimativa; centralize quando necessário.');
- }catch(error){if(run===vision.run){stopVisual(false);tell(error.message.startsWith('Use HTTPS')?error.message:cameraError(error));}releaseUnusedCamera(stream);}
+ }catch(error){if(run===vision.run){stopVisual(false);showCameraProblem(error);}releaseUnusedCamera(stream);}
  finally{vision.starting=false;updateCameraBusy();$('bVision').disabled=false;}
 }
 function visualMasks(w,h){return hand.points.map(points=>{const xs=points.map(p=>(prefs.facing==='user'?1-p.x:p.x)*w),ys=points.map(p=>p.y*h);return {x0:Math.min(...xs)-10,x1:Math.max(...xs)+10,y0:Math.min(...ys)-10,y1:Math.max(...ys)+10};});}
@@ -379,17 +423,132 @@ function updateVisual(now){
  if(!vision.tracker||vision.tracker.width!==w||vision.tracker.height!==h){vision.tracker=new VisualMotionTracker(w,h);vision.stableFrames=0;vision.sensor.reset(S.yaw,S.pitch);vision.canvas.width=w;vision.canvas.height=h;vision.context=vision.canvas.getContext('2d',{willReadFrequently:true});}
  if(now-vision.lastAt>250)vision.tracker.reset();vision.lastVideo=v.currentTime;vision.lastAt=now;
  let result;const processingStart=performance.now();
- try{vision.context.drawImage(v,0,0,w,h);const pixels=vision.context.getImageData(0,0,w,h).data,gray=new Float32Array(w*h);for(let i=0;i<gray.length;i++)gray[i]=pixels[i*4]*.299+pixels[i*4+1]*.587+pixels[i*4+2]*.114;result=vision.tracker.process(gray,visualMasks(w,h),{fov:prefs.cameraFov,pixelAspect:(h*(v.videoWidth||640))/(w*(v.videoHeight||480))});}
+ try{vision.context.drawImage(v,0,0,w,h);const pixels=vision.context.getImageData(0,0,w,h).data,gray=new Float32Array(w*h);for(let i=0;i<gray.length;i++)gray[i]=pixels[i*4]*.299+pixels[i*4+1]*.587+pixels[i*4+2]*.114;vision.anchorRay=trackObjectReference(gray,now,w,h);result=vision.tracker.process(gray,visualMasks(w,h),{fov:prefs.cameraFov,pixelAspect:(h*(v.videoWidth||640))/(w*(v.videoHeight||480))});}
  catch{vision.valid=false;vision.reason='imagem indisponível';return;}
  vision.period=clamp((performance.now()-processingStart)*2.5,40,110);
  vision.stableFrames=result.valid?Math.min(3,vision.stableFrames+1):0;
  vision.valid=result.valid&&vision.stableFrames>=2;vision.reason=result.valid&&!vision.valid?'confirmando referência':result.reason;vision.tracks=result.tracks;vision.total=result.total;vision.rms=result.rms||0;
+ if(!vision.valid&&objects.anchor?.valid&&objects.anchor.goodFrames>=2){const a=objects.anchor;vision.valid=true;vision.reason='direção pela referência';vision.yaw=a.relativeYaw;vision.pitch=a.relativePitch;vision.sensor.reset(vision.yaw,vision.pitch,vision.sensor.roll);vision.lastGood=now;direction.sample(vision.yaw,vision.pitch,now,{gyro:null,smoothing:prefs.smoothing,adaptive:prefs.directionAI});return;}
  if(!vision.valid){vision.yaw=S.yaw;vision.pitch=S.pitch;vision.sensor.reset(S.yaw,S.pitch,vision.sensor.roll);resetDirection(true);return;}
- const front=(vision.stream.getVideoTracks()[0]?.getSettings().facingMode||prefs.facing)==='user';
- const pose=vision.sensor.integrate(result.rotation,{front,sensitivity:prefs.sensitivity});
+ const front=(vision.stream.getVideoTracks()[0]?.getSettings?.()?.facingMode||prefs.facing)==='user';
+ vision.sensor.integrate(result.rotation,{front,sensitivity:prefs.sensitivity});correctFromObject(vision.anchorRay);const pose=vision.sensor.integrate([0,0,0]);
  vision.yaw=pose.yaw;vision.pitch=clamp(pose.pitch,-75,75);vision.lastGood=now;
  // Keep prediction off for vision: monocular image flow is an approximate reference.
  direction.sample(vision.yaw,vision.pitch,now,{gyro:null,smoothing:prefs.smoothing,adaptive:prefs.directionAI});
+}
+
+// BEGIN OBJECT REFERENCE
+// Fixed-template correlation prevents the reference from gradually learning the background.
+class ObjectReferenceTracker{
+ constructor(width,height){this.w=width;this.h=height;this.box=null;this.template=null;this.lastSearch=-Infinity;}
+ descriptor(image,box){
+  if(box.x<0||box.y<0||box.x+box.width>this.w||box.y+box.height>this.h)return null;
+  const values=[];let mean=0;
+  for(let y=0;y<10;y++)for(let x=0;x<10;x++){
+   const px=box.x+(x+.5)*box.width/10,py=box.y+(y+.5)*box.height/10,ix=Math.floor(px),iy=Math.floor(py),fx=px-ix,fy=py-iy;
+   if(ix>=this.w-1||iy>=this.h-1)return null;
+   const v=image[iy*this.w+ix]*(1-fx)*(1-fy)+image[iy*this.w+ix+1]*fx*(1-fy)+image[(iy+1)*this.w+ix]*(1-fx)*fy+image[(iy+1)*this.w+ix+1]*fx*fy;values.push(v);mean+=v;
+  }
+  mean/=values.length;const norm=Math.sqrt(values.reduce((s,v)=>s+(v-mean)**2,0));if(norm<45)return null;return values.map(v=>(v-mean)/norm);
+ }
+ normalizedScore(image,box){
+  if(box.x<0||box.y<0||box.x+box.width>this.w||box.y+box.height>this.h)return -Infinity;
+  let sum=0,squares=0,cross=0,k=0;
+  for(let y=0;y<10;y++)for(let x=0;x<10;x++){
+   const px=box.x+(x+.5)*box.width/10,py=box.y+(y+.5)*box.height/10,ix=Math.floor(px),iy=Math.floor(py),fx=px-ix,fy=py-iy;if(ix>=this.w-1||iy>=this.h-1)return -Infinity;
+   const v=image[iy*this.w+ix]*(1-fx)*(1-fy)+image[iy*this.w+ix+1]*fx*(1-fy)+image[(iy+1)*this.w+ix]*(1-fx)*fy+image[(iy+1)*this.w+ix+1]*fx*fy;sum+=v;squares+=v*v;cross+=v*this.template[k++];
+  }
+  const norm=Math.sqrt(Math.max(0,squares-sum*sum/100));return norm>=45?cross/norm:-Infinity;
+ }
+ set(image,box){const template=this.descriptor(image,box);if(!template)return false;this.box={...box};this.template=template;this.lost=false;return true;}
+ track(image,time){
+  if(!this.template)return {valid:false,reason:'sem referência'};
+  const previous=this.box,wide=this.lost&&time-this.lastSearch>500;this.lastSearch=wide?time:this.lastSearch;
+  const radius=wide?Math.max(this.w,this.h):14,step=wide?3:1,scales=wide?[.88,1,1.12]:[.97,1,1.03],candidates=[];
+  for(const scale of scales){const width=previous.width*scale,height=previous.height*scale;
+   const minX=Math.max(0,Math.floor(previous.x-radius)),maxX=Math.min(this.w-width-1,previous.x+radius),minY=Math.max(0,Math.floor(previous.y-radius)),maxY=Math.min(this.h-height-1,previous.y+radius);
+   for(let y=minY;y<=maxY;y+=step)for(let x=minX;x<=maxX;x+=step){const box={x,y,width,height},score=this.normalizedScore(image,box);if(Number.isFinite(score))candidates.push({box,score});}
+  }
+  candidates.sort((a,b)=>b.score-a.score);let best=candidates[0];
+  // Refine the coarse location; do not update the fixed template after accepting a match.
+  if(best){const bx=best.box.x,by=best.box.y;for(let y=by-2;y<=by+2;y++)for(let x=bx-2;x<=bx+2;x++){const box={...best.box,x,y},score=this.normalizedScore(image,box);if(score>best.score)best={box,score};}}
+  const second=best&&candidates.find(c=>Math.hypot(c.box.x-best.box.x,c.box.y-best.box.y)>Math.max(previous.width,previous.height)*.6);
+  const valid=!!best&&best.score>(wide?.93:.84)&&(!second||best.score-second.score>.035);
+  if(valid){this.box={...best.box};this.lost=false;return {valid:true,box:this.box,score:best.score,reacquired:wide};}
+  this.lost=true;return {valid:false,reason:'objeto fora de referência',score:best?.score||0};
+ }
+}
+// END OBJECT REFERENCE
+const objects={engine:null,loading:null,error:'',detections:[],lastDetect:0,lastFrame:-1,drawAt:0,anchor:null,tracker:null,drag:null};
+const OBJECT_NAMES={person:'pessoa',chair:'cadeira',couch:'sofá','dining table':'mesa',tv:'televisão',bottle:'garrafa',cup:'copo',book:'livro',clock:'relógio','potted plant':'planta',laptop:'notebook',keyboard:'teclado','cell phone':'celular',backpack:'mochila',suitcase:'mala',bed:'cama',refrigerator:'geladeira',microwave:'micro-ondas'};
+function objectsOpen(){return $('objectPanel').hasAttribute('open');}
+function closeObjects(){const p=$('objectPanel');if(typeof p.close==='function')p.close();else p.removeAttribute('open');resetSelection();}
+async function openObjects(){
+ if(!vision.active){await startVisual();if(!vision.active)return;}
+ const p=$('objectPanel');if(!p.hasAttribute('open')){if(typeof p.showModal==='function')p.showModal();else{p.classList.add('camera-fallback');p.setAttribute('open','');}}
+ resetSelection();
+}
+async function loadObjectAI(){
+ if(objects.engine)return objects.engine;if(objects.loading)return objects.loading;
+ $('objectAI').disabled=true;$('objectInfo').textContent='Baixando a IA de objetos… as imagens continuam no aparelho. Você já pode marcar uma área sem esperar.';
+ objects.loading=(async()=>{
+  const {FilesetResolver,ObjectDetector}=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/vision_bundle.mjs');
+  const files=await FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/wasm');
+  const base={modelAssetPath:'https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/int8/1/efficientdet_lite0.tflite'};
+  const options={baseOptions:{...base,delegate:'GPU'},runningMode:'VIDEO',maxResults:6,scoreThreshold:.55};
+  try{return await ObjectDetector.createFromOptions(files,options);}catch{return await ObjectDetector.createFromOptions(files,{...options,baseOptions:{...base,delegate:'CPU'}});}
+ })();
+ try{const task=objects.loading;let timeout;try{objects.engine=await Promise.race([task,new Promise((_,reject)=>timeout=setTimeout(()=>reject(new Error('Model timeout')),30000))]);}catch(error){task.then(engine=>{if(engine!==objects.engine)engine.close();}).catch(()=>{});throw error;}finally{clearTimeout(timeout);}objects.error='';$('objectInfo').textContent='IA pronta. Toque em um objeto reconhecido ou marque qualquer área na imagem.';return objects.engine;}
+ catch{objects.error='IA indisponível. Marque a referência manualmente; a câmera e o acompanhamento continuam funcionando.';$('objectInfo').textContent=objects.error;return null;}
+ finally{objects.loading=null;$('objectAI').disabled=false;}
+}
+function cameraFront(){return (vision.stream?.getVideoTracks()[0]?.getSettings?.()?.facingMode||prefs.facing)==='user';}
+function referenceRay(box){const w=vision.canvas.width,h=vision.canvas.height,f=w/(2*Math.tan(prefs.cameraFov*Math.PI/360)),v=$('visionVideo'),fy=f*(h*(v.videoWidth||640))/(w*(v.videoHeight||480));return [(box.x+box.width/2-w/2)/f*(cameraFront()?-1:1),(box.y+box.height/2-h/2)/fy,1];}
+function rotateReference(q,v){const [x,y,z,w]=q,[a,b,c]=v,tx=2*(y*c-z*b),ty=2*(z*a-x*c),tz=2*(x*b-y*a);return [a+w*tx+y*tz-z*ty,b+w*ty+z*tx-x*tz,c+w*tz+x*ty-y*tx];}
+function clearObjectReference(){objects.anchor=null;objects.tracker=null;$('anchorState').textContent='Sem objeto fixado';}
+function setObjectReference(box,label){
+ if(!vision.active||!vision.context)return false;
+ const w=vision.canvas.width,h=vision.canvas.height,v=$('visionVideo');vision.context.drawImage(v,0,0,w,h);const rgba=vision.context.getImageData(0,0,w,h).data,gray=new Float32Array(w*h);
+ for(let i=0;i<gray.length;i++)gray[i]=rgba[i*4]*.299+rgba[i*4+1]*.587+rgba[i*4+2]*.114;
+ const px={x:clamp(box.x,0,.95)*w,y:clamp(box.y,0,.95)*h,width:clamp(box.width,.06,.8)*w,height:clamp(box.height,.06,.8)*h};px.x=clamp(px.x,0,w-px.width-1);px.y=clamp(px.y,0,h-px.height-1);
+ const tracker=new ObjectReferenceTracker(w,h);if(!tracker.set(gray,px)){$('objectInfo').textContent='Essa área tem poucos detalhes. Marque também as bordas do objeto ou escolha outro ponto.';return false;}
+ recenter();objects.tracker=tracker;const ray=referenceRay(px);objects.anchor={label:label||'Objeto marcado',box:px,referenceRay:rotateReference(vision.sensor.q,ray),width:w,height:h,seen:performance.now(),valid:true,goodFrames:1,baseYaw:S.yaw,basePitch:S.pitch,score:1,bearing:{x:Math.atan(ray[0])*180/Math.PI,y:Math.atan(ray[1])*180/Math.PI},direction:'referência definida'};
+ closeObjects();tell('Referência fixada: '+objects.anchor.label+'. Mantenha o objeto parado; o indicador seleciona ao completar o círculo.');return true;
+}
+function trackObjectReference(gray,now,w,h){
+ const a=objects.anchor;if(!a||!objects.tracker)return null;
+ if(a.width!==w||a.height!==h){clearObjectReference();return null;}
+ const result=objects.tracker.track(gray,now);a.valid=result.valid;a.goodFrames=result.valid?(a.goodFrames||0)+1:0;a.score=result.score||0;
+ if(!result.valid){a.direction='referência perdida · procurando';return null;}
+ a.box=result.box;a.seen=now;const ray=referenceRay(a.box),dx=-(Math.atan(ray[0])*180/Math.PI-a.bearing.x),dy=Math.atan(ray[1])*180/Math.PI-a.bearing.y;
+ a.relativeYaw=a.baseYaw+dx*prefs.sensitivity;a.relativePitch=clamp(a.basePitch+dy*prefs.sensitivity,-75,75);
+ a.direction=[Math.abs(dx)>1?(dx>0?'direita':'esquerda')+' '+Math.abs(dx).toFixed(1)+'°':'centralizado',Math.abs(dy)>1?(dy>0?'acima':'abaixo')+' '+Math.abs(dy).toFixed(1)+'°':''].filter(Boolean).join(' · ');
+ return ray;
+}
+function correctFromObject(ray){
+ const a=objects.anchor;if(!a?.valid||!ray)return;
+ const normalize=v=>{const l=Math.hypot(...v);return v.map(x=>x/l);};const observed=normalize(rotateReference(vision.sensor.q,ray)),target=normalize(a.referenceRay),dot=clamp(observed.reduce((s,v,i)=>s+v*target[i],0),-1,1),angle=Math.acos(dot);
+ // A large contradiction can be object motion: never snap the camera to it.
+ if(angle>.1){a.direction='objeto inconsistente · usando cenário';return;}if(angle<1e-5)return;
+ const axis=[observed[1]*target[2]-observed[2]*target[1],observed[2]*target[0]-observed[0]*target[2],observed[0]*target[1]-observed[1]*target[0]],length=Math.hypot(...axis);if(length<1e-8)return;
+ const correction=[...axis.map(v=>v/length*Math.sin(angle*.1)),Math.cos(angle*.1)];vision.sensor.q=vision.sensor.multiply(correction,vision.sensor.q);
+}
+function updateObjectUI(now){
+ const a=objects.anchor,state=$('anchorState');const text=a?`${a.label} · ${a.valid?a.direction:'fora da imagem · procurando'}`:'Sem objeto fixado';if(state.textContent!==text)state.textContent=text;
+ if(!objectsOpen()||!vision.active||now-objects.drawAt<80)return;objects.drawAt=now;
+ const v=$('visionVideo'),canvas=$('objectPreview');if(v.readyState<2)return;
+ const w=640,h=Math.round(w*(v.videoHeight||480)/(v.videoWidth||640));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
+ const c=canvas.getContext('2d');c.save();if(cameraFront()){c.translate(w,0);c.scale(-1,1);}c.drawImage(v,0,0,w,h);c.restore();
+ const rect=(box,label,color)=>{const x=(cameraFront()?1-box.x-box.width:box.x)*w,y=box.y*h;c.strokeStyle=color;c.lineWidth=3;c.strokeRect(x,y,box.width*w,box.height*h);c.font='16px system-ui';c.fillStyle='#092033dd';const width=c.measureText(label).width+12;c.fillRect(x,y,Math.min(width,w-x),24);c.fillStyle=color;c.fillText(label,x+5,y+18);};
+ objects.detections.forEach(d=>rect(d.box,d.label,'#a4d0ff'));
+ if(a?.valid)rect({x:a.box.x/a.width,y:a.box.y/a.height,width:a.box.width/a.width,height:a.box.height/a.height},a.label,'#75ffbe');
+ if(objects.engine&&now-objects.lastDetect>700&&v.currentTime!==objects.lastFrame){
+  objects.lastDetect=now;objects.lastFrame=v.currentTime;
+  try{const result=objects.engine.detectForVideo(v,now);objects.detections=(result.detections||[]).map(d=>{const k=d.categories?.[0],b=d.boundingBox;return k&&b?{label:OBJECT_NAMES[k.categoryName]||k.displayName||k.categoryName,score:k.score,box:{x:b.originX/v.videoWidth,y:b.originY/v.videoHeight,width:b.width/v.videoWidth,height:b.height/v.videoHeight}}:null;}).filter(Boolean);
+   const list=$('objectList');list.replaceChildren();objects.detections.forEach(d=>{const button=document.createElement('button');button.type='button';button.textContent=d.label;button.onclick=()=>setObjectReference(d.box,d.label);list.appendChild(button);});
+   $('objectInfo').textContent=objects.detections.length?'Objetos reconhecidos: '+objects.detections.map(d=>d.label).join(', ')+'. Toque em um deles.':'Nenhum objeto da lista do modelo reconhecido. Você pode marcar qualquer objeto manualmente.';
+  }catch{objects.error='A IA foi interrompida; marque a referência manualmente.';objects.engine?.close();objects.engine=null;$('objectInfo').textContent=objects.error;}
+ }
 }
 
 // BEGIN DIRECTION ESTIMATOR
@@ -577,7 +736,7 @@ async function toggleSensors(){
  }catch{tell('Toque em Ativar sensores para conceder permissão. Use HTTPS e um aparelho com sensores.');}
  finally{motion.starting=false;$('bGyro').disabled=false;}
 }
-function recenter(){resetDirection(false);S.yaw=S.pitch=0;if(vision.active){vision.yaw=vision.pitch=0;vision.valid=false;vision.stableFrames=0;vision.sensor.reset();vision.tracker?.reset();}size();tell('Visão centralizada.');}
+function recenter(){resetDirection(false);S.yaw=S.pitch=0;if(vision.active){vision.yaw=vision.pitch=0;vision.valid=false;vision.stableFrames=0;vision.sensor.reset();vision.tracker?.reset();}if(objects.anchor?.valid){const a=objects.anchor,ray=referenceRay(a.box);a.referenceRay=rotateReference(vision.sensor.q,ray);a.baseYaw=S.yaw;a.basePitch=S.pitch;a.bearing={x:Math.atan(ray[0])*180/Math.PI,y:Math.atan(ray[1])*180/Math.PI};}size();tell('Visão centralizada.');}
 function screenChanged(){resetDirection(true,true);if(vision.active){vision.yaw=S.yaw;vision.pitch=S.pitch;vision.valid=false;vision.stableFrames=0;vision.sensor.reset(S.yaw,S.pitch);vision.tracker?.reset();}size();}
 screen.orientation?.addEventListener('change',screenChanged);window.addEventListener('orientationchange',screenChanged);
 
@@ -604,7 +763,7 @@ window.addEventListener('keydown',e=>{
 });
 function exitVR(){if(S.vr){S.vr=false;build();}if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});screen.orientation?.unlock?.();}
 $('bVR').onclick=()=>act('vr');$('bExit').onclick=exitVR;
-$('bVision').onclick=()=>act('vision');$('bCam').onclick=()=>act('hands');$('bGyro').onclick=()=>act('sensor');$('bCenter').onclick=recenter;
+$('bObjects').onclick=()=>{void openObjects();};$('bVision').onclick=()=>act('vision');$('bCam').onclick=()=>act('hands');$('bGyro').onclick=()=>act('sensor');$('bCenter').onclick=recenter;
 $('bSettings').onclick=()=>{$('settings').showModal();resetSelection();};
 $('settings').addEventListener('close',()=>{saveLocal();resetSelection();if(S.view==='quick')build();});
 $('facing').onchange=async e=>{prefs.facing=e.target.value;const handsOn=!!hand.stream,visualOn=vision.active;stopCamera('');stopVisual(false);if(visualOn)await startVisual();if(handsOn)await startCamera();};
@@ -613,7 +772,7 @@ $('smoothing').oninput=e=>{prefs.smoothing=Number(e.target.value);$('smoothingVa
 $('dwellEnabled').onchange=e=>{prefs.dwell=e.target.checked;resetSelection();};$('showHands').onchange=e=>prefs.hands=e.target.checked;
 document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&S.vr){S.vr=false;build();}});
 document.addEventListener('visibilitychange',()=>{new Set([hand.stream,vision.stream].filter(Boolean)).forEach(s=>s.getVideoTracks().forEach(t=>t.enabled=!document.hidden));vision.tracker?.reset();vision.valid=false;vision.stableFrames=0;vision.yaw=S.yaw;vision.pitch=S.pitch;vision.sensor.reset(S.yaw,S.pitch);clearHands();drag=null;frameAt=performance.now();resetDirection(true,true);});
-window.addEventListener('pagehide',()=>{const streams=new Set([vision.stream,hand.stream].filter(Boolean));stopVisual(false);stopCamera('');streams.forEach(s=>s.getTracks().forEach(t=>t.stop()));stopSensors(false);hand.engine?.close();hand.engine=null;});
+window.addEventListener('pagehide',()=>{const streams=new Set([vision.stream,hand.stream].filter(Boolean));stopVisual(false);stopCamera('');cancelCameraRequest?.();streams.forEach(s=>s.getTracks().forEach(t=>t.stop()));stopSensors(false);hand.engine?.close();hand.engine=null;objects.engine?.close();objects.engine=null;});
 
 // Reuse SVG nodes instead of rebuilding the skeleton on every display frame.
 const svgNS='http://www.w3.org/2000/svg';
@@ -645,7 +804,7 @@ function tick(now){
    }
   }
   if(motion.calibration&&now-motion.calibration.started>7000){motion.calibration=null;tell('Calibração sem sinal estável. Tente novamente com o aparelho parado.');}
-  updateDirectionHealth(now);
+  updateDirectionHealth(now);updateObjectUI(now);
   updateHands(now);
   if(S.hand&&now-hand.lastSeen>180){clearHands();tell('Mão fora de vista. O cursor voltou ao olhar.');}
   const source=S.hand?'hand':'gaze';if(source!==selection.source){selection.source=source;modeChangedAt=now;resetSelection();}
@@ -654,8 +813,8 @@ function tick(now){
   if(id!==selection.id){selection.id=id;selection.since=now;selection.fired=false;refreshHover(id);}
   const gazeReady=((motion.active&&motion.raw&&now-motion.lastAt<180)||(vision.active&&vision.valid&&now-vision.lastGood<150))&&!motion.calibration&&Math.hypot(...direction.velocity)<25;
   const stable=now-modeChangedAt>300;
-  if(!S.hand&&!gazeReady)selection.since=now;
-  const progress=id&&prefs.dwell&&(gazeReady||S.hand)&&!selection.fired&&stable?clamp((now-selection.since)/S.dwell,0,1):0;
+  if((!S.hand&&!gazeReady)||(S.hand&&!fresh))selection.since=now;
+  const progress=id&&(S.hand||prefs.dwell)&&(gazeReady||S.hand)&&!selection.fired&&stable?clamp((now-selection.since)/S.dwell,0,1):0;
   if(progress>=1)activate(id,now);
   const ret=$('ret');ret.style.left=x+'px';ret.style.top=y+'px';ret.style.setProperty('--p',progress*100);
   document.querySelectorAll('.eye .r').forEach(r=>{r.style.left=(S.hand?S.hx*100:50)+'%';r.style.top=(S.hand?S.hy*100:50)+'%';r.style.setProperty('--p',progress*100);});
@@ -674,7 +833,7 @@ try{
   for(const [key,min,max]of [['d',350,850],['dwell',700,2400],['reach',1,2.4],['brightness',35,110]])if(typeof saved[key]==='number'&&Number.isFinite(saved[key]))S[key]=clamp(saved[key],min,max);
   const p=saved.prefs;if(p&&typeof p==='object'){
    for(const key of ['dwell','hands','directionAI'])if(typeof p[key]==='boolean')prefs[key]=p[key];
-   prefs.facing='user';
+   prefs.facing=p.cameraModeVersion===2&&['user','environment'].includes(p.facing)?p.facing:'environment';
    if(typeof p.sensitivity==='number'&&Number.isFinite(p.sensitivity))prefs.sensitivity=clamp(p.sensitivity,.5,1.8);
    if(typeof p.cameraFov==='number'&&Number.isFinite(p.cameraFov))prefs.cameraFov=clamp(p.cameraFov,40,95);
    if(typeof p.prediction==='number'&&Number.isFinite(p.prediction))prefs.prediction=clamp(p.prediction,0,35);
@@ -716,5 +875,21 @@ stage.addEventListener('focusin',e=>{if(e.target.matches('input,textarea,select'
 window.addEventListener('pagehide',()=>{clearTimeout(noteTimer);saveLocal();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(noteTimer);saveLocal();}});
 setInterval(updateClock,15000);
+$('objectAI').onclick=()=>{void loadObjectAI();};$('objectClose').onclick=closeObjects;$('objectClear').onclick=()=>{clearObjectReference();closeObjects();};
+$('objectPanel').addEventListener('close',resetSelection);
+$('objectPreview').addEventListener('pointerdown',e=>{const r=e.currentTarget.getBoundingClientRect();objects.drag={x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height};e.currentTarget.setPointerCapture(e.pointerId);});
+$('objectPreview').addEventListener('pointerup',e=>{
+ if(!objects.drag)return;const r=e.currentTarget.getBoundingClientRect(),p={x:clamp((e.clientX-r.left)/r.width,0,1),y:clamp((e.clientY-r.top)/r.height,0,1)},start=objects.drag;objects.drag=null;
+ let box,label=$('anchorName').value.trim();if(Math.hypot(p.x-start.x,p.y-start.y)>.04){box={x:Math.min(p.x,start.x),y:Math.min(p.y,start.y),width:Math.abs(p.x-start.x),height:Math.abs(p.y-start.y)};if(cameraFront())box.x=1-box.x-box.width;}
+ else{const x=cameraFront()?1-p.x:p.x,d=objects.detections.find(d=>x>=d.box.x&&x<=d.box.x+d.box.width&&p.y>=d.box.y&&p.y<=d.box.y+d.box.height);if(d){box=d.box;label=label||d.label;}else box={x:x-.16,y:p.y-.16,width:.32,height:.32};}
+ setObjectReference(box,label||'Objeto marcado');
+});
+$('objectPreview').addEventListener('pointercancel',()=>objects.drag=null);
+$('cameraAllow').onclick=cameraButton;
+$('cameraLater').onclick=()=>{if(cancelCameraRequest){stopVisual(false);stopCamera('');cancelCameraRequest?.();}closeCameraPanel();resetSelection();};
+$('cameraOpen').onclick=openCameraPage;
+$('cameraAccess').addEventListener('close',resetSelection);
+$('cameraAccess').addEventListener('cancel',()=>{if(cancelCameraRequest){stopVisual(false);stopCamera('');cancelCameraRequest?.();}});
 build();requestAnimationFrame(tick);
+try{if(!sessionStorage.getItem('camera-intro-v1')){sessionStorage.setItem('camera-intro-v1','seen');cameraPanel(cameraEnvironmentError()?.message||'Toque em Permitir câmera selecionada. O navegador pedirá acesso; se você já autorizou este site, a câmera abrirá diretamente.');}}catch{cameraPanel('Toque em Permitir câmera selecionada para solicitar acesso ao navegador.');}
 </script></body></html>

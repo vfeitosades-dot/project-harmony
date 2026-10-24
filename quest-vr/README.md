@@ -17,9 +17,39 @@ No computador, abra `http://localhost:8766`. No celular, hospede a pasta em
 **HTTPS** para permitir acesso à câmera; HTTP de um IP da rede local costuma
 bloquear essa permissão.
 
+## Permissão de câmera e deploy na Netlify
+
+Na primeira abertura aparece **Ativar câmera do dispositivo**. Toque em **Permitir
+câmera traseira** para fazer o pedido nativo do navegador. A câmera só é
+solicitada depois desse toque. Se o navegador já tiver uma autorização salva,
+a câmera pode abrir diretamente, sem mostrar outra janela.
+
+Se a câmera foi recusada anteriormente, JavaScript não pode forçar uma nova
+janela ou trocar a decisão do navegador. No ícone ao lado do endereço, abra
+as permissões do site e permita Câmera. Confira também a permissão do navegador
+nas configurações do celular. Depois, tente novamente.
+
+O aplicativo explica erros de HTTPS, navegador incompatível, política de iframe,
+câmera ocupada e permissão bloqueada. Pedidos ignorados expiram em 30 segundos;
+se uma autorização chegar depois do cancelamento, o stream é fechado.
+A câmera traseira é o padrão para observar o ambiente e é solicitada por preferência, evitando uma exigência rígida
+que alguns navegadores rejeitam antes de exibir a permissão. Se o navegador identificar uma câmera diferente da selecionada, ela é
+descartada e o app tenta selecionar o dispositivo correto. A frontal continua
+disponível em Conforto, mas o padrão desta versão é a traseira.
+
+Para aplicar esta correção em **https://vrzin1.netlify.app/**, envie o ZIP
+atualizado como um novo deploy manual do mesmo site. Atualizar o GitHub não
+altera um site publicado por upload manual. A raiz do ZIP contém `index.html`
+e `_headers`; este último permite câmera no próprio domínio da Netlify e
+solicita revalidação do HTML para evitar uma cópia antiga em cache.
+
+Após publicar, atualize a página no Chrome ou Safari. Não é necessário build:
+a interface e o fluxo de câmera estão dentro do próprio HTML. Abrir em outra
+aba pode ajudar quando uma prévia incorporada bloqueia a solicitação.
+
 ## Usar a rotação pela câmera
 
-1. Toque em **Direção pela câmera** e autorize a câmera frontal.
+1. Toque em **Direção pela câmera** e autorize a câmera traseira.
 2. Deixe a lente frontal descoberta. Mostre um cenário fixo,
    iluminado e com detalhes, evitando paredes lisas e imagens muito escuras.
 3. Aguarde a confirmação da referência. Vire o aparelho para olhar ao redor.
@@ -71,17 +101,68 @@ afetar a estimativa. Erro acumulado ainda é possível: recentralize quando
 necessário. Uma perda de imagem não permite recuperar movimentos que não
 foram observados. Precisão e conforto dependem do aparelho e do cenário.
 
+## IA de objetos e referência visual
+
+1. Ative a câmera traseira e abra **Objetos / referência**.
+2. Você pode tocar em um objeto ou arrastar para marcar a área dele. Inclua
+   bordas ou textura; uma região inteiramente lisa não permite acompanhar.
+3. Opcionalmente, escreva um nome, como **caixa**. A referência fica fixada
+   e a interface indica câmera estimada à esquerda, direita, acima ou abaixo.
+4. O botão **Identificar objetos com IA** baixa um modelo EfficientDet Lite0
+   int8 e desenha os objetos reconhecidos. Escolha um pela imagem ou pela lista.
+5. Use **Limpar referência** para trocar de objeto; **Centralizar** renova o
+   ponto de frente. Se o objeto sair da imagem, o sistema procura sua aparência
+   novamente e continua pelo cenário quando esse acompanhamento estiver válido.
+
+O modelo detecta categorias conhecidas, como cadeira, garrafa, livro e mesa.
+**Caixa de papelão não é uma categoria garantida desse modelo**. A marcação
+manual permite acompanhar a caixa sem inventar um reconhecimento semântico.
+A lista de objetos não identifica endereços, GPS ou o nome do cômodo.
+
+A referência usa comparação normalizada com uma imagem fixa do objeto,
+para evitar que ela seja gradualmente substituída pelo fundo. Quando confiável,
+a direção observada do objeto ajuda a corrigir pequenas inconsistências do
+modelo de rotação. Se o cenário tiver poucos detalhes, uma referência válida
+permite estimar os dois eixos de direção pela posição do objeto na imagem.
+Um único objeto não fornece rotação lateral nem posição 3D completas.
+
+**O objeto de referência precisa ficar parado.** Com câmera monocular, mover
+um objeto pode parecer movimento da câmera; objetos iguais e grandes mudanças
+de aparência também podem impedir o reencontro. Referências incertas não são
+forçadas. Recentralize ou marque uma nova área quando necessário.
+
+A IA é executada no aparelho e só infere enquanto o painel de escolha estiver
+aberto, reduzindo trabalho durante o uso normal. Depois de fixar o objeto,
+o acompanhamento visual leve continua. Se o download da IA falhar, a marcação
+manual, a câmera, a direção e os demais controles continuam disponíveis.
+
+O modelo de objetos usa o endereço oficial:
+`https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/int8/1/efficientdet_lite0.tflite`.
+A biblioteca é MediaPipe Tasks Vision 0.10.21, carregada por jsDelivr. Não usa
+chave de API nem envia imagens para um serviço de reconhecimento.
+
+## Seleção com círculo de progresso
+
+A pinça foi removida como acionamento. A ponta do indicador move o cursor;
+manter o cursor no mesmo botão completa o círculo e seleciona uma vez. Para
+repetir, saia do botão e volte. O tempo fica em **Conforto → Tempo de seleção**
+e também controla o carregamento pelo dedo. Desativar a seleção pelo olhar não
+desativa a seleção por permanência da mão. Um sinal de mão antigo não completa
+um clique. Mouse, toque e teclado continuam disponíveis.
+
 ## Outros recursos
 
 - Biblioteca com busca sem distinção de acentos e histórico de recentes.
 - Menu universal, ajustes rápidos, três cenários e modo foco.
 - Notas com salvamento automático neste navegador, sem sincronização.
 - Layout móvel com duas colunas e rolagem.
-- Mãos com 21 landmarks, filtro One Euro e seleção por pinça sem repetição.
+- Mãos com 21 landmarks, filtro One Euro e seleção por permanência, com círculo de progresso.
 - Controle por mouse, toque e teclado, mesmo sem câmera.
 
-Ative mãos separadamente se quiser apontar com o indicador e selecionar por
-pinça. Abra polegar e indicador antes de juntá-los; solte para clicar de novo.
+Ative mãos separadamente. Mantenha o indicador sobre um botão até o círculo
+completar; retire o cursor antes de selecionar o mesmo alvo novamente.
+A pinça não aciona mais nenhum botão. Essa seleção pelo dedo continua ativa
+mesmo quando a seleção adicional pelo olhar estiver desligada.
 A seleção por olhar é suspensa durante digitação, movimento rápido e sinal
 visual inválido. Em Conforto, ajuste alcance, suavização e tempo de seleção.
 
@@ -106,7 +187,7 @@ compatibilidade e testes isolados; não são ativadas pelo fluxo da câmera.
 
 ## Testes e evidência
 
-Há sete suítes. As verificações de rotação usam imagens e movimentos conhecidos
+Há dez suítes. As verificações de rotação usam imagens e movimentos conhecidos
 gerados matematicamente, e testes de navegador com uma câmera por canvas.
 O teste da câmera remove as APIs de sensores físicos e falha se o aplicativo
 tentar registrar seus eventos. Também verifica ausência de chamadas externas,
@@ -131,6 +212,9 @@ NODE_PATH=/tmp/horizon-web-tests/node_modules node tests/direction-browser.cjs
 node tests/visual-motion.cjs
 node tests/visual-rotation.cjs
 NODE_PATH=/tmp/horizon-web-tests/node_modules node tests/visual-browser.cjs
+NODE_PATH=/tmp/horizon-web-tests/node_modules node tests/camera-permission.cjs
+node tests/object-reference.cjs
+NODE_PATH=/tmp/horizon-web-tests/node_modules node tests/objects-browser.cjs
 ```
 
 Variáveis opcionais: `QUEST_TEST_URL`, `QUEST_ARTIFACT_DIR` e `CHROMIUM_PATH`.
@@ -142,3 +226,16 @@ legadas isoladas e não tornam esses sensores um requisito da interface.
 precisão, desempenho, conforto nem rastreamento de mãos reais. O download do
 modelo externo das mãos foi bloqueado no ambiente de desenvolvimento em uma
 versão anterior; a direção pela câmera é independente dele.
+
+A suíte de permissão verifica a API real `getUserMedia` no Chromium com câmera
+simulada, toque com ativação do usuário, negação, contexto inseguro, política de
+acesso, cancelamento e resposta tardia. A confirmação da janela e das permissões
+no celular real e no domínio publicado continua dependendo do novo deploy e
+das configurações desse navegador.
+
+Os testes de referências cobrem esquerda/direita/acima/abaixo, nomeação,
+perda e reencontro, falha do download da IA e seleção manual. A integração
+com o detector é testada com resultados simulados; **o modelo real de objetos
+não foi executado neste ambiente**. Seu endereço foi confirmado no exemplo
+oficial do MediaPipe. As mãos são testadas com landmarks simulados: pinça sem
+acionamento, círculo que seleciona uma vez e saída do alvo para rearmar.

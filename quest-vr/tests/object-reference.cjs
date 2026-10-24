@@ -1,0 +1,8 @@
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
+const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8'),code=html.split('// BEGIN OBJECT REFERENCE')[1]?.split('// END OBJECT REFERENCE')[0];assert.ok(code);const context=vm.createContext({});vm.runInContext(code+'\nglobalThis.Tracker=ObjectReferenceTracker',context);const {Tracker}=context,w=160,h=120;
+let seed=973;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};const source=Float32Array.from({length:w*h},()=>30+random()*190);
+const frame=(dx,dy,exposure=0)=>Float32Array.from({length:w*h},(_,i)=>{const x=i%w-dx,y=Math.floor(i/w)-dy;return x>=0&&x<w&&y>=0&&y<h?source[y*w+x]+exposure:0;});
+for(const [dx,dy]of [[4,0],[-4,0],[0,-4],[0,4],[4,4]]){const t=new Tracker(w,h);assert.equal(t.set(source,{x:54,y:42,width:36,height:30}),true);const r=t.track(frame(dx,dy),1000);assert.equal(r.valid,true,`Motion ${dx},${dy}`);assert.ok(Math.abs(r.box.x-(54+dx))<=1&&Math.abs(r.box.y-(42+dy))<=1);}
+{const t=new Tracker(w,h);t.set(source,{x:54,y:42,width:36,height:30});const r=t.track(frame(4,0,25),1000);assert.equal(r.valid,true,'Normalized template handles exposure offset');assert.equal(t.track(new Float32Array(w*h).fill(120),1100).valid,false,'Blank frames cannot retain a false lock');const back=t.track(source,1800);assert.equal(back.valid,true,'Reference is reacquired after a loss');}
+{const t=new Tracker(w,h);assert.equal(t.set(new Float32Array(w*h).fill(80),{x:20,y:20,width:30,height:30}),false);}
+console.log('PASS: fixed object reference follows left/right/up/down, exposure changes, loss/reacquisition, and rejects textureless patches. Synthetic images only.');
