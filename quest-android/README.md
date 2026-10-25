@@ -1,4 +1,4 @@
-# Harmony MR 3.3 para Android
+# Harmony MR 3.4 para Android
 
 APK de instalação direta para Android 8.0 ou mais recente. A interface HTML
 está incluída no aplicativo: não depende de publicar a última versão na Netlify.
@@ -55,3 +55,8 @@ Versão 3.2.2 (`versionCode=7`): biblioteca, dock e jogos visíveis e interativo
 Versão 3.3 (`versionCode=8`): menos desenho e consultas por quadro, saída de mãos
 reduzida aos dados usados e remoção do modelo full não utilizado. Modelo lite,
 fallback não SIMD, permissões e funções permanecem iguais.
+
+Versão 3.4 (`versionCode=9`): botões maiores, abas móveis com posições salvas e
+assistente local de confiança/calibração da direção. A câmera continua em execução
+ao trocar de aba. O modelo local de mãos permanece o mesmo. A interface principal
+e o dock são mantidos no VR; apenas o HUD externo fica oculto.

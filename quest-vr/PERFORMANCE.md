@@ -91,3 +91,24 @@ aparelhos rápidos a frequência-alvo segue igual. Em aparelhos lentos, o limite
 inferior adaptativo é 1/s, e sempre há espaço para o loop de desenho. O intervalo
 aceito durante calibração acompanha o custo observado, limitado a 1,2 s; os
 critérios de estabilidade, consenso e erro de rotação foram preservados.
+
+## Versão 3.4 — abas e confiança visual
+
+A troca de aplicativo atualiza somente os filhos do mundo espacial, preservando
+vídeos, canvases de mãos e cenário. Há no máximo cinco abas e um painel ativo
+renderizado. Mover uma janela atualiza sua transformação sem reconstruir a cena,
+e a transformação não é reescrita se a posição arredondada não mudar.
+
+O assistente novo mantém apenas estatísticas de três eixos. Usa a proporção de
+pontos consistentes e o erro de projeção para graduar a suavização; o desvio de
+calibração exige oito amostras e significância superior a três erros padrão,
+com correção limitada a 0,004 rad/s por eixo. Não depende de outra rede neural,
+serviço externo ou sensor físico. O pipeline de mãos foi preservado.
+
+`visual-coach.cjs` valida correção de viés, ruído sem correção falsa, conservação
+de giros reais, saltos fracos, movimento rápido confiável, perda de imagem e
+desativação do assistente. `windows-browser.cjs` valida posições independentes,
+persistência, movimento por ponteiro/teclado/indicador e alinhamento dos olhos.
+`spatial-browser.cjs` verifica que o vídeo continua tocando, no mesmo elemento e
+com o mesmo stream ao trocar de app. Nenhuma taxa de FPS adicional é prometida
+com base nesses testes; o desempenho no celular precisa ser medido no aparelho.

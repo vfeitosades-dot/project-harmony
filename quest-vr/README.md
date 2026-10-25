@@ -1,5 +1,5 @@
 <!-- Mãos/VR 3.2: rastreamento com identidades estáveis e HUD externo oculto no VR. -->
-# Harmony MR 3.3
+# Harmony MR 3.4
 
 Atualização de desempenho: workers, vídeo nativo, menos repinturas e contador real de FPS.
 [Detalhes e comparação de desempenho](PERFORMANCE.md). Meta de 60 fps, dependente do aparelho.
@@ -350,3 +350,40 @@ Versão 3.2.2: restaurado o conteúdo principal no VR, mantendo apenas o HUD ext
 VR mantém biblioteca, painel principal e dock; só HUD externo fica oculto.
 Mãos offline, objetos, direção, calibração, seleção e jogos continuam disponíveis.
 Veja a seção 3.3 de [PERFORMANCE.md](PERFORMANCE.md) para os testes e limites.
+
+## Interação espacial e direção — 3.4
+
+O visual anterior foi mantido, com botões e dock maiores e uma moldura mais
+próxima de interfaces de headsets. No celular, deslize a barra superior para
+alcançar os controles restantes. No VR, a biblioteca e o dock continuam
+visíveis; somente os botões e indicadores externos ficam ocultos.
+
+### Mover e organizar abas
+
+- Arraste o título com toque ou mouse. Cada aba guarda sua própria posição.
+- Com a mão detectada, mantenha o indicador na alça de mão do título; mova o
+  indicador e pare por 1,2 segundo para fixar. Não usa pinça. Retire o indicador
+  da alça antes de iniciar outro movimento.
+- O ícone de centralizar na janela restaura a posição. Centralizar pelo dock
+  também traz a janela ativa para a frente. O título aceita as setas do teclado.
+- Até cinco abas ficam no seletor, com apenas um painel ativo desenhado para
+  manter o desempenho. Notas, posições e abas são salvas localmente. Os jogos
+  abertos mantêm seus estados em memória ao alternar abas.
+
+### Assistente de direção local
+
+A calibração usa estatísticas das rotações visuais para aprender pequenos
+desvios de repouso quando há amostras suficientes. A correção é limitada e só
+é aplicada quando o desvio é estatisticamente confiável. A suavização acompanha
+a qualidade dos pontos e o movimento; saltos isolados de imagem ruim são rejeitados.
+Nenhum movimento é previsto quando faltam quadros, e um incremento zero não
+gera rotação inventada. O assistente pode ser desligado em Conforto.
+
+A direção continua sendo uma estimativa monocular pela câmera, sem giroscópio,
+sem rastreamento de posição 6DoF e sem equivalência ao hardware Meta Quest 3S.
+A inspiração de headset é visual e de interação; o aplicativo é independente.
+
+Trocar de aba reaproveita os vídeos, as camadas das mãos e o cenário, sem
+reiniciar a câmera. O modelo local de mãos e as otimizações da 3.3 foram mantidos.
+Testes incluem movimentos das janelas em toque/mouse/indicador, persistência,
+estéreo, preservação do vídeo ao vivo, jogos, direção e mãos com modelo real.
