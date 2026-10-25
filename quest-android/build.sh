@@ -8,7 +8,8 @@ WORK=$(mktemp -d /tmp/harmony-apk.XXXXXX)
 trap 'rm -rf "$WORK"' EXIT
 mkdir -p "$WORK/classes" "$WORK/dex" "$WORK/assets" "$ROOT/quest-android/dist"
 cp "$ROOT/quest-vr/index.html" "$WORK/assets/index.html"
-"$ANDROID_BUILD_TOOLS/aapt2" link -I "$ANDROID_JAR" --manifest "$ROOT/quest-android/AndroidManifest.xml" -A "$WORK/assets" -o "$WORK/app-unsigned.apk"
+"$ANDROID_BUILD_TOOLS/aapt2" compile --dir "$ROOT/quest-android/res" -o "$WORK/resources.zip"
+"$ANDROID_BUILD_TOOLS/aapt2" link "$WORK/resources.zip" -I "$ANDROID_JAR" --manifest "$ROOT/quest-android/AndroidManifest.xml" -A "$WORK/assets" -o "$WORK/app-unsigned.apk"
 if [ -n "${ECJ_JAR:-}" ]; then
  java -jar "$ECJ_JAR" -1.8 -bootclasspath "$ANDROID_JAR" -d "$WORK/classes" "$ROOT/quest-android/src/dev/harmony/quest/MainActivity.java"
 else

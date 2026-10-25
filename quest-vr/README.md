@@ -1,4 +1,21 @@
-# Horizon Web — sensor visual de rotação
+# Harmony MR 3.0
+
+Interface refeita a partir dos dois vídeos fornecidos do EnJoyTheMR/EnJoyTheVR.
+Veja [a análise das referências e as diferenças](REFERENCE.md).
+
+- Biblioteca flutuante com 13 itens, dock colorido e Central MR.
+- Botão **Ver ambiente**: câmera ao fundo, compartilhada com a direção e as mãos.
+- **Alvos Neon**, **Memória Espacial** e **Putt Verde**: minijogos próprios,
+  sem câmera obrigatória ou internet. Recordes salvos no aparelho.
+- **Bosque imersivo**: cenário procedural original que acompanha a direção.
+- Calibração sem objeto, objeto de referência e seleção com indicador mantidos.
+- APK em `quest-android/dist/Harmony-VR.apk`; Android 8 ou superior.
+
+O fundo MR é câmera 2D duplicada nos olhos do VR Box. Não há profundidade,
+rastreamento de posição ou compatibilidade com jogos/scripts do app de referência.
+As bibliotecas/modelos de mãos e objetos precisam de internet; o resto é local.
+
+## Versão anterior e detalhes técnicos — sensor visual de rotação
 
 Interface espacial independente, inspirada em headsets VR. A direção principal
 usa **somente a câmera**: não requer giroscópio, acelerômetro, bússola nem
