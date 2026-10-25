@@ -1,4 +1,7 @@
-# Harmony MR 3.0
+# Harmony MR 3.1
+
+Atualização de desempenho: workers, vídeo nativo, menos repinturas e contador real de FPS.
+[Detalhes e comparação de desempenho](PERFORMANCE.md). Meta de 60 fps, dependente do aparelho.
 
 Interface refeita a partir dos dois vídeos fornecidos do EnJoyTheMR/EnJoyTheVR.
 Veja [a análise das referências e as diferenças](REFERENCE.md).
@@ -128,7 +131,7 @@ foram observados. Precisão e conforto dependem do aparelho e do cenário.
 3. Opcionalmente, escreva um nome, como **caixa**. A referência fica fixada
    e a interface indica câmera estimada à esquerda, direita, acima ou abaixo.
 4. O modelo EfficientDet Lite0 int8 identifica objetos automaticamente a cada
-   700 ms. Abra o painel para ver as caixas ou escolher uma referência.
+   1,2 segundo (1,6 segundo com mãos ativas). Abra o painel para ver as caixas ou escolher uma referência.
    **Recarregar IA de objetos** permite tentar novamente se o download falhar.
 5. Use **Limpar referência** para trocar de objeto; **Centralizar** renova o
    ponto de frente. Se o objeto sair da imagem, o sistema procura sua aparência

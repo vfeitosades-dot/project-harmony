@@ -1,4 +1,4 @@
-# Harmony MR 3.0 para Android
+# Harmony MR 3.1 para Android
 
 APK de instalação direta para Android 8.0 ou mais recente. A interface HTML
 está incluída no aplicativo: não depende de publicar a última versão na Netlify.
@@ -34,3 +34,8 @@ A versão 3.0 usa `versionCode=2`, o mesmo identificador de pacote e a mesma cha
 da primeira versão para permitir atualização sobre ela. Agora inclui ícone próprio,
 interface baseada nos vídeos fornecidos, câmera ao fundo, bosque e três minijogos
 originais locais. Não executa scripts nem jogos do EnJoyTheMR/EnJoyTheVR.
+
+A atualização 3.1 usa `versionCode=3` e pede tela de 60 Hz, se houver modo
+compatível. A interface mostra o FPS medido; a IA trabalha em frequência menor
+para priorizar o desenho. O resultado depende do hardware, do WebView e da
+temperatura. Veja `quest-vr/PERFORMANCE.md` para as medições simuladas.

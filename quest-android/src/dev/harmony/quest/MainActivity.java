@@ -25,6 +25,19 @@ public final class MainActivity extends Activity {
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        android.view.WindowManager.LayoutParams windowOptions = getWindow().getAttributes();
+        windowOptions.preferredRefreshRate = 60f;
+        android.view.Display display = getWindowManager().getDefaultDisplay();
+        android.view.Display.Mode currentMode = display.getMode();
+        for (android.view.Display.Mode mode : display.getSupportedModes()) {
+            if (Math.abs(mode.getRefreshRate() - 60f) < 1f
+                && mode.getPhysicalWidth() == currentMode.getPhysicalWidth()
+                && mode.getPhysicalHeight() == currentMode.getPhysicalHeight()) {
+                windowOptions.preferredDisplayModeId = mode.getModeId();
+                break;
+            }
+        }
+        getWindow().setAttributes(windowOptions);
         web = new WebView(this);
         WebSettings settings = web.getSettings();
         settings.setJavaScriptEnabled(true);
