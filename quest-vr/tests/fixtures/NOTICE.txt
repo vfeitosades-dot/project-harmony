@@ -1,0 +1,3 @@
+Test fixture hands.jpg from TensorFlow.js Models, hand-pose-detection/test_data/hands.jpg.
+Source: https://github.com/tensorflow/tfjs-models/blob/master/hand-pose-detection/test_data/hands.jpg
+Repository license: Apache-2.0. Used only for real-model regression testing.

@@ -58,13 +58,19 @@ public final class MainActivity extends Activity {
         web.setWebViewClient(new WebViewClient() {
             @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 if (!HOST.equals(request.getUrl().getHost())) return null;
-                if (!"https".equals(request.getUrl().getScheme()) || !"/index.html".equals(request.getUrl().getPath()))
+                String path = request.getUrl().getPath();
+                boolean index = "/index.html".equals(path);
+                boolean handAsset = path != null && path.startsWith("/assets/hands/")
+                    && !path.contains("..") && path.substring(14).indexOf('/') < 0;
+                if (!"https".equals(request.getUrl().getScheme()) || (!index && !handAsset))
                     return new WebResourceResponse("text/plain", "UTF-8", 404, "Not Found", Collections.emptyMap(), new ByteArrayInputStream(new byte[0]));
+                String mime = index ? "text/html" : path.endsWith(".js") ? "application/javascript"
+                    : path.endsWith(".wasm") ? "application/wasm" : "application/octet-stream";
                 try {
-                    return new WebResourceResponse("text/html", "UTF-8", 200, "OK",
-                        Collections.singletonMap("Permissions-Policy", "camera=(self)"), getAssets().open("index.html"));
+                    return new WebResourceResponse(mime, "UTF-8", 200, "OK",
+                        Collections.singletonMap("Permissions-Policy", "camera=(self)"), getAssets().open(path.substring(1)));
                 } catch (java.io.IOException error) {
-                    return new WebResourceResponse("text/plain", "UTF-8", new ByteArrayInputStream("App asset missing".getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+                    return new WebResourceResponse("text/plain", "UTF-8", 404, "Not Found", Collections.emptyMap(), new ByteArrayInputStream(new byte[0]));
                 }
             }
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {

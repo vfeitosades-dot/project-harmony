@@ -8,6 +8,7 @@ WORK=$(mktemp -d /tmp/harmony-apk.XXXXXX)
 trap 'rm -rf "$WORK"' EXIT
 mkdir -p "$WORK/classes" "$WORK/dex" "$WORK/assets" "$ROOT/quest-android/dist"
 cp "$ROOT/quest-vr/index.html" "$WORK/assets/index.html"
+cp -R "$ROOT/quest-vr/assets" "$WORK/assets/assets"
 "$ANDROID_BUILD_TOOLS/aapt2" compile --dir "$ROOT/quest-android/res" -o "$WORK/resources.zip"
 "$ANDROID_BUILD_TOOLS/aapt2" link "$WORK/resources.zip" -I "$ANDROID_JAR" --manifest "$ROOT/quest-android/AndroidManifest.xml" -A "$WORK/assets" -o "$WORK/app-unsigned.apk"
 if [ -n "${ECJ_JAR:-}" ]; then
@@ -38,3 +39,10 @@ PY
 # Standard Android development signing password; the private key remains outside Git.
 "$ANDROID_BUILD_TOOLS/apksigner" sign --ks "$QUEST_KEYSTORE" --ks-key-alias harmony --ks-pass pass:android --key-pass pass:android --out "$ROOT/quest-android/dist/Harmony-VR.apk" "$WORK/app-aligned.apk"
 "$ANDROID_BUILD_TOOLS/apksigner" verify --verbose "$ROOT/quest-android/dist/Harmony-VR.apk"
+
+APP_VERSION=$(python3 - "$ROOT/quest-android/AndroidManifest.xml" <<'PYVERSION'
+import re,sys
+print(re.search(r'android:versionName="([^"]+)"',open(sys.argv[1]).read()).group(1))
+PYVERSION
+)
+cp "$ROOT/quest-android/dist/Harmony-VR.apk" "$ROOT/quest-android/dist/Harmony-MR-${APP_VERSION}.apk"

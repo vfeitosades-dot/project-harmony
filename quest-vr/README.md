@@ -1,5 +1,5 @@
 <!-- Mãos/VR 3.2: rastreamento com identidades estáveis e interface oculta no VR. -->
-# Harmony MR 3.2
+# Harmony MR 3.2.1
 
 Atualização de desempenho: workers, vídeo nativo, menos repinturas e contador real de FPS.
 [Detalhes e comparação de desempenho](PERFORMANCE.md). Meta de 60 fps, dependente do aparelho.
@@ -304,3 +304,24 @@ Não há botão de saída visível no VR.
 Verificado com detecções simuladas e testes de interface. O desempenho e a
 precisão do modelo real ainda precisam de validação no celular, principalmente
 quando as mãos se cruzam, ficam escondidas ou há pouca luz.
+
+## Correção de inicialização e mãos offline — 3.2.1
+
+O botão inicial de câmera agora também inicia o rastreamento de mãos, compartilhando
+o mesmo stream e reativando a visualização do esqueleto. O modelo oficial MediaPipe
+Hands 0.4.1675469240, seu grafo, JS e WASM estão incluídos em `assets/hands/`.
+A integridade do pacote npm foi verificada; licença e origem acompanham os arquivos.
+O caminho GPU/canvas compatível é o padrão verificado. A direção e a IA de objetos
+continuam independentes. O modelo de objetos ainda requer internet.
+
+A confirmação da mão agora tolera o intervalo real entre inferências: um celular
+lento não reinicia a confirmação a cada 180 ms. O esqueleto continua sendo apagado
+quando a próxima detecção confirma que a mão saiu, e existe prazo máximo para
+um resultado pendente. Nenhuma mão falsa é desenhada na ausência de detecção.
+
+Teste `real-hands-browser.cjs`: modelo real e fotografia pública de duas mãos,
+21 landmarks por mão, pixels do canvas desenhados, perda/reaquisição e rede
+bloqueada. Não é uma validação com câmera de um Android físico.
+
+Para Netlify, envie o ZIP completo com a pasta `assets`, não somente o HTML.
+Para Android, o APK já inclui todos os arquivos das mãos.

@@ -1,0 +1,6 @@
+MediaPipe Hands 0.4.1675469240
+Copyright Google LLC and MediaPipe Authors. Apache License 2.0.
+Source: https://www.npmjs.com/package/@mediapipe/hands/v/0.4.1675469240
+Package integrity verified against the npm registry:
+sha512-GxoZvL1mmhJxFxjuyj7vnC++JIuInGznHBin5c7ZSq/RbcnGyfEcJrkM/bMu5K1Mz/2Ko+vEX6/+wewmEHPrHg==
+Unmodified JavaScript, WASM, graph and model files from the official package.

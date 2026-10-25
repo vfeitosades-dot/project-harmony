@@ -1,4 +1,4 @@
-# Harmony MR 3.2 para Android
+# Harmony MR 3.2.1 para Android
 
 APK de instalação direta para Android 8.0 ou mais recente. A interface HTML
 está incluída no aplicativo: não depende de publicar a última versão na Netlify.
@@ -43,3 +43,9 @@ temperatura. Veja `quest-vr/PERFORMANCE.md` para as medições simuladas.
 Versão 3.2 (`versionCode=5`): rastreamento de mãos refeito e VR sem HUD ou
 painéis. O botão **Voltar** sai do VR; dois toques próximos também saem.
 O aplicativo mantém a mesma chave para atualização sobre versões anteriores.
+
+A versão 3.2.1 (`versionCode=6`) inclui o modelo de mãos e as dependências
+locais no APK. O botão inicial liga câmera e mãos; o esqueleto é reativado
+mesmo se uma versão antiga o tinha salvo como oculto. Os arquivos locais são
+servidos pela origem HTTPS interna com MIME apropriado para JavaScript e WASM.
+Use `dist/Harmony-MR-3.2.1.apk` para evitar baixar um APK antigo em cache.
