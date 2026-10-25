@@ -18,6 +18,8 @@
 .vr #handState,.vr #ui,.vr .welcome,.vr #status,.vr #anchorState,.vr #fpsState,.vr #visionState,.vr #cv,.vr #visionVideo,.vr #ret{display:none!important}
 /* local model assets included */
 #handState{position:fixed;left:12px;bottom:133px;max-width:75vw;z-index:9;background:#142822e8;border-radius:6px;padding:6px 9px;color:#cef9e0;font-size:11px;pointer-events:none}
+
+.eye .r{left:0;top:0;will-change:transform}
 </style></head><body>
 <div class="welcome"><div class="wordmark"><span class="infinity">◈</span> harmony <b>MR</b></div><small>SEU MUNDO. NOVAS POSSIBILIDADES.</small></div><main id="stage" aria-label="Ambiente virtual"></main><div id="ret"></div><div id="handState" role="status">Mãos: ative a câmera</div><div id="fpsState" role="status">Medindo fps…</div><div id="visionState" hidden role="status" aria-live="polite"></div><video id="visionVideo" playsinline webkit-playsinline autoplay muted hidden aria-label="Prévia da direção pela câmera"></video><video id="cv" playsinline webkit-playsinline autoplay muted aria-label="Prévia local da câmera"></video>
 <nav id="ui" aria-label="Controles do ambiente"><button id="bMR">Ver ambiente</button><button id="bCam">Ativar mãos</button><button id="bVision">Direção pela câmera</button><button id="bObjects">Objetos / referência</button><button id="bDirectionAnchor">Fixar ponto de direção</button><button id="bCalibrate">Calibrar sem objeto</button><button id="bGyro" hidden>Ativar sensores</button><button id="bCenter">Centralizar</button><button id="bSettings">Conforto</button><button id="bVR">Entrar no VR Box</button><button id="bExit" hidden>Sair do VR</button></nav><div id="status" role="status" aria-live="polite">Arraste para explorar · clique para abrir · R para centralizar</div><dialog id="settings"><form method="dialog"><h2>Conforto e rastreamento</h2><p>Interface web inspirada em headsets VR. O VR Box usa tela dividida, sem rastreamento de posição ou passthrough estereoscópico.</p>
@@ -67,11 +69,12 @@ function content(){
 }
 function scene(){return `<section class="obj panel" style="width:670px;${pos(0,S.d,-22)}" aria-label="Janela principal">${content()}</section><nav class="obj dock" style="${pos(0,S.d*.85,278)}" aria-label="Menu universal"><button class="system-pill" data-id="quick" aria-label="Configurações rápidas">${icon('clock')}<span class="live-clock"></span></button><button class="btn profile" data-id="tracking" aria-label="Central MR">${icon('hand')}</button><span class="divider"></span><button class="btn home ${S.view==='home'?'selected':''}" data-id="home" aria-label="Início">${icon('home')}</button><button class="btn ${S.view==='library'?'selected':''}" data-id="library" aria-label="Biblioteca">${icon('grid')}</button><button class="btn ${S.view==='gallery'?'selected':''}" data-id="gallery" aria-label="Ambientes">${icon('image')}</button><button class="btn ${S.mixed?'selected':''}" data-id="mixed" aria-label="Alternar visão do ambiente">${icon('headset')}</button><button class="btn utility-note" data-id="notes" aria-label="Notas">${icon('note')}</button><span class="divider"></span><button class="btn ${S.view==='quick'?'selected':''}" data-id="quick" aria-label="Ajustes rápidos">${icon('settings')}</button><button class="btn" data-id="rc" aria-label="Centralizar visão">${icon('center')}</button></nav>`;}
 const stage=document.getElementById('stage');
+function sceneEyes(){if(!stage._eyes||stage._eyes[0]!==stage.firstElementChild)stage._eyes=Array.from(stage.children);return stage._eyes;}
 function updateClock(){const time=new Intl.DateTimeFormat('pt-BR',{hour:'2-digit',minute:'2-digit'}).format(new Date());document.querySelectorAll('.live-clock').forEach(el=>el.textContent=time);}
-function applyEnvironment(){document.body.classList.toggle('mixed',S.mixed&&vision.active);document.body.dataset.theme=S.env;document.querySelectorAll('.eye').forEach(e=>{e.dataset.env=S.env;e.style.setProperty('--scene-brightness',S.brightness/100);});}
+function applyEnvironment(){document.body.classList.toggle('mixed',S.mixed&&vision.active);document.body.dataset.theme=S.env;sceneEyes().forEach(e=>{e.dataset.env=S.env;e.style.setProperty('--scene-brightness',S.brightness/100);});}
 function build(){stage.querySelectorAll('.mr-camera').forEach(v=>{v.pause();v.srcObject=null;});stage.innerHTML='';for(let i=0;i<(S.vr?2:1);i++){const e=document.createElement('div');e.className='eye';e.innerHTML=`<canvas class="ambient-canvas" aria-hidden="true"></canvas><video class="mr-camera" playsinline webkit-playsinline autoplay muted aria-hidden="true"></video><div class="scenery" aria-hidden="true"></div><div class="world">${scene()}</div><canvas class="sk" aria-hidden="true"></canvas>${S.vr?'<div class="r"></div>':''}`;stage.appendChild(e);const background=e.querySelector('.mr-camera');background.muted=true;if(S.mixed&&vision.active){background.srcObject=vision.stream;background.style.transform=cameraFront()?'scaleX(-1)':'';void background.play().catch(()=>{});}}document.body.classList.toggle('vr',S.vr);applyEnvironment();updateClock();size();}
-function size(){document.querySelectorAll('.eye').forEach((e,i)=>{
- if(!e._layout||e._layout.vw!==innerWidth||e._layout.vh!==innerHeight){e._layout={vw:innerWidth,vh:innerHeight,w:e.clientWidth,h:e.clientHeight,world:e.querySelector('.world'),rect:e.getBoundingClientRect()};}
+function size(){sceneEyes().forEach((e,i)=>{
+ if(!e._layout||e._layout.vw!==innerWidth||e._layout.vh!==innerHeight){e._layout={vw:innerWidth,vh:innerHeight,w:e.clientWidth,h:e.clientHeight,world:e.querySelector('.world'),pointer:e.querySelector('.r'),skeleton:e.querySelector('.sk'),ambient:e.querySelector('.ambient-canvas'),rect:e.getBoundingClientRect()};}
  const layout=e._layout;const compact=!S.vr&&innerWidth<650;const desired=Math.max(.11,compact?Math.min(.85,(layout.h-170)/760,(layout.w-36)/460):Math.min(.92,layout.h/760,layout.w/750));const scale=desired/(1-desired*520/1100);const ex=S.vr?(i?-4:4):0;const transform=`scale(${scale}) translateX(${ex}px) rotateX(${S.pitch.toFixed(3)}deg) rotateY(${S.yaw.toFixed(3)}deg)`;if(layout.transform!==transform){layout.transform=transform;layout.world.style.transform=transform;}});}
 window.addEventListener('resize',size);
 async function enterVR(){if(vision.active&&!hand.stream&&!hand.starting)void startCamera();S.vr=true;build();try{await document.documentElement.requestFullscreen?.();}catch{tell('Tela dividida ativa. A tela cheia não está disponível neste navegador.');}try{await screen.orientation?.lock?.('landscape');}catch{}resetSelection();}
@@ -148,16 +151,19 @@ function handleSpatialAction(id){
  return false;
 }
 function renderSpatialBackground(now){
- if(S.mixed)return;if(now-spatial.drawAt<15)return;spatial.drawAt=now;
- document.querySelectorAll('.eye').forEach(eye=>{
-  const canvas=eye.querySelector(S.mixed?'.mr-camera':'.ambient-canvas');if(!canvas||(!S.mixed&&S.env!=='forest'))return;
+ if(S.mixed||S.env!=='forest')return;if(now-spatial.drawAt<15)return;spatial.drawAt=now;let rendered=null;
+ sceneEyes().forEach(eye=>{
+  const canvas=eye._layout?.ambient||eye.querySelector('.ambient-canvas');if(!canvas||(!S.mixed&&S.env!=='forest'))return;
   const layout=eye._layout||{w:eye.clientWidth,h:eye.clientHeight};const w=Math.round(Math.min(640,Math.max(200,layout.w),720*layout.w/Math.max(layout.h,1))),h=Math.round(w*layout.h/Math.max(layout.w,1));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}const c=canvas.getContext('2d');
   if(!S.mixed){const key=[w,h,S.yaw.toFixed(1),S.pitch.toFixed(1)].join(':');if(canvas.dataset.pose===key)return;canvas.dataset.pose=key;}
-  if(S.mixed){const v=$('visionVideo');if(!vision.active||v.readyState<2)return;const vw=v.videoWidth||640,vh=v.videoHeight||480,scale=Math.max(w/vw,h/vh);c.save();if(cameraFront()){c.translate(w,0);c.scale(-1,1);}c.drawImage(v,(w-vw*scale)/2,(h-vh*scale)/2,vw*scale,vh*scale);c.restore();return;}
+  if(rendered&&rendered.width===w&&rendered.height===h){c.clearRect(0,0,w,h);c.drawImage(rendered,0,0);return;}
   const horizon=clamp(h*.48+S.pitch/90*h*.7,-h,h*2),sky=c.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#497c90');sky.addColorStop(.5,'#b1d4bb');sky.addColorStop(1,'#d7e3bd');c.fillStyle=sky;c.fillRect(0,0,w,h);c.fillStyle='#496953';c.fillRect(0,horizon,w,h-horizon);const floor=c.createLinearGradient(0,Math.max(0,horizon),0,h);floor.addColorStop(0,'#354f3a');floor.addColorStop(1,'#7c9063');c.fillStyle=floor;c.fillRect(0,horizon,w,h-horizon);
   c.fillStyle='#4f7359';c.beginPath();c.moveTo(0,horizon);for(let x=0;x<=w;x+=20)c.lineTo(x,horizon-20-Math.sin(x/w*7+S.yaw*.02)*24);c.lineTo(w,horizon);c.fill();
-  const yaw=S.yaw*Math.PI/180,f=w*.78;spatial.trees.map(tree=>{const relative=tree.angle-yaw,z=Math.cos(relative)*tree.r;return {...tree,x:Math.sin(relative)*tree.r,z};}).filter(t=>t.z>2).sort((a,b)=>b.z-a.z).forEach(t=>{const x=w/2+t.x/t.z*f,y=horizon+2.3/t.z*f,height=t.height/t.z*f,tw=Math.max(3,f/t.z*.25);if(x < -height||x>w+height)return;c.fillStyle=['#2d4034','#455742','#3b4a35'][t.tone];c.fillRect(x-tw/2,y-height,tw,height);c.fillStyle=['#254d3b','#345d41','#3c6347'][t.tone];for(let level=0;level<3;level++){const top=y-height*(1.3-level*.2),bottom=top+height*.62,r=height*(.24+level*.04);c.beginPath();c.moveTo(x,top);c.lineTo(x-r,bottom);c.lineTo(x+r,bottom);c.closePath();c.fill();}});
+  const yaw=S.yaw*Math.PI/180,f=w*.78;
+  if(spatial.treeYaw!==yaw){spatial.treeYaw=yaw;const sin=Math.sin(yaw),cos=Math.cos(yaw),view=spatial.treeView||(spatial.treeView=[]);view.length=0;for(const t of spatial.trees){if(t.baseX===undefined){t.baseX=Math.sin(t.angle)*t.r;t.baseZ=Math.cos(t.angle)*t.r;}t.x=t.baseX*cos-t.baseZ*sin;t.z=t.baseZ*cos+t.baseX*sin;if(t.z>2)view.push(t);}view.sort((a,b)=>b.z-a.z);}
+  spatial.treeView.forEach(t=>{const x=w/2+t.x/t.z*f,y=horizon+2.3/t.z*f,height=t.height/t.z*f,tw=Math.max(3,f/t.z*.25);if(x < -height||x>w+height)return;c.fillStyle=['#2d4034','#455742','#3b4a35'][t.tone];c.fillRect(x-tw/2,y-height,tw,height);c.fillStyle=['#254d3b','#345d41','#3c6347'][t.tone];for(let level=0;level<3;level++){const top=y-height*(1.3-level*.2),bottom=top+height*.62,r=height*(.24+level*.04);c.beginPath();c.moveTo(x,top);c.lineTo(x-r,bottom);c.lineTo(x+r,bottom);c.closePath();c.fill();}});
   c.fillStyle='#9bba8755';for(let i=0;i<40;i++){const x=(i*79.9)%w,y=horizon+((i*47.1)%(Math.max(1,h-horizon)));c.fillRect(x,y,2,4);}
+  rendered=canvas;
  });
 }
 function updateSpatial(now){
@@ -183,7 +189,7 @@ const video=$('cv'), status=$('status');
 let lastStatus='',drag=null,suppressClickUntil=0,frameAt=performance.now(),modeChangedAt=0;
 function tell(message){if(message!==lastStatus){status.textContent=message;lastStatus=message;}}
 function resetSelection(){selection.id=null;selection.since=performance.now();selection.fired=false;}
-function clearHands(){stableHands?.reset();hand.visibleTracks=[];hand.primaryId=null;hand.tx=hand.ty=undefined;hand.revision=(hand.revision||0)+1;S.hand=false;hand.points=[];hand.primary=null;hand.wrist=null;hand.filters=[];hand.candidateAt=0;hand.acquired=0;hand.lastSeen=0;hand.pinched=false;hand.pinchAt=0;hand.releaseAt=0;hand.armed=false;document.body.classList.remove('pinching');resetSelection();}
+function clearHands(){hand.nextAt=0;stableHands?.reset();hand.visibleTracks=[];hand.primaryId=null;hand.tx=hand.ty=undefined;hand.revision=(hand.revision||0)+1;S.hand=false;hand.points=[];hand.primary=null;hand.wrist=null;hand.filters=[];hand.candidateAt=0;hand.acquired=0;hand.lastSeen=0;hand.pinched=false;hand.pinchAt=0;hand.releaseAt=0;hand.armed=false;document.body.classList.remove('pinching');resetSelection();}
 const oldBuild=build;
 build=function(){stage._hit=null;oldBuild();resetSelection();document.querySelectorAll('[data-id]').forEach(n=>{n.setAttribute('role','button');n.tabIndex=0;if(!n.hasAttribute('aria-label'))n.setAttribute('aria-label',n.textContent.trim());});$('bExit').hidden=!S.vr;$('bVR').setAttribute('aria-pressed',String(S.vr));};
 const oldAct=act;
@@ -276,14 +282,26 @@ class OneEuro{
 const CONNECTIONS=[[0,1,2,3,4],[0,5,6,7,8],[5,9,10,11,12],[9,13,14,15,16],[13,17,18,19,20],[0,17]];
 function distance(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
 let localHandsScript=null;
+function trimHandOutputs(engine){
+ if(self.VERSION!=='0.4.1675469240')return false;
+ const listeners=engine.h?.h?.listeners;if(!Array.isArray(listeners))return false;
+ let changed=false;for(const listener of listeners){
+  if(!Array.isArray(listener.wants)||!listener.wants.includes('multi_hand_landmarks')||!listener.wants.includes('multi_handedness'))continue;
+  const unused=new Set(['image_transformed','multi_hand_world_landmarks']);
+  // Keep the image stream as a frame-completion heartbeat, including empty detections.
+  listener.wants=listener.wants.filter(name=>name!=='multi_hand_world_landmarks');
+  for(const [key,value] of Object.entries(listener.outs||{}))if(unused.has(typeof value==='string'?value:value.stream))delete listener.outs[key];
+  changed=true;
+ }return changed;
+}
 async function loadLocalHandsEngine(){
  const base=new URL('assets/hands/',location.href).href;
  // Use the verified GPU/canvas path; this legacy release's worker path loses detections.
  if(!self.Hands){if(!localHandsScript)localHandsScript=new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=base+'hands.js';script.onload=resolve;script.onerror=()=>{localHandsScript=null;reject(new Error('Não foi possível abrir o modelo local de mãos'));};document.head.appendChild(script);});await localHandsScript;}
- const engine=new self.Hands({locateFile:file=>base+file});let latest={landmarks:[]};
+ const engine=new self.Hands({locateFile:file=>base+file});const trimmed=trimHandOutputs(engine);let latest={landmarks:[]};
  engine.setOptions({selfieMode:false,maxNumHands:2,modelComplexity:0,minDetectionConfidence:.5,minTrackingConfidence:.5});
  engine.onResults(result=>{latest={landmarks:result.multiHandLandmarks||[],handedness:(result.multiHandedness||[]).map(v=>[{categoryName:v.label,score:v.score}])};if(typeof ImageBitmap!=='undefined'&&result.image instanceof ImageBitmap)result.image.close();});
- await engine.initialize();return {background:true,bundled:true,compatible:true,async infer(source){const begin=performance.now();await engine.send({image:source});return {result:latest,spent:performance.now()-begin};},close(){void engine.close();}};
+ await engine.initialize();return {background:true,bundled:true,compatible:true,trimmedOutputs:trimmed,async infer(source){const begin=performance.now();await engine.send({image:source});return {result:latest,spent:performance.now()-begin};},close(){void engine.close();}};
 }
 async function recoverHandEngine(error){
  if(hand.recovering)return;console.info('Mãos: modo compatível após falha.',error?.message);hand.recovering=true;hand.phase='loading';const run=hand.run;const failed=hand.engine;hand.engine=null;failed?.close();clearHands();if(failed?.compatible){hand.recovering=false;stopCamera('Não foi possível iniciar as mãos. Atualize o Android System WebView/Chrome e tente novamente.');hand.phase='error';return;}
@@ -317,8 +335,8 @@ async function startCamera(){
   tell('Autorize a câmera para rastrear suas mãos.');stream=await acquireCamera();
   if(run!==hand.run){releaseUnusedCamera(stream);return;}
   hand.stream=stream;video.srcObject=stream;video.style.transform=prefs.facing==='user'?'scaleX(-1)':'';await video.play();
-  await Promise.race([loadHands(),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Tempo excedido ao carregar o modelo')),45000))]);if(run!==hand.run)return;
-  video.setAttribute('data-active','');hand.lastVideo=-1;hand.lastInfer=0;hand.fps=15;
+  let loadTimer;try{await Promise.race([loadHands(),new Promise((_,reject)=>loadTimer=setTimeout(()=>reject(new Error('Tempo excedido ao carregar o modelo')),45000))]);}finally{clearTimeout(loadTimer);}if(run!==hand.run)return;
+  video.setAttribute('data-active','');hand.lastVideo=-1;hand.lastInfer=0;hand.nextAt=0;hand.fps=15;
   hand.phase='searching';$('bCam').textContent='Desativar mãos';$('bCam').setAttribute('aria-pressed','true');
   stream.getVideoTracks()[0]?.addEventListener('ended',()=>{if(hand.stream===stream)stopCamera('A câmera foi interrompida. Ative as mãos novamente.');},{once:true});
   tell('Mostre a mão inteira para a câmera. Aponte com o indicador e mantenha-o sobre o botão até completar o círculo.');
@@ -327,7 +345,7 @@ async function startCamera(){
 }
 function updateHands(now){
  if(hand.recovering||hand.inFlight||!hand.stream||!hand.engine||hand.starting||video.readyState<2||document.hidden)return;
- if(now-hand.lastInfer<1000/hand.fps||video.currentTime===hand.lastVideo)return;
+ if(now<(hand.nextAt||0)||now-hand.lastInfer<1000/hand.fps||video.currentTime===hand.lastVideo)return;
  hand.lastVideo=video.currentTime;hand.lastInfer=now;
  const begin=performance.now();
  if(hand.engine.background){
@@ -369,11 +387,15 @@ class StableHands {
  animate(dt){let moved=false;const alpha=1-Math.exp(-Math.min(.1,dt)/.018);for(const t of this.tracks){if(!t.display||!t.filtered)continue;for(let i=0;i<21;i++){const target=t.filtered[i],p=t.display[i],dx=target.x-p.x,dy=target.y-p.y;if(Math.abs(dx)+Math.abs(dy)>.00008){p.x+=dx*alpha;p.y+=dy*alpha;moved=true;}else{p.x=target.x;p.y=target.y;}}}return moved;}
 }
 let stableHands=null;
-function handCameraIsFront(){return (hand.stream?.getVideoTracks?.()[0]?.getSettings?.()?.facingMode||prefs.facing)==='user';}
+const handCameraCache={stream:null,pref:null,front:false};
+function handCameraIsFront(){
+ if(handCameraCache.stream!==hand.stream||handCameraCache.pref!==prefs.facing){handCameraCache.stream=hand.stream;handCameraCache.pref=prefs.facing;handCameraCache.front=(hand.stream?.getVideoTracks?.()[0]?.getSettings?.()?.facingMode||prefs.facing)==='user';}
+ return handCameraCache.front;
+}
 function consumeHands(result,now,spent){
  if(!stableHands)stableHands=new StableHands();
  hand.rawCount=(result.landmarks||[]).length;hand.rawLandmarks=result.landmarks||[];hand.resultCount=(hand.resultCount||0)+1;hand.lastSpent=spent;hand.freshWindow=clamp(spent*3+150,250,1800);
- hand.revision=(hand.revision||0)+1;hand.fps=clamp(1000/Math.max(66,spent*1.5),5,15);
+ hand.revision=(hand.revision||0)+1;hand.fps=clamp(1000/Math.max(66,spent*1.8),1,15);hand.nextAt=now+Math.max(16,spent*.35);
  const oldId=hand.primaryId,{visible,primary}=stableHands.update(result.landmarks,now,result.handedness||result.handednesses||[]);
  hand.visibleTracks=visible;hand.points=visible.map(t=>t.filtered);hand.primary=primary?.filtered||null;hand.primaryId=primary?.id??null;
  if(!primary){hand.phase='searching';if(S.hand)resetSelection();S.hand=false;hand.tx=hand.ty=undefined;return;}
@@ -419,11 +441,13 @@ class VisualRotationFit{
  }
  quaternion(rotation){const angle=Math.hypot(...rotation),s=angle>1e-10?Math.sin(angle/2)/angle:.5;return [...rotation.map(v=>v*s),Math.cos(angle/2)];}
  project(p,rotation){
-  const [x,y,z,w]=this.quaternion(rotation),u=(p.x-this.w/2)/this.fx,v=(p.y-this.h/2)/this.fy;
-  // Inverse camera rotation maps the old ray into the new image.
-  const a=(1-2*(y*y+z*z))*u+2*(x*y+w*z)*v+2*(x*z-w*y);
-  const b=2*(x*y-w*z)*u+(1-2*(x*x+z*z))*v+2*(y*z+w*x);
-  const c=2*(x*z+w*y)*u+2*(y*z-w*x)*v+1-2*(x*x+y*y);
+  let m=this.projectionMatrix;
+  if(!m||this.rotationX!==rotation[0]||this.rotationY!==rotation[1]||this.rotationZ!==rotation[2]){
+   const [x,y,z,w]=this.quaternion(rotation);this.rotationX=rotation[0];this.rotationY=rotation[1];this.rotationZ=rotation[2];
+   m=this.projectionMatrix=[1-2*(y*y+z*z),2*(x*y+w*z),2*(x*z-w*y),2*(x*y-w*z),1-2*(x*x+z*z),2*(y*z+w*x),2*(x*z+w*y),2*(y*z-w*x),1-2*(x*x+y*y)];
+  }
+  const u=(p.x-this.w/2)/this.fx,v=(p.y-this.h/2)/this.fy;
+  const a=m[0]*u+m[1]*v+m[2],b=m[3]*u+m[4]*v+m[5],c=m[6]*u+m[7]*v+m[8];
   if(c<.2)return [Infinity,Infinity];return [this.fx*(a/c-u),this.fy*(b/c-v)];
  }
  error(p,rotation){const [x,y]=this.project(p,rotation);return Math.hypot(x-p.dx,y-p.dy);}
@@ -625,15 +649,16 @@ async function startVisual(){
  }catch(error){if(run===vision.run){stopVisual(false);showCameraProblem(error);}releaseUnusedCamera(stream);}
  finally{vision.starting=false;updateCameraBusy();$('bVision').disabled=false;}
 }
-function visualMasks(w,h){return hand.points.map(points=>{const xs=points.map(p=>p.x*w),ys=points.map(p=>p.y*h);return {x0:Math.min(...xs)-10,x1:Math.max(...xs)+10,y0:Math.min(...ys)-10,y1:Math.max(...ys)+10};});}
+function visualMasks(w,h){return hand.points.map(points=>{let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;for(const p of points){minX=Math.min(minX,p.x*w);maxX=Math.max(maxX,p.x*w);minY=Math.min(minY,p.y*h);maxY=Math.max(maxY,p.y*h);}return {x0:minX-10,x1:maxX+10,y0:minY-10,y1:maxY+10};});}
 function beginSceneCalibration(){
  clearObjectReference();vision.sceneCalibrated=false;vision.calibration={since:null,last:null,progress:0};
  resetDirection(true);tell('Calibrando sem objeto: mantenha a câmera parada e aponte para um cenário iluminado com detalhes.');
 }
+function visualFrameGap(){return Math.max(250,Math.min(1200,(hand.lastSpent||0)*2+150));}
 function calibrateScene(result,now){
  const c=vision.calibration;if(!c)return false;
  const stable=vision.valid&&result.rotation&&Math.hypot(...result.rotation)<.004;
- if(!stable||c.last===null||now-c.last>250){c.since=null;c.progress=0;}
+ if(!stable||c.last===null||now-c.last>visualFrameGap()){c.since=null;c.progress=0;}
  c.last=now;
  if(stable){if(c.since===null)c.since=now;c.progress=clamp((now-c.since)/1200,0,1);}
  if(c.progress>=1){vision.calibration=null;vision.sceneCalibrated=true;recenter();tell('Frente calibrada pelo cenário. Você pode olhar ao redor; centralize novamente se houver desvio.');}
@@ -646,7 +671,7 @@ function updateVisual(now){
  if(drag){vision.tracker?.reset();vision.valid=false;vision.stableFrames=0;vision.yaw=S.yaw;vision.pitch=S.pitch;vision.sensor.reset(S.yaw,S.pitch,vision.sensor.roll);return;}
  const w=160,h=Math.max(64,Math.min(192,Math.round(160*(v.videoHeight||480)/(v.videoWidth||640)/2)*2));
  if(!vision.tracker||vision.tracker.width!==w||vision.tracker.height!==h){vision.tracker?.close?.();vision.tracker=createVisualTracker(w,h);vision.stableFrames=0;vision.sensor.reset(S.yaw,S.pitch);vision.canvas.width=w;vision.canvas.height=h;vision.context=vision.canvas.getContext('2d',{willReadFrequently:true});}
- if(now-vision.lastAt>250)vision.tracker.reset();vision.lastVideo=v.currentTime;vision.lastAt=now;
+ if(now-vision.lastAt>visualFrameGap())vision.tracker.reset();vision.lastVideo=v.currentTime;vision.lastAt=now;
  const tracker=vision.tracker,anchor=objects.anchor,epoch=tracker.epoch,run=vision.run,begin=performance.now();
  try{
   vision.context.drawImage(v,0,0,w,h);const pixels=vision.context.getImageData(0,0,w,h).data,gray=new Float32Array(w*h);for(let i=0;i<gray.length;i++)gray[i]=pixels[i*4]*.299+pixels[i*4+1]*.587+pixels[i*4+2]*.114;
@@ -787,11 +812,16 @@ function detectObjects(now){
 }
 function consumeObjects(result,v){
  const previous=objects.detections;objects.detections=(result.detections||[]).map(d=>{const k=d.categories?.[0],b=d.boundingBox;return k&&b?{label:OBJECT_NAMES[k.categoryName]||k.displayName||k.categoryName,score:k.score,box:{x:b.originX/v.videoWidth,y:b.originY/v.videoHeight,width:b.width/v.videoWidth,height:b.height/v.videoHeight}}:null;}).filter(Boolean).map(d=>{const prior=previous.find(p=>p.label===d.label&&Math.hypot(p.box.x-d.box.x,p.box.y-d.box.y)<.08);return prior?{...d,score:prior.score*.35+d.score*.65}:d;}).sort((a,b)=>b.score-a.score);
-   const list=$('objectList');list.replaceChildren();objects.detections.forEach(d=>{const button=document.createElement('button');button.type='button';button.textContent=d.label;button.onclick=()=>setObjectReference(d.box,d.label);list.appendChild(button);});
+   refreshObjectButtons();
    $('objectInfo').textContent=objects.detections.length?'Objetos reconhecidos: '+objects.detections.map(d=>d.label).join(', ')+'. A identificação atualiza automaticamente.':'Nenhum objeto da lista do modelo reconhecido. Você pode marcar qualquer objeto manualmente.';
 }
+function refreshObjectButtons(){
+ if(!objectsOpen()){objects.listKey=null;return;}const key=objects.detections.map(d=>d.label).join('|');if(objects.listKey===key)return;objects.listKey=key;
+ const list=$('objectList');list.replaceChildren();objects.detections.forEach((d,index)=>{const button=document.createElement('button');button.type='button';button.textContent=d.label;button.onclick=()=>{const current=objects.detections[index];if(current)setObjectReference(current.box,current.label);};list.appendChild(button);});
+
+}
 function updateObjectUI(now){
- detectObjects(now);
+ detectObjects(now);if(objectsOpen())refreshObjectButtons();
  if(now-(objects.uiAt||0)<100)return;objects.uiAt=now;
  const a=objects.anchor,state=$('anchorState');const text=vision.calibration?('Calibrando ponto fixo · '+Math.round(vision.calibration.progress*100)+'% · '+(vision.valid?'mantenha parado':'aponte para uma área iluminada com detalhes')):!vision.active?'Câmera desativada':vision.sceneCalibrated?('Frente calibrada pelo cenário · '+(vision.valid?'direção ativa':'visão parada · acompanhamento indisponível')+(objects.detections.length?' · Identificados: '+objects.detections.map(d=>d.label+' '+Math.round(d.score*100)+'%').join(', '):' · IA: procurando objetos na câmera…')):a?`${a.label} · ${a.valid?a.direction:a.directionMode?(vision.valid?'ponto memorizado · direção pelo cenário':'ponto memorizado · sem detalhes para acompanhar; mova devagar'):'fora da imagem · procurando'}`:objects.loading?'IA: carregando identificação automática…':objects.error?objects.error:objects.detections.length?'Identificados: '+objects.detections.map(d=>d.label+' '+Math.round(d.score*100)+'%').join(' · '):'IA: procurando objetos na câmera…';if(state.textContent!==text)state.textContent=text;
  if(!objectsOpen()||!vision.active||now-objects.drawAt<80)return;objects.drawAt=now;
@@ -1030,23 +1060,26 @@ document.addEventListener('visibilitychange',()=>{new Set([hand.stream,vision.st
 window.addEventListener('pagehide',()=>{const streams=new Set([vision.stream,hand.stream].filter(Boolean));stopVisual(false);stopCamera('');cancelCameraRequest?.();streams.forEach(s=>s.getTracks().forEach(t=>t.stop()));stopSensors(false);hand.engine?.close();hand.engine=null;objects.engine?.close();objects.engine=null;});
 
 // Lightweight canvas skeleton: same projected points as the fingertip cursor.
-function handDisplayPoint(p,width,height){
- const sourceWidth=video.videoWidth||640,sourceHeight=video.videoHeight||480;
- const scale=S.mixed?Math.max(width/sourceWidth,height/sourceHeight):Math.min(width/sourceWidth,height/sourceHeight);
- const x=handCameraIsFront()?1-p.x:p.x;
- return [(x*sourceWidth*scale+(width-sourceWidth*scale)/2)/width*1000,(p.y*sourceHeight*scale+(height-sourceHeight*scale)/2)/height*1000];
+const handProjections=new Map();
+function handProjection(width,height){
+ const sw=video.videoWidth||640,sh=video.videoHeight||480,front=handCameraIsFront(),key=[width,height,sw,sh,S.mixed,front].join(':');
+ let projection=handProjections.get(key);if(projection)return projection;
+ const scale=S.mixed?Math.max(width/sw,height/sh):Math.min(width/sw,height/sh),sx=sw*scale/width*1000;
+ projection={sx:front?-sx:sx,sy:sh*scale/height*1000,x:(width-sw*scale)/width*500+(front?sx:0),y:(height-sh*scale)/height*500};
+ if(handProjections.size>=8)handProjections.clear();handProjections.set(key,projection);return projection;
 }
+function handDisplayPoint(p,width,height){const t=handProjection(width,height);return [p.x*t.sx+t.x,p.y*t.sy+t.y];}
 function renderHands(){
- document.querySelectorAll('.eye').forEach(eye=>{
-  const canvas=eye.querySelector('.sk'),tracks=hand.visibleTracks||[],visible=prefs.hands&&tracks.length>0&&performance.now()-hand.lastSeen<(hand.freshWindow||250);
+ let rendered=null;sceneEyes().forEach(eye=>{
+  const canvas=eye._layout?.skeleton||eye.querySelector('.sk'),tracks=hand.visibleTracks||[],visible=prefs.hands&&tracks.length>0&&performance.now()-hand.lastSeen<(hand.freshWindow||250);
   const layout=eye._layout||{w:eye.clientWidth,h:eye.clientHeight},key=[!!visible,hand.revision,S.mixed,layout.w,layout.h,handCameraIsFront()].join(':');
   if(canvas.dataset.frame===key)return;canvas.dataset.frame=key;canvas.style.display=visible?'':'none';if(!visible)return;
   const w=Math.max(1,Math.round(layout.w)),h=Math.max(1,Math.round(layout.h));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
-  const c=canvas.getContext('2d');c.clearRect(0,0,w,h);c.lineWidth=2.5;c.lineCap='round';c.lineJoin='round';
-  for(const t of tracks){const points=t.display.map(p=>{const v=handDisplayPoint(p,w,h);return [v[0]*w/1000,v[1]*h/1000];});
-   c.strokeStyle=t.id===hand.primaryId?'#82f4ce':'#b2baff';c.beginPath();for(const chain of CONNECTIONS){chain.forEach((index,i)=>{const [x,y]=points[index];i?c.lineTo(x,y):c.moveTo(x,y);});}c.stroke();
-   for(let i=0;i<points.length;i++){const [x,y]=points[i];c.fillStyle=i===8?'#b2ffe0':'#e2fff3';c.beginPath();c.arc(x,y,i===8?4:2.5,0,Math.PI*2);c.fill();}
-  }
+  const c=canvas.getContext('2d');c.clearRect(0,0,w,h);if(rendered&&rendered.width===w&&rendered.height===h){c.drawImage(rendered,0,0);return;}const projection=handProjection(w,h);c.lineWidth=2.5;c.lineCap='round';c.lineJoin='round';
+  for(const t of tracks){const points=t.projected||(t.projected=new Float32Array(42));for(let i=0;i<21;i++){points[i*2]=(t.display[i].x*projection.sx+projection.x)*w/1000;points[i*2+1]=(t.display[i].y*projection.sy+projection.y)*h/1000;}
+   c.strokeStyle=t.id===hand.primaryId?'#82f4ce':'#b2baff';c.beginPath();for(const chain of CONNECTIONS){chain.forEach((index,i)=>{const x=points[index*2],y=points[index*2+1];i?c.lineTo(x,y):c.moveTo(x,y);});}c.stroke();
+   for(let i=0;i<21;i++){const x=points[i*2],y=points[i*2+1];c.fillStyle=i===8?'#b2ffe0':'#e2fff3';c.beginPath();c.arc(x,y,i===8?4:2.5,0,Math.PI*2);c.fill();}
+  }rendered=canvas;
  });
 }
 function animateHands(now,dt){
@@ -1073,7 +1106,7 @@ function tick(now){
   if(S.hand&&now-hand.lastSeen>(hand.freshWindow||250)){clearHands();tell('Mão fora de vista. O cursor voltou ao olhar.');}
   animateHands(now,dt);
   const source=S.hand?'hand':'gaze';if(source!==selection.source){selection.source=source;modeChangedAt=now;resetSelection();}
-  const [x,y]=point();const fresh=!S.hand||(now-hand.lastSeen<Math.min(500,hand.freshWindow||250)&&hand.pointerVisible!==false);
+  const [x,y]=point();const fresh=!S.hand||(now-hand.lastSeen<(hand.freshWindow||250)&&hand.pointerVisible!==false);
   const id=!drag&&!$('settings').open&&fresh?targetAt(x,y):null;
   if(id!==selection.id){selection.id=id;selection.since=now;selection.fired=false;refreshHover(id);}
   const gazeReady=((motion.active&&motion.raw&&now-motion.lastAt<180)||(vision.active&&vision.valid&&now-vision.lastGood<150))&&!motion.calibration&&Math.hypot(...direction.velocity)<25;
@@ -1081,8 +1114,8 @@ function tick(now){
   if((!S.hand&&!gazeReady)||(S.hand&&!fresh))selection.since=now;
   const progress=id&&(S.hand||prefs.dwell)&&(gazeReady||S.hand)&&!selection.fired&&stable?clamp((now-selection.since)/S.dwell,0,1):0;
   if(progress>=1)activate(id,now);
-  const ret=$('ret');ret.style.transform=`translate3d(${x}px,${y}px,0)`;if(ret._progress!==progress){ret._progress=progress;ret.style.setProperty('--p',progress*100);}
-  document.querySelectorAll('.eye .r').forEach(r=>{r.style.left=(S.hand?S.hx*100:50)+'%';r.style.top=(S.hand?S.hy*100:50)+'%';r.style.setProperty('--p',progress*100);});
+  const ret=$('ret'),position=`translate3d(${x}px,${y}px,0)`;if(ret._position!==position){ret._position=position;ret.style.transform=position;}if(ret._progress!==progress){ret._progress=progress;ret.style.setProperty('--p',progress*100);}
+  sceneEyes().forEach(eye=>{const layout=eye._layout,r=layout?.pointer;if(!r)return;const position=`translate3d(${(S.hand?S.hx:.5)*layout.w}px,${(S.hand?S.hy:.5)*layout.h}px,0)`;if(r._position!==position){r._position=position;r.style.transform=position;}if(r._progress!==progress){r._progress=progress;r.style.setProperty('--p',progress*100);}});
   renderHands();
  }
  requestAnimationFrame(tick);
@@ -1120,7 +1153,7 @@ let noteTimer=null;
 stage.addEventListener('input',e=>{
  if(e.target.matches('.library-search')){
   const query=normalized(e.target.value.trim());
-  document.querySelectorAll('.eye').forEach(eye=>{
+  sceneEyes().forEach(eye=>{
    const input=eye.querySelector('.library-search');if(input&&input!==e.target)input.value=e.target.value;
    let count=0;eye.querySelectorAll('[data-app]').forEach(tile=>{const a=A(tile.dataset.app);tile.hidden=!normalized(a[1]+' '+a[4]).includes(query);if(!tile.hidden)count++;});
    const grid=eye.querySelector('.grid');if(grid){let empty=grid.querySelector('.search-empty');if(!empty){empty=document.createElement('div');empty.className='empty search-empty';empty.textContent='Nenhum aplicativo encontrado.';grid.appendChild(empty);}empty.hidden=count>0;}

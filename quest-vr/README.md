@@ -1,5 +1,5 @@
 <!-- Mãos/VR 3.2: rastreamento com identidades estáveis e HUD externo oculto no VR. -->
-# Harmony MR 3.2.2
+# Harmony MR 3.3
 
 Atualização de desempenho: workers, vídeo nativo, menos repinturas e contador real de FPS.
 [Detalhes e comparação de desempenho](PERFORMANCE.md). Meta de 60 fps, dependente do aparelho.
@@ -328,3 +328,25 @@ Para Netlify, envie o ZIP completo com a pasta `assets`, não somente o HTML.
 Para Android, o APK já inclui todos os arquivos das mãos.
 
 Versão 3.2.2: restaurado o conteúdo principal no VR, mantendo apenas o HUD externo oculto.
+
+## Otimização preservando os recursos — 3.3
+
+- Mesmo modelo local de mãos, mesma resolução de entrada, 21 pontos, duas mãos
+  e mesmos filtros. Saídas de imagem e coordenadas mundiais não usadas deixam
+  de ser convertidas em resultados; o sinal de fim de quadro permanece ativo
+  para detectar também a ausência de mãos.
+- Configurações da câmera e projeções em cache; coordenadas reutilizadas e
+  desenho do esqueleto reaproveitado no segundo olho quando as dimensões coincidem.
+- Bosque reaproveitado nos dois olhos, projeções de árvores e matriz de rotação
+  reutilizadas, menos alocações e cálculos redundantes.
+- Frequência das mãos ajustada ao custo real, com intervalo para a interface
+  responder em aparelhos lentos; a calibração tolera esse intervalo sem reduzir
+  as verificações geométricas.
+- Cursores por composição gráfica, referências de elementos em cache e lista
+  de objetos atualizada sem recriar botões quando os nomes permanecem iguais.
+- APK menor pela remoção apenas do arquivo de modelo de maior complexidade,
+  que não é usado: o app continua no mesmo modelo lite, com WASM SIMD e não SIMD.
+
+VR mantém biblioteca, painel principal e dock; só HUD externo fica oculto.
+Mãos offline, objetos, direção, calibração, seleção e jogos continuam disponíveis.
+Veja a seção 3.3 de [PERFORMANCE.md](PERFORMANCE.md) para os testes e limites.

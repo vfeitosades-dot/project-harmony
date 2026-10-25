@@ -56,3 +56,38 @@ node quest-vr/tests/performance-browser.cjs
 ```
 
 O teste também pode executar somente a versão atual, omitindo a URL da referência.
+
+## Versão 3.3 — comparação com 3.2.2
+
+Não foi trocado o modelo de mãos nem reduzida a resolução de entrada. O adaptador
+da versão fixa 0.4.1675469240 deixa de converter em resultados a imagem de saída
+e os landmarks mundiais não utilizados. O stream de imagem permanece como sinal
+de fim de quadro, para preservar callbacks quando não há mãos.
+
+Em Chromium desktop com WebGL por software, rede bloqueada e fotografia pública
+de duas mãos, oito inferências antes/depois continuaram detectando duas mãos
+com 21 pontos. A imagem de saída, não utilizada, caiu de 8 resultados para 0.
+O tempo central observado (5º de 8 tempos ordenados) caiu de 335,2 para 300,3 ms.
+Esses números não são medições de Android nem garantia de FPS em celulares.
+O teste de perda e reaquisição usa o modelo real e também passou.
+
+O teste de desenho verifica 30 quadros em VR com duas mãos: cada par de olhos
+executa só dois desenhos de esqueleto, em vez de quatro; o segundo olho recebe
+uma cópia equivalente em pixels. As consultas de metadados da câmera ficam
+limitadas a troca de câmera ou preferência, em vez de ocorrer por articulação.
+Espelhamento, proporções e seleção das coordenadas atuais de objetos são testados.
+
+Remover o modelo full não utilizado reduziu o APK de 12.98 para 9.48 MiB
+(27.0%). O modelo lite efetivamente usado e os dois caminhos WASM foram preservados.
+
+Testes: `real-hand-efficiency-browser.cjs`, `real-hands-browser.cjs`,
+`render-efficiency-browser.cjs`, testes da interface, mãos estáveis, seleção,
+objetos, jogos e rotação visual. O benchmark real usa
+`QUEST_BASELINE_URL` para a referência e `QUEST_TEST_URL` para a versão atual.
+
+O agendamento também deixa intervalo entre inferências caras, em vez de exigir
+no mínimo 5 inferências/s mesmo quando cada uma consome mais de 200 ms. Em
+aparelhos rápidos a frequência-alvo segue igual. Em aparelhos lentos, o limite
+inferior adaptativo é 1/s, e sempre há espaço para o loop de desenho. O intervalo
+aceito durante calibração acompanha o custo observado, limitado a 1,2 s; os
+critérios de estabilidade, consenso e erro de rotação foram preservados.
