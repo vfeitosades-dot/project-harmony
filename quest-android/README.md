@@ -1,4 +1,4 @@
-# Harmony MR 3.2.1 para Android
+# Harmony MR 3.2.2 para Android
 
 APK de instalação direta para Android 8.0 ou mais recente. A interface HTML
 está incluída no aplicativo: não depende de publicar a última versão na Netlify.
@@ -49,3 +49,5 @@ locais no APK. O botão inicial liga câmera e mãos; o esqueleto é reativado
 mesmo se uma versão antiga o tinha salvo como oculto. Os arquivos locais são
 servidos pela origem HTTPS interna com MIME apropriado para JavaScript e WASM.
 Use `dist/Harmony-MR-3.2.1.apk` para evitar baixar um APK antigo em cache.
+
+Versão 3.2.2 (`versionCode=7`): biblioteca, dock e jogos visíveis e interativos no VR; apenas botões externos e indicadores ficam ocultos.

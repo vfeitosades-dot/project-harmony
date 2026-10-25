@@ -1,5 +1,5 @@
-<!-- Mãos/VR 3.2: rastreamento com identidades estáveis e interface oculta no VR. -->
-# Harmony MR 3.2.1
+<!-- Mãos/VR 3.2: rastreamento com identidades estáveis e HUD externo oculto no VR. -->
+# Harmony MR 3.2.2
 
 Atualização de desempenho: workers, vídeo nativo, menos repinturas e contador real de FPS.
 [Detalhes e comparação de desempenho](PERFORMANCE.md). Meta de 60 fps, dependente do aparelho.
@@ -296,9 +296,10 @@ e espelhamento; não há ampliação do esqueleto. A perda da mão limpa o curso
 e impede selecionar com uma detecção antiga. O filtro interpola quadros, sem
 inventar mãos quando a câmera não as detecta.
 
-No VR, painéis, dock, cursores, prévias e todos os indicadores ficam ocultos;
-os jogos em painel ficam pausados. Permanecem o ambiente e as mãos detectadas.
-Saia com **Voltar** no Android, **Esc** ou **dois toques próximos na tela**.
+No VR, a tela principal, a biblioteca, o dock e os jogos permanecem visíveis
+e interativos. Somente os botões externos, prévias e indicadores de diagnóstico
+ficam ocultos. Saia com **Voltar** no Android, **Esc** ou **dois toques próximos
+fora dos painéis**.
 Não há botão de saída visível no VR.
 
 Verificado com detecções simuladas e testes de interface. O desempenho e a
@@ -325,3 +326,5 @@ bloqueada. Não é uma validação com câmera de um Android físico.
 
 Para Netlify, envie o ZIP completo com a pasta `assets`, não somente o HTML.
 Para Android, o APK já inclui todos os arquivos das mãos.
+
+Versão 3.2.2: restaurado o conteúdo principal no VR, mantendo apenas o HUD externo oculto.
