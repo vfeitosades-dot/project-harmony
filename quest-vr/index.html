@@ -13,6 +13,9 @@
 
 /* Favor compositor animation and native video surfaces over camera canvas copies. */
 .panel,.dock,dialog,#status,#ui button{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}.panel{box-shadow:0 12px 30px #0006}.dock{box-shadow:0 8px 18px #0005}.world{will-change:transform}.mr-camera{object-fit:cover}.mixed #visionVideo,.mixed #cv{display:none}.app-art .icon{filter:none}.eye:after{filter:none}.r,#ret{box-shadow:none}#ret{left:0;top:0;will-change:transform}#fpsState{position:fixed;left:12px;bottom:103px;z-index:9;font-size:10px;background:#142822d9;color:#b9edcf;border-radius:6px;padding:5px 8px;pointer-events:none}.vr #fpsState{font-size:9px;bottom:9px}dialog::backdrop{backdrop-filter:none}
+
+/* Clean VR: environment and tracked hands only, with no selectable hidden HUD. */
+.vr #ui,.vr .welcome,.vr #status,.vr #anchorState,.vr #fpsState,.vr #visionState,.vr #cv,.vr #visionVideo,.vr #ret,.vr .r,.vr .panel,.vr .dock{display:none!important}
 </style></head><body>
 <div class="welcome"><div class="wordmark"><span class="infinity">◈</span> harmony <b>MR</b></div><small>SEU MUNDO. NOVAS POSSIBILIDADES.</small></div><main id="stage" aria-label="Ambiente virtual"></main><div id="ret"></div><div id="fpsState" role="status">Medindo fps…</div><div id="visionState" hidden role="status" aria-live="polite"></div><video id="visionVideo" playsinline webkit-playsinline autoplay muted hidden aria-label="Prévia da direção pela câmera"></video><video id="cv" playsinline webkit-playsinline autoplay muted aria-label="Prévia local da câmera"></video>
 <nav id="ui" aria-label="Controles do ambiente"><button id="bMR">Ver ambiente</button><button id="bCam">Ativar mãos</button><button id="bVision">Direção pela câmera</button><button id="bObjects">Objetos / referência</button><button id="bDirectionAnchor">Fixar ponto de direção</button><button id="bCalibrate">Calibrar sem objeto</button><button id="bGyro" hidden>Ativar sensores</button><button id="bCenter">Centralizar</button><button id="bSettings">Conforto</button><button id="bVR">Entrar no VR Box</button><button id="bExit" hidden>Sair do VR</button></nav><div id="status" role="status" aria-live="polite">Arraste para explorar · clique para abrir · R para centralizar</div><dialog id="settings"><form method="dialog"><h2>Conforto e rastreamento</h2><p>Interface web inspirada em headsets VR. O VR Box usa tela dividida, sem rastreamento de posição ou passthrough estereoscópico.</p>
@@ -28,7 +31,7 @@
 <label><input type="checkbox" id="dwellEnabled" checked> Também selecionar com o olhar (sem mão)</label>
 <label><input type="checkbox" id="showHands" checked> Mostrar articulações das mãos</label>
 <label>Tempo de seleção <input id="dwellTime" type="range" min="700" max="2400" step="100" value="1200"><output id="dwellValue">1.2 s</output></label>
-<label>Alcance da mão <input id="reachControl" type="range" min="1" max="2.4" step="0.1" value="1.6"><output id="reachValue">1.6×</output></label>
+<p>O cursor acompanha a ponta do indicador, sem ampliar ou esticar a mão.</p>
 <p>Aponte com o indicador e mantenha o cursor sobre o botão até completar o círculo. Tire o dedo do botão antes de selecioná-lo de novo. Sem mãos, o cursor segue o centro da visão.</p>
 <p>Use HTTPS ou localhost. Câmera e sensores dependem de permissão. O modelo é baixado ao ativar; as imagens são processadas neste aparelho.</p>
 <button class="settings-close">Concluir</button></form></dialog>
@@ -57,14 +60,14 @@ function content(){
  if(S.view==='home')return header('Seu espaço')+`<div class="intro-card"><span class="eyebrow">Bem-vindo de volta</span><h2>Um momento para<br>mudar de perspectiva.</h2><p>Abra sua biblioteca, encontre um cenário tranquilo e faça deste espaço o seu lugar.</p></div><div class="toolbar"><span class="subtle">Escolha o seu ambiente</span><button class="tab" data-id="library">Ver biblioteca →</button></div>${environments()}<div class="footer-line"><span>Processamento das mãos no aparelho</span><span>Interface independente · não oficial</span></div>`;
  if(S.view==='gallery')return header('Ambientes','Um cenário para cada momento')+environments()+`<div class="intro-card" style="margin-top:22px;margin-bottom:0"><span class="eyebrow">Menos distrações</span><h2>Encontre seu ritmo.</h2><p>Cenários originais desenhados no aparelho, sem baixar imagens. Escolha um tema e ele será lembrado neste navegador.</p></div>`;
  if(S.view==='notes')return header('Notas','Seu rascunho, salvo neste navegador')+`<textarea class="note-editor" maxlength="20000" placeholder="O que você quer criar hoje?" aria-label="Suas notas">${escapeHTML(S.note)}</textarea><div class="footer-line"><span class="note-status">Salvo localmente · sem sincronização</span><span class="note-count">${S.note.length}/20000</span></div>`;
- if(S.view==='guide')return header('Primeiros passos')+`<div class="guide-list"><div class="guide-item"><b>01 · Olhe ao redor</b>Arraste com mouse ou dedo. No celular, ative Direção pela câmera, mostre um cenário fixo e centralize. R também centraliza.</div><div class="guide-item"><b>02 · Suas mãos são o controle</b>Ative as mãos, mostre a mão inteira e aponte com o indicador. Mantenha o indicador sobre um botão até o círculo completar. Afaste o cursor antes de repetir.</div><div class="guide-item"><b>03 · Entre no VR Box</b>Coloque o celular na horizontal e ative a tela dividida. Cada olho recebe uma versão da interface. O botão Sair do VR permanece acessível.</div><div class="guide-item"><b>04 · Ajuste para você</b>Abra Conforto para sensibilidade, suavização, câmera selecionada ou traseira e tempo de seleção.</div></div>`;
+ if(S.view==='guide')return header('Primeiros passos')+`<div class="guide-list"><div class="guide-item"><b>01 · Olhe ao redor</b>Arraste com mouse ou dedo. No celular, ative Direção pela câmera, mostre um cenário fixo e centralize. R também centraliza.</div><div class="guide-item"><b>02 · Suas mãos são o controle</b>Ative as mãos, mostre a mão inteira e aponte com o indicador. Mantenha o indicador sobre um botão até o círculo completar. Afaste o cursor antes de repetir.</div><div class="guide-item"><b>03 · Entre no VR Box</b>Coloque o celular na horizontal e ative a tela dividida. Cada olho recebe uma versão da interface. No VR a interface fica oculta. Saia com Voltar, Esc ou dois toques na tela.</div><div class="guide-item"><b>04 · Ajuste para você</b>Abra Conforto para sensibilidade, suavização, câmera selecionada ou traseira e tempo de seleção.</div></div>`;
  return header('Sobre este espaço')+`<div class="intro-card"><span class="eyebrow">Harmony MR · 3.0</span><h2>Uma interface espacial.<br>No seu navegador.</h2><p>Biblioteca flutuante, dock colorido, mãos articuladas, três minijogos próprios e visão do ambiente. Visual inspirado nos vídeos enviados do EnJoyTheMR/EnJoyTheVR.</p></div><div class="guide-list"><div class="guide-item"><b>O que funciona aqui</b>Mãos com 21 landmarks, seleção por permanência, rotação visual pela câmera, controles por toque e mouse e modo VR Box.</div><div class="guide-item"><b>Sobre o hardware</b>Sem câmeras de profundidade, controles Touch, rastreamento 6DoF ou passthrough estereoscópico. Projeto independente, sem vínculo com Meta ou EnJoyTheMR. A visão do ambiente é uma imagem 2D da câmera duplicada no VR Box. Não executa jogos ou scripts do aplicativo de referência.</div></div>`;
 }
 function scene(){return `<section class="obj panel" style="width:670px;${pos(0,S.d,-22)}" aria-label="Janela principal">${content()}</section><nav class="obj dock" style="${pos(0,S.d*.85,278)}" aria-label="Menu universal"><button class="system-pill" data-id="quick" aria-label="Configurações rápidas">${icon('clock')}<span class="live-clock"></span></button><button class="btn profile" data-id="tracking" aria-label="Central MR">${icon('hand')}</button><span class="divider"></span><button class="btn home ${S.view==='home'?'selected':''}" data-id="home" aria-label="Início">${icon('home')}</button><button class="btn ${S.view==='library'?'selected':''}" data-id="library" aria-label="Biblioteca">${icon('grid')}</button><button class="btn ${S.view==='gallery'?'selected':''}" data-id="gallery" aria-label="Ambientes">${icon('image')}</button><button class="btn ${S.mixed?'selected':''}" data-id="mixed" aria-label="Alternar visão do ambiente">${icon('headset')}</button><button class="btn utility-note" data-id="notes" aria-label="Notas">${icon('note')}</button><span class="divider"></span><button class="btn ${S.view==='quick'?'selected':''}" data-id="quick" aria-label="Ajustes rápidos">${icon('settings')}</button><button class="btn" data-id="rc" aria-label="Centralizar visão">${icon('center')}</button></nav>`;}
 const stage=document.getElementById('stage');
 function updateClock(){const time=new Intl.DateTimeFormat('pt-BR',{hour:'2-digit',minute:'2-digit'}).format(new Date());document.querySelectorAll('.live-clock').forEach(el=>el.textContent=time);}
 function applyEnvironment(){document.body.classList.toggle('mixed',S.mixed&&vision.active);document.body.dataset.theme=S.env;document.querySelectorAll('.eye').forEach(e=>{e.dataset.env=S.env;e.style.setProperty('--scene-brightness',S.brightness/100);});}
-function build(){stage.querySelectorAll('.mr-camera').forEach(v=>{v.pause();v.srcObject=null;});stage.innerHTML='';for(let i=0;i<(S.vr?2:1);i++){const e=document.createElement('div');e.className='eye';e.innerHTML=`<canvas class="ambient-canvas" aria-hidden="true"></canvas><video class="mr-camera" playsinline webkit-playsinline autoplay muted aria-hidden="true"></video><div class="scenery" aria-hidden="true"></div><div class="world">${scene()}</div><svg class="sk" aria-hidden="true"></svg>${S.vr?'<div class="r"></div>':''}`;stage.appendChild(e);const background=e.querySelector('.mr-camera');background.muted=true;if(S.mixed&&vision.active){background.srcObject=vision.stream;background.style.transform=cameraFront()?'scaleX(-1)':'';void background.play().catch(()=>{});}}document.body.classList.toggle('vr',S.vr);applyEnvironment();updateClock();size();}
+function build(){stage.querySelectorAll('.mr-camera').forEach(v=>{v.pause();v.srcObject=null;});stage.innerHTML='';for(let i=0;i<(S.vr?2:1);i++){const e=document.createElement('div');e.className='eye';e.innerHTML=`<canvas class="ambient-canvas" aria-hidden="true"></canvas><video class="mr-camera" playsinline webkit-playsinline autoplay muted aria-hidden="true"></video><div class="scenery" aria-hidden="true"></div><div class="world">${scene()}</div><canvas class="sk" aria-hidden="true"></canvas>${S.vr?'<div class="r"></div>':''}`;stage.appendChild(e);const background=e.querySelector('.mr-camera');background.muted=true;if(S.mixed&&vision.active){background.srcObject=vision.stream;background.style.transform=cameraFront()?'scaleX(-1)':'';void background.play().catch(()=>{});}}document.body.classList.toggle('vr',S.vr);applyEnvironment();updateClock();size();}
 function size(){document.querySelectorAll('.eye').forEach((e,i)=>{
  if(!e._layout||e._layout.vw!==innerWidth||e._layout.vh!==innerHeight){e._layout={vw:innerWidth,vh:innerHeight,w:e.clientWidth,h:e.clientHeight,world:e.querySelector('.world'),rect:e.getBoundingClientRect()};}
  const layout=e._layout;const compact=!S.vr&&innerWidth<650;const desired=Math.max(.11,compact?Math.min(.85,(layout.h-170)/760,(layout.w-36)/460):Math.min(.92,layout.h/760,layout.w/750));const scale=desired/(1-desired*520/1100);const ex=S.vr?(i?-4:4):0;const transform=`scale(${scale}) translateX(${ex}px) rotateX(${S.pitch.toFixed(3)}deg) rotateY(${S.yaw.toFixed(3)}deg)`;if(layout.transform!==transform){layout.transform=transform;layout.world.style.transform=transform;}});}
@@ -157,7 +160,7 @@ function renderSpatialBackground(now){
 }
 function updateSpatial(now){
  renderSpatialBackground(now);const mr=$('bMR'),label=S.mixed?'Ocultar ambiente':'Ver ambiente';if(mr.textContent!==label){mr.textContent=label;mr.setAttribute('aria-pressed',String(S.mixed));}
- const g=spatial.game;if(g&&S.view===g.kind&&g.playing){const dt=clamp((now-g.last)/1000,0,.1);g.last=now;
+ const g=spatial.game;if(g&&S.view===g.kind&&g.playing&&!S.vr){const dt=clamp((now-g.last)/1000,0,.1);g.last=now;
   if(g.kind==='targets'){g.remaining=Math.max(0,g.remaining-dt);document.querySelectorAll('.game-time').forEach(n=>{const text=Math.ceil(g.remaining)+' s';if(n.textContent!==text)n.textContent=text;});if(g.remaining<=0)finishGame();}
   if(g.kind==='memory'&&g.hideIn>0){g.hideIn-=dt;if(g.hideIn<=0){g.flipped=[];build();}}
   if(g.kind==='golf'&&g.shot){const shot=g.shot;shot.elapsed+=dt;const t=clamp(shot.elapsed/.85,0,1),ease=1-(1-t)**3;g.ball={x:shot.start.x+(shot.end.x-shot.start.x)*ease,y:shot.start.y+(shot.end.y-shot.start.y)*ease};document.querySelectorAll('.golf-ball').forEach(n=>{n.style.left=g.ball.x*100+'%';n.style.top=g.ball.y*100+'%';});if(t>=1){g.shot=null;if(shot.holed){g.score=Math.max(5,110-g.strokes*10);finishGame();}else build();}}
@@ -176,19 +179,20 @@ const video=$('cv'), status=$('status');
 let lastStatus='',drag=null,suppressClickUntil=0,frameAt=performance.now(),modeChangedAt=0;
 function tell(message){if(message!==lastStatus){status.textContent=message;lastStatus=message;}}
 function resetSelection(){selection.id=null;selection.since=performance.now();selection.fired=false;}
-function clearHands(){hand.revision=(hand.revision||0)+1;S.hand=false;hand.points=[];hand.primary=null;hand.wrist=null;hand.filters=[];hand.candidateAt=0;hand.acquired=0;hand.lastSeen=0;hand.pinched=false;hand.pinchAt=0;hand.releaseAt=0;hand.armed=false;document.body.classList.remove('pinching');resetSelection();}
+function clearHands(){stableHands?.reset();hand.visibleTracks=[];hand.primaryId=null;hand.tx=hand.ty=undefined;hand.revision=(hand.revision||0)+1;S.hand=false;hand.points=[];hand.primary=null;hand.wrist=null;hand.filters=[];hand.candidateAt=0;hand.acquired=0;hand.lastSeen=0;hand.pinched=false;hand.pinchAt=0;hand.releaseAt=0;hand.armed=false;document.body.classList.remove('pinching');resetSelection();}
 const oldBuild=build;
 build=function(){stage._hit=null;oldBuild();resetSelection();document.querySelectorAll('[data-id]').forEach(n=>{n.setAttribute('role','button');n.tabIndex=0;if(!n.hasAttribute('aria-label'))n.setAttribute('aria-label',n.textContent.trim());});$('bExit').hidden=!S.vr;$('bVR').setAttribute('aria-pressed',String(S.vr));};
 const oldAct=act;
 act=function(id){if(!id)return;oldAct(id);};
 function activate(id,now=performance.now(),direct=false){
- if(!id||(!direct&&now<selection.cooldown)||$('settings').open||$('cameraAccess').hasAttribute('open')||objectsOpen()||document.hidden)return;
+ if(S.vr||!id||(!direct&&now<selection.cooldown)||$('settings').open||$('cameraAccess').hasAttribute('open')||objectsOpen()||document.hidden)return;
  selection.cooldown=now+550;selection.fired=true;
  act(id);refreshHover(id);selection.id=id;selection.since=now;selection.fired=true;
  if(navigator.vibrate)navigator.vibrate(18);
 }
 function point(){const eye=stage.firstElementChild;if(!eye._layout)size();const e=eye._layout.rect;return [e.left+(S.hand?S.hx:.5)*e.width,e.top+(S.hand?S.hy:.5)*e.height];}
 function targetAt(x,y){
+ if(S.vr)return null;
  if($('settings').open||$('cameraAccess').hasAttribute('open')||objectsOpen()||document.activeElement?.matches('input,textarea,select'))return null;
  // Only the topmost painted element may select a target (no clicks through panels).
  const now=performance.now();if(stage._hit&&now-stage._hit.time<40&&Math.abs(stage._hit.x-x)<2&&Math.abs(stage._hit.y-y)<2)return stage._hit.id;
@@ -231,7 +235,7 @@ function mlBackgroundMain(){
   if(m.op==='infer'){
    const begin=performance.now();let result;
    try{result=engine.detectForVideo(m.image,m.time);}finally{m.image.close();}
-   self.postMessage({id:m.id,result:kind==='hands'?{landmarks:result.landmarks||[]}:{detections:result.detections||[]},spent:performance.now()-begin});
+   self.postMessage({id:m.id,result:kind==='hands'?{landmarks:result.landmarks||[],handedness:result.handedness||result.handednesses||[]}:{detections:result.detections||[]},spent:performance.now()-begin});
   }
  }catch(error){self.postMessage({id:m.id,error:error.message||'Inference failed'});}};
 }
@@ -311,29 +315,50 @@ function updateHands(now){
  }
  try{consumeHands(hand.engine.detectForVideo(video,now),now,performance.now()-begin);}catch(error){console.error(error);stopCamera('O rastreador foi interrompido. Ative as mãos para tentar novamente.');}
 }
+// Track hands in camera coordinates; mirror/crop exactly once at display time.
+class StableHands {
+ constructor(){this.reset();}
+ reset(){this.tracks=[];this.serial=0;this.primaryId=null;this.primarySeen=0;}
+ valid(points){
+  if(!Array.isArray(points)||points.length!==21||!points.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.y)&&p.x>=-.25&&p.x<=1.25&&p.y>=-.25&&p.y<=1.25))return false;
+  const palm=distance(points[0],points[9]),width=distance(points[5],points[17]);if(palm<.025||palm>.8||width<.015||width>.9)return false;
+  for(const chain of CONNECTIONS)for(let i=1;i<chain.length;i++)if(distance(points[chain[i]],points[chain[i-1]])>palm*3.5)return false;
+  return true;
+ }
+ update(landmarks,now,handedness=[]){
+  const candidates=[];for(const p of landmarks||[]){if(this.valid(p)&&!candidates.some(q=>distance(p[0],q[0])<.035&&distance(p[9],q[9])<.035))candidates.push(p);if(candidates.length===2)break;}const labelOf=p=>{const c=handedness[(landmarks||[]).indexOf(p)]?.[0];return c&&c.score>=.8?c.categoryName:null;};const available=this.tracks.filter(t=>now-t.last<320),pairs=[];
+  candidates.forEach((p,i)=>available.forEach(t=>{const wrist=distance(p[0],t.raw[0]),palm=distance(p[9],t.raw[9]),scale=distance(p[0],p[9])/Math.max(.025,distance(t.raw[0],t.raw[9]));if(wrist<.24&&palm<.3&&scale>.4&&scale<2.5)pairs.push({i,t,cost:wrist*.65+palm*.35+(t.label&&labelOf(p)&&t.label!==labelOf(p)?.12:0)});}));
+  pairs.sort((a,b)=>a.cost-b.cost);const assigned=new Map(),used=new Set();for(const p of pairs)if(!assigned.has(p.i)&&!used.has(p.t.id)){assigned.set(p.i,p.t);used.add(p.t.id);}
+  const visible=[];
+  candidates.forEach((points,i)=>{
+   let t=assigned.get(i);if(!t){t={id:++this.serial,first:now,last:now,frames:0,label:labelOf(points),filters:Array.from({length:21},()=>[new OneEuro(),new OneEuro()]),display:null};this.tracks.push(t);}
+   if(now-t.last>180){t.first=now;t.frames=0;t.filters=Array.from({length:21},()=>[new OneEuro(),new OneEuro()]);t.display=null;}
+   t.raw=points.map(p=>({...p}));t.last=now;t.frames++;
+   t.filtered=points.map((p,j)=>({x:t.filters[j][0].step(p.x,now),y:t.filters[j][1].step(p.y,now),z:Number.isFinite(p.z)?p.z:0}));
+   if(!t.display)t.display=t.filtered.map(p=>({...p}));
+   if(t.frames>=2&&now-t.first>=70)visible.push(t);
+  });
+  this.tracks=this.tracks.filter(t=>now-t.last<320);
+  let primary=visible.find(t=>t.id===this.primaryId);
+  if(primary)this.primarySeen=now;
+  else if(this.primaryId===null||now-this.primarySeen>200){primary=visible.slice().sort((a,b)=>distance(b.raw[0],b.raw[9])-distance(a.raw[0],a.raw[9]))[0];this.primaryId=primary?.id??null;if(primary)this.primarySeen=now;}
+  return {visible,primary};
+ }
+ animate(dt){let moved=false;const alpha=1-Math.exp(-Math.min(.1,dt)/.018);for(const t of this.tracks){if(!t.display||!t.filtered)continue;for(let i=0;i<21;i++){const target=t.filtered[i],p=t.display[i],dx=target.x-p.x,dy=target.y-p.y;if(Math.abs(dx)+Math.abs(dy)>.00008){p.x+=dx*alpha;p.y+=dy*alpha;moved=true;}else{p.x=target.x;p.y=target.y;}}}return moved;}
+}
+let stableHands=null;
+function handCameraIsFront(){return (hand.stream?.getVideoTracks?.()[0]?.getSettings?.()?.facingMode||prefs.facing)==='user';}
 function consumeHands(result,now,spent){
- hand.revision=(hand.revision||0)+1;
- hand.fps=clamp(1000/Math.max(66,spent*1.5),10,15);
- const candidates=(result.landmarks||[]).filter(points=>points.length===21&&points.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.y))&&distance(points[0],points[9])>.035&&distance(points[0],points[9])<.85);
- hand.points=candidates.map(ps=>ps.map(p=>({x:prefs.facing==='user'?1-p.x:p.x,y:p.y,z:p.z})));
- if(!hand.points.length){hand.candidateAt=0;return;}
- let index=0;
- if(hand.wrist){let best=Infinity;hand.points.forEach((ps,i)=>{const d=distance(ps[0],hand.wrist);if(d<best){best=d;index=i;}});}
- let primary=hand.points[index];
- const jumped=hand.wrist&&distance(primary[0],hand.wrist)>.25;
- if(jumped){hand.filters=[];hand.candidateAt=now;hand.acquired=0;hand.armed=false;hand.pinched=false;S.hand=false;resetSelection();}
- hand.wrist={...primary[0]};hand.lastSeen=now;
- if(!hand.candidateAt)hand.candidateAt=now;
- if(now-hand.candidateAt<120)return;
- if(!hand.acquired){hand.acquired=now;hand.filters=[];resetSelection();tell('Mão detectada · indicador para apontar · mantenha o indicador sobre o botão para selecionar.');}
- primary=primary.map((p,i)=>{if(!hand.filters[i])hand.filters[i]=[new OneEuro(),new OneEuro()];return {x:hand.filters[i][0].step(p.x,now),y:hand.filters[i][1].step(p.y,now),z:p.z};});
- hand.points[index]=primary;hand.primary=primary;
- const tip=primary[8];const x=clamp(.5+(tip.x-.5)*S.reach, .025,.975),y=clamp(.5+(tip.y-.5)*S.reach,.025,.975);
- hand.tx=x;hand.ty=y;
- if(!S.hand){S.hx=x;S.hy=y;resetSelection();}else{const dt=clamp((now-(hand.pointerAt||now-40))/1000,.005,.2);const speed=1-Math.exp(-dt/(prefs.smoothing/1000));S.hx+=(x-S.hx)*speed;S.hy+=(y-S.hy)*speed;}
- hand.pointerAt=now;S.hand=true;
- // Selection uses dwell only: pinching no longer activates targets.
- hand.pinched=false;hand.armed=false;document.body.classList.remove('pinching');
+ if(!stableHands)stableHands=new StableHands();
+ hand.revision=(hand.revision||0)+1;hand.fps=clamp(1000/Math.max(50,spent*1.5),10,20);
+ const oldId=hand.primaryId,{visible,primary}=stableHands.update(result.landmarks,now,result.handedness||result.handednesses||[]);
+ hand.visibleTracks=visible;hand.points=visible.map(t=>t.filtered);hand.primary=primary?.filtered||null;hand.primaryId=primary?.id??null;
+ if(!primary){S.hand=false;hand.tx=hand.ty=undefined;resetSelection();return;}
+ if(oldId!==primary.id){resetSelection();modeChangedAt=now;}
+ hand.lastSeen=now;hand.acquired=primary.first;hand.wrist={...primary.filtered[0]};
+ const eye=stage.firstElementChild;if(!eye?._layout)size();const layout=eye._layout;
+ const mapped=handDisplayPoint(primary.display[8],layout.w,layout.h);S.hx=clamp(mapped[0]/1000,.005,.995);S.hy=clamp(mapped[1]/1000,.005,.995);
+ hand.pointerVisible=mapped[0]>=0&&mapped[0]<=1000&&mapped[1]>=0&&mapped[1]<=1000;hand.tx=S.hx;hand.ty=S.hy;hand.pointerAt=now;S.hand=true;hand.pinched=false;hand.armed=false;
 }
 
 // DeviceOrientation -> quaternion -> viewing vector. Screen rotation is included.
@@ -577,7 +602,7 @@ async function startVisual(){
  }catch(error){if(run===vision.run){stopVisual(false);showCameraProblem(error);}releaseUnusedCamera(stream);}
  finally{vision.starting=false;updateCameraBusy();$('bVision').disabled=false;}
 }
-function visualMasks(w,h){return hand.points.map(points=>{const xs=points.map(p=>(prefs.facing==='user'?1-p.x:p.x)*w),ys=points.map(p=>p.y*h);return {x0:Math.min(...xs)-10,x1:Math.max(...xs)+10,y0:Math.min(...ys)-10,y1:Math.max(...ys)+10};});}
+function visualMasks(w,h){return hand.points.map(points=>{const xs=points.map(p=>p.x*w),ys=points.map(p=>p.y*h);return {x0:Math.min(...xs)-10,x1:Math.max(...xs)+10,y0:Math.min(...ys)-10,y1:Math.max(...ys)+10};});}
 function beginSceneCalibration(){
  clearObjectReference();vision.sceneCalibrated=false;vision.calibration={since:null,last:null,progress:0};
  resetDirection(true);tell('Calibrando sem objeto: mantenha a câmera parada e aponte para um cenário iluminado com detalhes.');
@@ -967,6 +992,8 @@ window.addEventListener('keydown',e=>{
  if(!motion.active&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)&&!e.target.closest('button,input,select,[data-id]')){e.preventDefault();S.yaw+=e.key==='ArrowLeft'?5:e.key==='ArrowRight'?-5:0;S.pitch=clamp(S.pitch+(e.key==='ArrowUp'?-5:e.key==='ArrowDown'?5:0),-75,75);if(vision.active){vision.yaw=S.yaw;vision.pitch=S.pitch;vision.sensor.reset(S.yaw,S.pitch,vision.sensor.roll);resetDirection(true);}resetSelection();size();}
 });
 function exitVR(){if(S.vr){S.vr=false;build();}if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});screen.orientation?.unlock?.();}
+window.harmonyExitVR=()=>{if(!S.vr)return false;exitVR();return true;};
+let vrTap=null;stage.addEventListener('pointerup',e=>{if(!S.vr)return;const now=performance.now();if(vrTap&&now-vrTap.at<350&&Math.hypot(e.clientX-vrTap.x,e.clientY-vrTap.y)<40){vrTap=null;exitVR();}else vrTap={at:now,x:e.clientX,y:e.clientY};});
 $('bVR').onclick=()=>act('vr');$('bExit').onclick=exitVR;
 $('bMR').onclick=()=>{void toggleMixedReality();};$('bCalibrate').onclick=async()=>{if(!vision.active){await startVisual();return;}beginSceneCalibration();};$('bDirectionAnchor').onclick=()=>{void openObjects(true);};$('bObjects').onclick=()=>{void openObjects();};$('bVision').onclick=()=>act('vision');$('bCam').onclick=()=>act('hands');$('bGyro').onclick=()=>act('sensor');$('bCenter').onclick=recenter;
 $('bSettings').onclick=()=>{$('settings').showModal();resetSelection();};
@@ -979,26 +1006,30 @@ document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement
 document.addEventListener('visibilitychange',()=>{new Set([hand.stream,vision.stream].filter(Boolean)).forEach(s=>s.getVideoTracks().forEach(t=>t.enabled=!document.hidden));vision.tracker?.reset();vision.valid=false;vision.stableFrames=0;vision.yaw=S.yaw;vision.pitch=S.pitch;vision.sensor.reset(S.yaw,S.pitch);clearHands();drag=null;frameAt=performance.now();resetDirection(true,true);});
 window.addEventListener('pagehide',()=>{const streams=new Set([vision.stream,hand.stream].filter(Boolean));stopVisual(false);stopCamera('');cancelCameraRequest?.();streams.forEach(s=>s.getTracks().forEach(t=>t.stop()));stopSensors(false);hand.engine?.close();hand.engine=null;objects.engine?.close();objects.engine=null;});
 
-// Reuse SVG nodes instead of rebuilding the skeleton on every display frame.
-const svgNS='http://www.w3.org/2000/svg';
-function svgNode(type,attrs){const n=document.createElementNS(svgNS,type);for(const [k,v]of Object.entries(attrs))n.setAttribute(k,v);return n;}
+// Lightweight canvas skeleton: same projected points as the fingertip cursor.
 function handDisplayPoint(p,width,height){
  const sourceWidth=video.videoWidth||640,sourceHeight=video.videoHeight||480;
  const scale=S.mixed?Math.max(width/sourceWidth,height/sourceHeight):Math.min(width/sourceWidth,height/sourceHeight);
- return [(p.x*sourceWidth*scale+(width-sourceWidth*scale)/2)/width*1000,(p.y*sourceHeight*scale+(height-sourceHeight*scale)/2)/height*1000];
+ const x=handCameraIsFront()?1-p.x:p.x;
+ return [(x*sourceWidth*scale+(width-sourceWidth*scale)/2)/width*1000,(p.y*sourceHeight*scale+(height-sourceHeight*scale)/2)/height*1000];
 }
 function renderHands(){
  document.querySelectorAll('.eye').forEach(eye=>{
-  const svg=eye.querySelector('.sk');const visible=prefs.hands&&S.hand&&hand.primary;
-  const layout=eye._layout||{w:eye.clientWidth,h:eye.clientHeight};const key=[!!visible,hand.revision,S.mixed,layout.w,layout.h].join(':');if(svg.dataset.frame===key)return;svg.dataset.frame=key;svg.style.display=visible?'':'none';if(!visible)return;
-  svg.setAttribute('viewBox','0 0 1000 1000');svg.setAttribute('preserveAspectRatio','none');
-  if(!svg.children.length){for(let j=0;j<2;j++){const group=svgNode('g',{});CONNECTIONS.forEach(()=>group.appendChild(svgNode('polyline',{fill:'none',stroke:j?'#b9a2ff':'#7fe0ff','stroke-width':2.5,'stroke-linecap':'round','stroke-linejoin':'round','vector-effect':'non-scaling-stroke'})));for(let k=0;k<21;k++)group.appendChild(svgNode('circle',{r:3.5,fill:k===8||k===4?'#5fffb1':'#fff'}));svg.appendChild(group);}}
-  [...svg.children].forEach((group,j)=>{const points=hand.points[j];group.style.display=points?'':'none';if(!points)return;
-   const map=p=>handDisplayPoint(p,layout.w,layout.h);
-   CONNECTIONS.forEach((chain,k)=>group.children[k].setAttribute('points',chain.map(i=>map(points[i]).join(',')).join(' ')));
-   points.forEach((p,k)=>{const [x,y]=map(p),circle=group.children[CONNECTIONS.length+k];circle.setAttribute('cx',x);circle.setAttribute('cy',y);});
-  });
+  const canvas=eye.querySelector('.sk'),tracks=hand.visibleTracks||[],visible=prefs.hands&&tracks.length>0&&performance.now()-hand.lastSeen<250;
+  const layout=eye._layout||{w:eye.clientWidth,h:eye.clientHeight},key=[!!visible,hand.revision,S.mixed,layout.w,layout.h,handCameraIsFront()].join(':');
+  if(canvas.dataset.frame===key)return;canvas.dataset.frame=key;canvas.style.display=visible?'':'none';if(!visible)return;
+  const w=Math.max(1,Math.round(layout.w)),h=Math.max(1,Math.round(layout.h));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
+  const c=canvas.getContext('2d');c.clearRect(0,0,w,h);c.lineWidth=2.5;c.lineCap='round';c.lineJoin='round';
+  for(const t of tracks){const points=t.display.map(p=>{const v=handDisplayPoint(p,w,h);return [v[0]*w/1000,v[1]*h/1000];});
+   c.strokeStyle=t.id===hand.primaryId?'#82f4ce':'#b2baff';c.beginPath();for(const chain of CONNECTIONS){chain.forEach((index,i)=>{const [x,y]=points[index];i?c.lineTo(x,y):c.moveTo(x,y);});}c.stroke();
+   for(let i=0;i<points.length;i++){const [x,y]=points[i];c.fillStyle=i===8?'#b2ffe0':'#e2fff3';c.beginPath();c.arc(x,y,i===8?4:2.5,0,Math.PI*2);c.fill();}
+  }
  });
+}
+function animateHands(now,dt){
+ if(stableHands?.animate(dt))hand.revision=(hand.revision||0)+1;
+ if(!S.hand||!hand.primaryId)return;const track=hand.visibleTracks?.find(t=>t.id===hand.primaryId);if(!track)return;
+ const eye=stage.firstElementChild,layout=eye._layout;if(!layout)return;const p=handDisplayPoint(track.display[8],layout.w,layout.h);S.hx=clamp(p[0]/1000,.005,.995);S.hy=clamp(p[1]/1000,.005,.995);hand.pointerVisible=p[0]>=0&&p[0]<=1000&&p[1]>=0&&p[1]<=1000;
 }
 function tick(now){
  const dt=clamp((now-frameAt)/1000,.001,.06);recordFrame(now);frameAt=now;
@@ -1017,9 +1048,9 @@ function tick(now){
   updateDirectionHealth(now);updateObjectUI(now);
   updateHands(now);
   if(S.hand&&now-hand.lastSeen>180){clearHands();tell('Mão fora de vista. O cursor voltou ao olhar.');}
-  if(S.hand&&Number.isFinite(hand.tx)&&now-hand.lastSeen<150){const a=1-Math.exp(-dt/Math.max(.018,prefs.smoothing/2500));S.hx+=(hand.tx-S.hx)*a;S.hy+=(hand.ty-S.hy)*a;}
+  animateHands(now,dt);
   const source=S.hand?'hand':'gaze';if(source!==selection.source){selection.source=source;modeChangedAt=now;resetSelection();}
-  const [x,y]=point();const fresh=!S.hand||now-hand.lastSeen<120;
+  const [x,y]=point();const fresh=!S.hand||(now-hand.lastSeen<160&&hand.pointerVisible!==false);
   const id=!drag&&!$('settings').open&&fresh?targetAt(x,y):null;
   if(id!==selection.id){selection.id=id;selection.since=now;selection.fired=false;refreshHover(id);}
   const gazeReady=((motion.active&&motion.raw&&now-motion.lastAt<180)||(vision.active&&vision.valid&&now-vision.lastGood<150))&&!motion.calibration&&Math.hypot(...direction.velocity)<25;
@@ -1058,9 +1089,9 @@ $('directionAI').checked=prefs.directionAI;$('prediction').value=0;$('prediction
 $('directionAI').onchange=e=>{prefs.directionAI=e.target.checked;resetDirection(true);};
 $('prediction').oninput=e=>{prefs.prediction=Number(e.target.value);$('predictionValue').value=prefs.prediction+' ms';};
 $('calibrateDirection').onclick=calibrateDirection;
-$('facing').value=prefs.facing;$('sensitivity').value=prefs.sensitivity;$('sensitivityValue').value=prefs.sensitivity.toFixed(1)+'×';$('smoothing').value=prefs.smoothing;$('smoothingValue').value=prefs.smoothing+' ms';$('dwellEnabled').checked=prefs.dwell;$('showHands').checked=prefs.hands;$('dwellTime').value=S.dwell;$('dwellValue').value=(S.dwell/1000).toFixed(1)+' s';$('reachControl').value=S.reach;$('reachValue').value=S.reach.toFixed(1)+'×';
+$('facing').value=prefs.facing;$('sensitivity').value=prefs.sensitivity;$('sensitivityValue').value=prefs.sensitivity.toFixed(1)+'×';$('smoothing').value=prefs.smoothing;$('smoothingValue').value=prefs.smoothing+' ms';$('dwellEnabled').checked=prefs.dwell;$('showHands').checked=prefs.hands;$('dwellTime').value=S.dwell;$('dwellValue').value=(S.dwell/1000).toFixed(1)+' s';
 $('dwellTime').oninput=e=>{S.dwell=Number(e.target.value);$('dwellValue').value=(S.dwell/1000).toFixed(1)+' s';resetSelection();};
-$('reachControl').oninput=e=>{S.reach=Number(e.target.value);$('reachValue').value=S.reach.toFixed(1)+'×';clearHands();};
+
 const normalized=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
 let noteTimer=null;
 stage.addEventListener('input',e=>{

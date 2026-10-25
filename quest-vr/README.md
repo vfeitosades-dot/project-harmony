@@ -1,4 +1,5 @@
-# Harmony MR 3.1
+<!-- Mãos/VR 3.2: rastreamento com identidades estáveis e interface oculta no VR. -->
+# Harmony MR 3.2
 
 Atualização de desempenho: workers, vídeo nativo, menos repinturas e contador real de FPS.
 [Detalhes e comparação de desempenho](PERFORMANCE.md). Meta de 60 fps, dependente do aparelho.
@@ -284,3 +285,22 @@ falta de detalhes ou interrupção dos quadros reiniciam a contagem. O progresso
 aparece na tela. O ponto define a frente relativa, sem bússola ou giroscópio.
 Ao perder o acompanhamento, a visão fica parada na última direção válida.
 A calibração não permite medir movimentos diante de uma parede lisa ou no escuro.
+
+## Mãos e modo VR — versão 3.2
+
+O rastreamento mantém dois históricos independentes com identidade por posição,
+escala da palma e lateralidade quando disponível. Filtra as duas mãos, valida
+articulações, rejeita duplicatas e confirma a detecção antes de exibir. O desenho
+usando canvas e o cursor compartilham as mesmas coordenadas de câmera, recorte
+e espelhamento; não há ampliação do esqueleto. A perda da mão limpa o cursor
+e impede selecionar com uma detecção antiga. O filtro interpola quadros, sem
+inventar mãos quando a câmera não as detecta.
+
+No VR, painéis, dock, cursores, prévias e todos os indicadores ficam ocultos;
+os jogos em painel ficam pausados. Permanecem o ambiente e as mãos detectadas.
+Saia com **Voltar** no Android, **Esc** ou **dois toques próximos na tela**.
+Não há botão de saída visível no VR.
+
+Verificado com detecções simuladas e testes de interface. O desempenho e a
+precisão do modelo real ainda precisam de validação no celular, principalmente
+quando as mãos se cruzam, ficam escondidas ou há pouca luz.

@@ -122,7 +122,13 @@ public final class MainActivity extends Activity {
     @Override protected void onPause() { super.onPause(); web.onPause(); web.pauseTimers(); }
     @Override protected void onResume() { super.onResume(); if (web != null) { web.onResume(); web.resumeTimers(); } }
     @Override protected void onDestroy() { if (pending != null) pending.deny(); web.destroy(); super.onDestroy(); }
+    private void normalBack() { if (web.canGoBack()) web.goBack(); else super.onBackPressed(); }
     @Override public void onBackPressed() {
-        if (fullscreen != null) exitFullscreen(); else if (web.canGoBack()) web.goBack(); else super.onBackPressed();
+        if (fullscreen != null) { exitFullscreen(); return; }
+        web.evaluateJavascript("typeof window.harmonyExitVR === 'function' && window.harmonyExitVR()", new ValueCallback<String>() {
+            @Override public void onReceiveValue(String value) {
+                if (!"true".equals(value)) normalBack();
+            }
+        });
     }
 }

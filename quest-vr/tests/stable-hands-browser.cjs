@@ -1,0 +1,15 @@
+const {chromium}=require('playwright'),assert=require('node:assert/strict');
+(async()=>{const b=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});try{const p=await b.newPage({viewport:{width:1000,height:800}}),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto(process.env.QUEST_TEST_URL||'http://127.0.0.1:8766/');await p.locator('#cameraLater').click();const test=await p.evaluate(()=>{
+ const make=x=>{const p=Array.from({length:21},(_,i)=>({x:x+(i%4)*.01,y:.4+Math.floor(i/4)*.02,z:0}));p[0]={x:x+.08,y:.7,z:0};p[5]={x,y:.5,z:0};p[9]={x:x+.08,y:.5,z:0};p[17]={x:x+.16,y:.5,z:0};p[8]={x:x+.04,y:.25,z:0};return p;};
+ const a=make(.15),b=make(.65),tracker=new StableHands();tracker.update([a,b],1000);const first=tracker.update([a,b],1100),ids=first.visible.map(t=>t.id),primary=first.primary.id;
+ const reversed=tracker.update([b,a],1200);const ordered=reversed.visible.map(t=>t.id);const kept=reversed.primary.id===primary;
+ const missing=tracker.update([b],1250),noSwap=!missing.primary;
+ const reappeared=tracker.update([a,b],1320).primary.id===primary;
+ const bad=a.map(p=>({...p}));bad[8].x=NaN;const rejected=tracker.valid(bad)===false;const jump=a.map(p=>({...p,y:p.y+.45}));const hopped=tracker.update([jump],1400);const jumpHidden=hopped.visible.length===0;
+ clearHands();consumeHands({landmarks:[a]},2000,1);consumeHands({landmarks:[a]},2100,1);animateHands(2100,.016);const eye=stage.firstElementChild,mapped=handDisplayPoint(hand.primary[8],eye._layout.w,eye._layout.h);const aligned=Math.abs(S.hx-mapped[0]/1000)<.001&&Math.abs(S.hy-mapped[1]/1000)<.001;renderHands();const canvas=eye.querySelector('.sk'),drawn=canvas.tagName==='CANVAS'&&canvas.width>0;
+ consumeHands({landmarks:[]},2150,1);const lost=!S.hand&&hand.primary===null;renderHands();const hidden=canvas.style.display==='none';
+ return {ids,ordered,kept,noSwap,reappeared,rejected,jumpHidden,aligned,drawn,lost,hidden};
+ });assert.deepEqual(test.ordered,[test.ids[1],test.ids[0]]);for(const key of ['kept','noSwap','reappeared','rejected','jumpHidden','aligned','drawn','lost','hidden'])assert.equal(test[key],true,key);
+ await p.locator('#bVR').click();for(const selector of ['#ui','#status','#fpsState','#anchorState','#visionState','#ret','.panel','.dock','.r'])assert.equal(await p.locator(selector).first().isVisible(),false,selector+' must be hidden in VR');assert.equal(await p.evaluate(()=>targetAt(500,400)),null);assert.equal(await p.evaluate(()=>window.harmonyExitVR()),true);assert.equal(await p.locator('.panel').isVisible(),true);
+ await p.locator('#bVR').click();await p.locator('.eye').first().click({position:{x:30,y:30},clickCount:2});await p.waitForFunction(()=>!S.vr);assert.deepEqual(errors,[]);console.log('PASS: stable two-hand identities, primary continuity, invalid/jumping detection rejection, cursor alignment, canvas skeleton, immediate loss cleanup, hidden VR UI, no hidden targets, native exit hook and double-tap escape. Synthetic landmarks only.');
+}finally{await b.close()}})().catch(e=>{console.error(e);process.exit(1)});
