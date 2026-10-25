@@ -254,3 +254,13 @@ Sem giroscópio, essa orientação é relativa e pode acumular desvio; pouca luz
 paredes lisas ou movimentos rápidos impedem acompanhar. Não há orientação
 absoluta nem garantia de retorno exato após uma volta completa.
 A confiança da IA é suavizada entre detecções próximas da mesma categoria.
+
+### Calibração sem objeto
+
+A câmera inicia com calibração do cenário, mesmo sem objetos reconhecidos ou
+sem baixar o modelo de IA. Também é possível usar **Calibrar sem objeto**.
+Mantenha o celular parado por 1,2 segundo de acompanhamento estável; movimento,
+falta de detalhes ou interrupção dos quadros reiniciam a contagem. O progresso
+aparece na tela. O ponto define a frente relativa, sem bússola ou giroscópio.
+Ao perder o acompanhamento, a visão fica parada na última direção válida.
+A calibração não permite medir movimentos diante de uma parede lisa ou no escuro.

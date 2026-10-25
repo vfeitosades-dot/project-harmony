@@ -5,7 +5,7 @@
 @media(max-width:650px){body:not(.vr) .panel{width:420px!important;padding:20px;max-height:550px;overflow-y:auto;scrollbar-width:thin;touch-action:pan-y}body:not(.vr) .grid{grid-template-columns:repeat(2,1fr);gap:19px 16px}body:not(.vr) .app-art{height:82px}body:not(.vr) .tile-title{font-size:14px}body:not(.vr) .tile-meta{font-size:11px}body:not(.vr) .toolbar{flex-wrap:wrap;gap:12px}body:not(.vr) .search{max-width:none;width:100%}body:not(.vr) .dock{margin-top:38px;padding:9px;gap:5px}body:not(.vr) .dock .btn{width:35px;height:35px;border-radius:11px}body:not(.vr) .dock .profile,body:not(.vr) .dock .divider{display:none}body:not(.vr) .system-pill{padding:8px;font-size:11px;gap:6px;margin:0}body:not(.vr) .eye{touch-action:pan-y}body:not(.vr) .quick-grid{grid-template-columns:repeat(2,1fr)}body:not(.vr) .environment-grid{grid-template-columns:1fr}body:not(.vr) .environment{height:90px}body:not(.vr) .intro-card h2{font-size:23px}}
 .direction-controls{margin:24px 0;padding:16px;border:1px solid #ffffff20;border-radius:16px}.direction-controls legend{font-size:13px;color:#bed7ff;padding:0 7px}.direction-controls label{margin:14px 0}.direction-controls p{font-size:11px}.direction-controls button{width:100%}#orientationHealth{font-variant-numeric:tabular-nums;min-height:32px;margin-bottom:0}#visionVideo{position:fixed;right:18px;bottom:110px;width:120px;border:1px solid #ffffff88;border-radius:14px;z-index:8;pointer-events:none}#visionVideo[hidden],.vr #visionVideo{display:none}#visionState{position:fixed;right:18px;bottom:94px;max-width:200px;padding:5px 9px;border-radius:9px;background:#15283ee8;color:#d8e8ff;font-size:10px;z-index:9;pointer-events:none}#visionState[hidden],.vr #visionState{display:none}.camera-actions{display:grid;gap:10px}.camera-actions #cameraAllow{background:#2960b1;font-weight:600}.camera-actions button:disabled{opacity:.6;cursor:wait}#cameraAccess{z-index:40}#cameraOpen[hidden]{display:none}#cameraAccess:not([open]){display:none}#cameraAccess.camera-fallback[open]{display:block;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;box-shadow:0 0 0 100vmax #10182bbb,0 30px 120px #0007}#objectPanel{width:min(720px,94vw);z-index:45}#objectPanel:not([open]){display:none}#objectPanel.camera-fallback[open]{display:block;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;box-shadow:0 0 0 100vmax #10182bbb}#objectPreview{display:block;width:100%;border-radius:14px;background:#000;touch-action:none;cursor:crosshair}#objectList{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}#anchorState{position:fixed;left:12px;bottom:64px;max-width:55vw;padding:7px 10px;background:#15283edb;border-radius:12px;color:#c9ebda;font-size:11px;z-index:9;pointer-events:none}.vr #anchorState{left:8px;max-width:44vw;font-size:9px}#ret,.r{width:28px;height:28px;margin:-14px}#ret:after,.r:after{content:"";position:absolute;inset:5px;border-radius:50%;background:#17304c80;pointer-events:none}</style></head><body>
 <div class="welcome"><div class="wordmark"><span class="infinity">∞</span> horizon <b>web</b></div><small>SEU ESPAÇO. OUTRA PERSPECTIVA.</small></div><main id="stage" aria-label="Ambiente virtual"></main><div id="ret"></div><div id="visionState" hidden role="status" aria-live="polite"></div><video id="visionVideo" playsinline webkit-playsinline autoplay muted hidden aria-label="Prévia da direção pela câmera"></video><video id="cv" playsinline webkit-playsinline autoplay muted aria-label="Prévia local da câmera"></video>
-<nav id="ui" aria-label="Controles do ambiente"><button id="bCam">Ativar mãos</button><button id="bVision">Direção pela câmera</button><button id="bObjects">Objetos / referência</button><button id="bDirectionAnchor">Fixar ponto de direção</button><button id="bGyro" hidden>Ativar sensores</button><button id="bCenter">Centralizar</button><button id="bSettings">Conforto</button><button id="bVR">Entrar no VR Box</button><button id="bExit" hidden>Sair do VR</button></nav><div id="status" role="status" aria-live="polite">Arraste para explorar · clique para abrir · R para centralizar</div><dialog id="settings"><form method="dialog"><h2>Conforto e rastreamento</h2><p>Interface web inspirada em headsets VR. O VR Box usa tela dividida, sem rastreamento de posição ou passthrough estereoscópico.</p>
+<nav id="ui" aria-label="Controles do ambiente"><button id="bCam">Ativar mãos</button><button id="bVision">Direção pela câmera</button><button id="bObjects">Objetos / referência</button><button id="bDirectionAnchor">Fixar ponto de direção</button><button id="bCalibrate">Calibrar sem objeto</button><button id="bGyro" hidden>Ativar sensores</button><button id="bCenter">Centralizar</button><button id="bSettings">Conforto</button><button id="bVR">Entrar no VR Box</button><button id="bExit" hidden>Sair do VR</button></nav><div id="status" role="status" aria-live="polite">Arraste para explorar · clique para abrir · R para centralizar</div><dialog id="settings"><form method="dialog"><h2>Conforto e rastreamento</h2><p>Interface web inspirada em headsets VR. O VR Box usa tela dividida, sem rastreamento de posição ou passthrough estereoscópico.</p>
 <label>Câmera <select id="facing"><option value="environment">Traseira · ambiente</option><option value="user">Frontal · espelhada</option></select></label>
 <label>Sensibilidade <input id="sensitivity" type="range" min="0.5" max="1.8" step="0.1" value="1"><output id="sensitivityValue">1.0×</output></label>
 <label>Suavização <input id="smoothing" type="range" min="40" max="220" step="10" value="90"><output id="smoothingValue">90 ms</output></label>
@@ -330,7 +330,7 @@ class VisualMotionTracker{
  }
 }
 // END VISUAL MOTION
-const vision={sensor:new VisualRotationSensor(),stableFrames:0,period:50,rms:0,active:false,starting:false,stream:null,run:0,lastVideo:-1,lastAt:0,lastGood:0,valid:false,reason:'desligada',tracks:0,total:0,yaw:0,pitch:0,tracker:null,canvas:document.createElement('canvas'),context:null};
+const vision={calibration:null,sceneCalibrated:false,sensor:new VisualRotationSensor(),stableFrames:0,period:50,rms:0,active:false,starting:false,stream:null,run:0,lastVideo:-1,lastAt:0,lastGood:0,valid:false,reason:'desligada',tracks:0,total:0,yaw:0,pitch:0,tracker:null,canvas:document.createElement('canvas'),context:null};
 let sharedCameraRequest=null,cancelCameraRequest=null;
 function releaseUnusedCamera(stream){if(stream)setTimeout(()=>{if(hand.stream!==stream&&vision.stream!==stream)stream.getTracks().forEach(t=>t.stop());},0);}
 function cameraAccessError(code,message){const error=new Error(message);error.name=code;error.cameraAccess=true;return error;}
@@ -395,7 +395,7 @@ function cameraButton(){
 
 function updateCameraBusy(){$('facing').disabled=hand.starting||vision.starting;}
 function stopVisual(message=true){
- vision.run++;clearObjectReference();objects.detections=[];if(objectsOpen())closeObjects();const stream=vision.stream;vision.stream=null;vision.active=false;vision.valid=false;vision.reason='desligada';vision.tracker?.reset();
+ vision.calibration=null;vision.sceneCalibrated=false;vision.run++;clearObjectReference();objects.detections=[];if(objectsOpen())closeObjects();const stream=vision.stream;vision.stream=null;vision.active=false;vision.valid=false;vision.reason='desligada';vision.tracker?.reset();
  $('visionVideo').srcObject=null;$('visionVideo').hidden=true;$('bVision').textContent='Direção pela câmera';$('bVision').setAttribute('aria-pressed','false');
  if(!motion.active)resetDirection(true);releaseUnusedCamera(stream);if(message)tell('Direção visual desativada. Arraste para olhar.');
 }
@@ -407,7 +407,7 @@ async function startVisual(){
   stream=await acquireCamera();if(run!==vision.run){releaseUnusedCamera(stream);return;}
   vision.stream=stream;const v=$('visionVideo');v.srcObject=stream;v.muted=true;await v.play();if(run!==vision.run){releaseUnusedCamera(stream);return;}
   stopSensors(false);vision.active=true;vision.valid=false;vision.reason='preparando referência';vision.lastVideo=-1;vision.lastAt=0;vision.lastGood=0;vision.tracker=null;vision.stableFrames=0;vision.period=50;vision.yaw=S.yaw;vision.pitch=S.pitch;vision.sensor.reset(S.yaw,S.pitch);
-  void loadObjectAI();
+  beginSceneCalibration();void loadObjectAI();
   v.hidden=false;v.style.transform=(stream.getVideoTracks()[0]?.getSettings?.()?.facingMode||prefs.facing)==='user'?'scaleX(-1)':'';
   $('bVision').textContent='Desativar direção visual';$('bVision').setAttribute('aria-pressed','true');
   stream.getVideoTracks()[0]?.addEventListener('ended',()=>{if(vision.stream===stream)stopVisual();},{once:true});
@@ -416,6 +416,20 @@ async function startVisual(){
  finally{vision.starting=false;updateCameraBusy();$('bVision').disabled=false;}
 }
 function visualMasks(w,h){return hand.points.map(points=>{const xs=points.map(p=>(prefs.facing==='user'?1-p.x:p.x)*w),ys=points.map(p=>p.y*h);return {x0:Math.min(...xs)-10,x1:Math.max(...xs)+10,y0:Math.min(...ys)-10,y1:Math.max(...ys)+10};});}
+function beginSceneCalibration(){
+ clearObjectReference();vision.sceneCalibrated=false;vision.calibration={since:null,last:null,progress:0};
+ resetDirection(true);tell('Calibrando sem objeto: mantenha a câmera parada e aponte para um cenário iluminado com detalhes.');
+}
+function calibrateScene(result,now){
+ const c=vision.calibration;if(!c)return false;
+ const stable=vision.valid&&result.rotation&&Math.hypot(...result.rotation)<.004;
+ if(!stable||c.last===null||now-c.last>250){c.since=null;c.progress=0;}
+ c.last=now;
+ if(stable){if(c.since===null)c.since=now;c.progress=clamp((now-c.since)/1200,0,1);}
+ if(c.progress>=1){vision.calibration=null;vision.sceneCalibrated=true;recenter();tell('Frente calibrada pelo cenário. Você pode olhar ao redor; centralize novamente se houver desvio.');}
+ else{vision.yaw=S.yaw;vision.pitch=S.pitch;vision.sensor.reset(S.yaw,S.pitch,vision.sensor.roll);resetDirection(true);}
+ return true;
+}
 function updateVisual(now){
  if(!vision.active||document.hidden)return;const v=$('visionVideo');
  if(v.readyState<2||v.currentTime===vision.lastVideo||now-vision.lastAt<vision.period)return;
@@ -429,6 +443,7 @@ function updateVisual(now){
  vision.period=clamp((performance.now()-processingStart)*2.5,40,110);
  vision.stableFrames=result.valid?Math.min(3,vision.stableFrames+1):0;
  vision.valid=result.valid&&vision.stableFrames>=2;vision.reason=result.valid&&!vision.valid?'confirmando referência':result.reason;vision.tracks=result.tracks;vision.total=result.total;vision.rms=result.rms||0;
+ if(calibrateScene(result,now))return;
  if(!vision.valid&&objects.anchor?.valid&&objects.anchor.goodFrames>=2){const a=objects.anchor;vision.valid=true;vision.reason='direção pela referência';vision.yaw=a.relativeYaw;vision.pitch=a.relativePitch;vision.sensor.reset(vision.yaw,vision.pitch,vision.sensor.roll);vision.lastGood=now;direction.sample(vision.yaw,vision.pitch,now,{gyro:null,smoothing:prefs.smoothing,adaptive:prefs.directionAI});return;}
  if(!vision.valid){vision.yaw=S.yaw;vision.pitch=S.pitch;vision.sensor.reset(S.yaw,S.pitch,vision.sensor.roll);resetDirection(true);return;}
  const front=(vision.stream.getVideoTracks()[0]?.getSettings?.()?.facingMode||prefs.facing)==='user';
@@ -516,7 +531,7 @@ function setObjectReference(box,label){
  for(let i=0;i<gray.length;i++)gray[i]=rgba[i*4]*.299+rgba[i*4+1]*.587+rgba[i*4+2]*.114;
  const px={x:clamp(box.x,0,.95)*w,y:clamp(box.y,0,.95)*h,width:clamp(box.width,.06,.8)*w,height:clamp(box.height,.06,.8)*h};px.x=clamp(px.x,0,w-px.width-1);px.y=clamp(px.y,0,h-px.height-1);
  const tracker=new ObjectReferenceTracker(w,h);if(!tracker.set(gray,px)){$('objectInfo').textContent='Essa área tem poucos detalhes. Marque também as bordas do objeto ou escolha outro ponto.';return false;}
- recenter();objects.tracker=tracker;const ray=referenceRay(px);objects.anchor={label:label||'Objeto marcado',box:px,referenceRay:rotateReference(vision.sensor.q,ray),width:w,height:h,seen:performance.now(),valid:true,goodFrames:1,directionMode:objects.directionMode,baseYaw:S.yaw,basePitch:S.pitch,score:1,bearing:{x:Math.atan(ray[0])*180/Math.PI,y:Math.atan(ray[1])*180/Math.PI},direction:'referência definida'};
+ vision.calibration=null;vision.sceneCalibrated=false;recenter();objects.tracker=tracker;const ray=referenceRay(px);objects.anchor={label:label||'Objeto marcado',box:px,referenceRay:rotateReference(vision.sensor.q,ray),width:w,height:h,seen:performance.now(),valid:true,goodFrames:1,directionMode:objects.directionMode,baseYaw:S.yaw,basePitch:S.pitch,score:1,bearing:{x:Math.atan(ray[0])*180/Math.PI,y:Math.atan(ray[1])*180/Math.PI},direction:'referência definida'};
  closeObjects();tell(objects.anchor.directionMode?'Ponto de direção fixado: '+objects.anchor.label+'. Pode olhar ao redor; a câmera acompanha os detalhes do cenário.':'Referência fixada: '+objects.anchor.label+'. Mantenha o objeto parado; o indicador seleciona ao completar o círculo.');return true;
 }
 function trackObjectReference(gray,now,w,h){
@@ -547,7 +562,7 @@ function updateObjectUI(now){
   }catch{objects.error='A IA foi interrompida; marque a referência manualmente.';objects.engine?.close();objects.engine=null;$('objectInfo').textContent=objects.error;}
  }
  }}
- const a=objects.anchor,state=$('anchorState');const text=a?`${a.label} · ${a.valid?a.direction:a.directionMode?(vision.valid?'ponto memorizado · direção pelo cenário':'ponto memorizado · sem detalhes para acompanhar; mova devagar'):'fora da imagem · procurando'}`:objects.loading?'IA: carregando identificação automática…':objects.error?objects.error:objects.detections.length?'Identificados: '+objects.detections.map(d=>d.label+' '+Math.round(d.score*100)+'%').join(' · '):'IA: procurando objetos na câmera…';if(state.textContent!==text)state.textContent=text;
+ const a=objects.anchor,state=$('anchorState');const text=vision.calibration?('Calibrando ponto fixo · '+Math.round(vision.calibration.progress*100)+'% · '+(vision.valid?'mantenha parado':'aponte para uma área iluminada com detalhes')):!vision.active?'Câmera desativada':vision.sceneCalibrated?('Frente calibrada pelo cenário · '+(vision.valid?'direção ativa':'visão parada · acompanhamento indisponível')+(objects.detections.length?' · Identificados: '+objects.detections.map(d=>d.label+' '+Math.round(d.score*100)+'%').join(', '):' · IA: procurando objetos na câmera…')):a?`${a.label} · ${a.valid?a.direction:a.directionMode?(vision.valid?'ponto memorizado · direção pelo cenário':'ponto memorizado · sem detalhes para acompanhar; mova devagar'):'fora da imagem · procurando'}`:objects.loading?'IA: carregando identificação automática…':objects.error?objects.error:objects.detections.length?'Identificados: '+objects.detections.map(d=>d.label+' '+Math.round(d.score*100)+'%').join(' · '):'IA: procurando objetos na câmera…';if(state.textContent!==text)state.textContent=text;
  if(!objectsOpen()||!vision.active||now-objects.drawAt<80)return;objects.drawAt=now;
  const v=$('visionVideo'),canvas=$('objectPreview');if(v.readyState<2)return;
  const w=640,h=Math.round(w*(v.videoHeight||480)/(v.videoWidth||640));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
@@ -770,7 +785,7 @@ window.addEventListener('keydown',e=>{
 });
 function exitVR(){if(S.vr){S.vr=false;build();}if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});screen.orientation?.unlock?.();}
 $('bVR').onclick=()=>act('vr');$('bExit').onclick=exitVR;
-$('bDirectionAnchor').onclick=()=>{void openObjects(true);};$('bObjects').onclick=()=>{void openObjects();};$('bVision').onclick=()=>act('vision');$('bCam').onclick=()=>act('hands');$('bGyro').onclick=()=>act('sensor');$('bCenter').onclick=recenter;
+$('bCalibrate').onclick=async()=>{if(!vision.active){await startVisual();return;}beginSceneCalibration();};$('bDirectionAnchor').onclick=()=>{void openObjects(true);};$('bObjects').onclick=()=>{void openObjects();};$('bVision').onclick=()=>act('vision');$('bCam').onclick=()=>act('hands');$('bGyro').onclick=()=>act('sensor');$('bCenter').onclick=recenter;
 $('bSettings').onclick=()=>{$('settings').showModal();resetSelection();};
 $('settings').addEventListener('close',()=>{saveLocal();resetSelection();if(S.view==='quick')build();});
 $('facing').onchange=async e=>{prefs.facing=e.target.value;const handsOn=!!hand.stream,visualOn=vision.active;stopCamera('');stopVisual(false);if(visualOn)await startVisual();if(handsOn)await startCamera();};
