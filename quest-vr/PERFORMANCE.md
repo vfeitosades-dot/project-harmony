@@ -142,3 +142,23 @@ Comando: executar `tests/real-hand-efficiency-browser.cjs` com
 `QUEST_BASELINE_URL` apontando para 3.4 e `QUEST_TEST_URL` para 3.5.
 `real-hands-browser.cjs` também verifica limpar ao perder mãos, readquirir
 e recuperar após encerrar o worker de propósito, sem baixar outro modelo.
+
+## 3.5.1 — reduzir atraso do esqueleto
+
+A versão 3.5 melhorou a renderização, mas mantinha o agendamento conservador
+da inferência na thread principal: limite de 15 Hz, período de 1,8 vezes o
+processamento e pausa de 35% após cada resposta. O worker agora tem limite
+de 30 Hz, período alvo de processamento + 4 ms e pausa de 4 ms. Continua
+apenas uma inferência em voo, somente para imagens novas; o fallback mantém
+o orçamento anterior. O custo real da câmera/inferência ainda limita a resposta.
+
+O filtro de landmarks reage mais rápido à velocidade (corte mínimo 3,8 Hz,
+beta 10, filtro da derivada 8 Hz). A interpolação de apresentação cai de 18
+para 6 ms. Não se extrapolam posições futuras nem se inventam mãos.
+
+`tests/hand-latency-browser.cjs` compara trajetórias a 15/30/60 Hz com o filtro
+antigo. O erro médio de acompanhamento cai para aproximadamente 23% do antigo,
+com ruído alternado de mão parada reduzido em todas as taxas. O teste também
+verifica resposta no primeiro quadro de apresentação, convergência após parar
+e os orçamentos separados do worker e do fallback. São trajetórias sintéticas,
+sem medição de latência física de uma mão real até a tela do Android.

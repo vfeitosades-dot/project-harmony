@@ -1,4 +1,4 @@
-# Harmony MR 3.5 para Android
+# Harmony MR 3.5.1 para Android
 
 APK de instalação direta para Android 8.0 ou mais recente. A interface HTML
 está incluída no aplicativo: não depende de publicar a última versão na Netlify.
@@ -76,3 +76,18 @@ O teste com modelo real e foto de duas mãos passou sem internet, incluindo
 perda e recuperação das mãos e falha forçada do worker. Os números de
 desempenho em computador estão em `quest-vr/PERFORMANCE.md`; não representam
 medição em um celular Android.
+
+## Resposta mais rápida das mãos — 3.5.1
+
+Reduzida a suavização dos movimentos rápidos e a interpolação visual extra
+(de 18 para 6 ms). O worker pode atualizar até 30 vezes/s, limitado pelo tempo
+de inferência e pela chegada de imagens novas. A pausa após cada resposta é
+de 4 ms, em vez de 35% do tempo de processamento; o modo de compatibilidade
+mantém o orçamento conservador para não travar a interface. Não se acumulam
+quadros em fila. A suavização continua reduzindo tremor quando a mão está parada.
+
+O teste de trajetórias sintéticas verifica resposta mais rápida em 15/30/60 Hz,
+tremor limitado e convergência quando a mão para. O teste com modelo real
+verifica duas mãos, perda, readquisição e fallback. Isso não elimina o atraso
+físico da câmera e da inferência nem garante movimento instantâneo no celular.
+APK 3.5.1, código 11; mantém a assinatura para atualizar o aplicativo instalado.

@@ -329,8 +329,8 @@ class OneEuro{
  constructor(){this.value=null;this.raw=null;this.derivative=0;this.time=0;}
  step(v,t){if(this.value===null){this.value=this.raw=v;this.time=t;return v;}
  const dt=clamp((t-this.time)/1000,.001,.2),alpha=c=>1/(1+1/(2*Math.PI*c*dt));
- this.derivative+=alpha(1)*((v-this.raw)/dt-this.derivative);
- this.value+=alpha(1.4+.22*Math.abs(this.derivative))*(v-this.value);
+ this.derivative+=alpha(8)*((v-this.raw)/dt-this.derivative);
+ this.value+=alpha(3.8+10*Math.abs(this.derivative))*(v-this.value);
  this.raw=v;this.time=t;return this.value;
  }
 }
@@ -424,7 +424,7 @@ async function startCamera(){
   if(run!==hand.run){releaseUnusedCamera(stream);return;}
   hand.stream=stream;video.srcObject=stream;video.style.transform=prefs.facing==='user'?'scaleX(-1)':'';await video.play();
   let loadTimer;try{await Promise.race([loadHands(),new Promise((_,reject)=>loadTimer=setTimeout(()=>reject(new Error('Tempo excedido ao carregar o modelo')),45000))]);}finally{clearTimeout(loadTimer);}if(run!==hand.run)return;
-  video.setAttribute('data-active','');hand.lastVideo=-1;hand.lastInfer=0;hand.nextAt=0;hand.fps=15;
+  video.setAttribute('data-active','');hand.lastVideo=-1;hand.lastInfer=0;hand.nextAt=0;hand.fps=hand.engine.isolated?30:15;
   hand.phase='searching';$('bCam').textContent='Desativar mãos';$('bCam').setAttribute('aria-pressed','true');
   stream.getVideoTracks()[0]?.addEventListener('ended',()=>{if(hand.stream===stream)stopCamera('A câmera foi interrompida. Ative as mãos novamente.');},{once:true});
   tell('Mostre a mão inteira para a câmera. Aponte com o indicador e mantenha-o sobre o botão até completar o círculo.');
@@ -472,7 +472,7 @@ class StableHands {
   else if(this.primaryId===null||now-this.primarySeen>200){primary=visible.slice().sort((a,b)=>distance(b.raw[0],b.raw[9])-distance(a.raw[0],a.raw[9]))[0];this.primaryId=primary?.id??null;if(primary)this.primarySeen=now;}
   return {visible,primary};
  }
- animate(dt){let moved=false;const alpha=1-Math.exp(-Math.min(.1,dt)/.018);for(const t of this.tracks){if(!t.display||!t.filtered)continue;for(let i=0;i<21;i++){const target=t.filtered[i],p=t.display[i],dx=target.x-p.x,dy=target.y-p.y;if(Math.abs(dx)+Math.abs(dy)>.00008){p.x+=dx*alpha;p.y+=dy*alpha;moved=true;}else{p.x=target.x;p.y=target.y;}}}return moved;}
+ animate(dt){let moved=false;const alpha=1-Math.exp(-Math.min(.1,dt)/.006);for(const t of this.tracks){if(!t.display||!t.filtered)continue;for(let i=0;i<21;i++){const target=t.filtered[i],p=t.display[i],dx=target.x-p.x,dy=target.y-p.y;if(Math.abs(dx)+Math.abs(dy)>.00008){p.x+=dx*alpha;p.y+=dy*alpha;moved=true;}else{p.x=target.x;p.y=target.y;}}}return moved;}
 }
 let stableHands=null;
 const handCameraCache={stream:null,pref:null,front:false};
@@ -483,7 +483,12 @@ function handCameraIsFront(){
 function consumeHands(result,now,spent){
  if(!stableHands)stableHands=new StableHands();
  hand.rawCount=(result.landmarks||[]).length;hand.rawLandmarks=result.landmarks||[];hand.resultCount=(hand.resultCount||0)+1;hand.lastSpent=spent;hand.freshWindow=clamp(spent*3+150,250,1800);
- hand.revision=(hand.revision||0)+1;hand.fps=clamp(1000/Math.max(66,spent*1.8),1,15);hand.nextAt=now+Math.max(16,spent*.35);
+ hand.revision=(hand.revision||0)+1;
+ // Isolated inference can run again as soon as a fresh frame is available.
+ // Keep the conservative CPU budget only for the main-thread compatibility path.
+ const isolated=!!hand.engine?.isolated;
+ hand.fps=isolated?clamp(1000/Math.max(1000/30,spent+4),1,30):clamp(1000/Math.max(66,spent*1.8),1,15);
+ hand.nextAt=now+(isolated?4:Math.max(16,spent*.35));
  const oldId=hand.primaryId,{visible,primary}=stableHands.update(result.landmarks,now,result.handedness||result.handednesses||[]);
  hand.visibleTracks=visible;hand.points=visible.map(t=>t.filtered);hand.primary=primary?.filtered||null;hand.primaryId=primary?.id??null;
  if(!primary){hand.phase='searching';if(S.hand)resetSelection();S.hand=false;hand.tx=hand.ty=undefined;return;}
