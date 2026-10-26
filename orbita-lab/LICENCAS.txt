@@ -1,0 +1,9 @@
+Órbita Lab: protótipo independente. Não afiliado à Meta.
+Interface, paisagens CSS e código do aplicativo produzidos para este projeto.
+
+Dependência externa opcional: MediaPipe Hands, Google.
+Versão: 0.4.1675469240
+Distribuição: https://www.npmjs.com/package/@mediapipe/hands
+Licença: Apache License 2.0
+Referência da licença: https://www.apache.org/licenses/LICENSE-2.0
+Arquivos de biblioteca e modelos são carregados do jsDelivr, sem serem redistribuídos neste ZIP.
