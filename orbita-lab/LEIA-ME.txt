@@ -1,0 +1,47 @@
+ÓRBITA LAB — espaço virtual para celular
+
+INICIAR
+Extraia o ZIP. Publique todos os arquivos da pasta em uma hospedagem estática HTTPS (por exemplo, uma hospedagem que aceite enviar a pasta). Abra o endereço HTTPS no navegador do celular.
+Não abra o ZIP diretamente. Abrir index.html como arquivo pode mostrar a interface, mas módulos de câmera e a IA podem ser bloqueados.
+No computador, com Python instalado, execute na pasta:
+  python -m http.server 8080
+Abra http://localhost:8080 . No celular, um endereço HTTP da rede local geralmente NÃO libera a câmera. Use HTTPS.
+
+USAR
+- Toque nos aplicativos do dock. Eles abrem painéis independentes.
+- Arraste a barra superior para mover um painel, e seu canto inferior direito para redimensionar.
+- Arraste o fundo para olhar. R ou Ajustes > Centralizar redefine o olhar e a posição dos painéis.
+- Navegador aceita endereços HTTP/HTTPS. Muitos sites proíbem iframe: use Abrir em outra aba nesses casos. Nenhum proxy de conteúdo é usado.
+- Notas salvam automaticamente neste navegador, sujeitas às permissões e limpeza do armazenamento local.
+- Cinema reproduz um arquivo de vídeo escolhido por você, sem upload.
+- Ambientes muda a paisagem; Ajustes > Ver ambiente real mostra a câmera.
+
+MÃOS
+Em Ajustes, ative a câmera e depois a IA de mãos. Permita o acesso à câmera. A IA usa MediaPipe Hands 0.4.1675469240, carregado sob demanda de cdn.jsdelivr.net. É NECESSÁRIA INTERNET. Os pesos e WASM não estão incluídos no ZIP. A interface, notas e controle de movimento não precisam desse CDN.
+Aponte com o indicador. Abra polegar e indicador; depois junte-os para clicar. É preciso abrir novamente antes de cada seleção. Faça pinça sobre a barra superior e mantenha para mover o painel. Não há teclado virtual por gestos nem controle por gestos dentro de iframes de terceiros.
+São rastreadas até duas mãos; uma delas controla o cursor. Use boa iluminação e mostre a mão inteira. A frontal não é espelhada neste protótipo.
+Imagens são processadas no aparelho. O aplicativo não envia imagens para servidor. O CDN recebe as requisições normais dos arquivos da IA. Sites abertos em painéis seguem suas próprias políticas.
+
+SEM GIROSCÓPIO
+Ative Movimento pela câmera em Ajustes, usando preferencialmente a câmera traseira. O algoritmo compara pequenos blocos texturizados entre quadros e usa o deslocamento predominante para estimar o olhar. Descarta blocos sem textura, movimentos inconsistentes e, quando a IA está ativa, regiões das mãos detectadas.
+É uma estimativa RELATIVA E 2D, com deriva e ângulo limitado. Não identifica qual é o local, não reconhece objetos, não reconstrói o cômodo e não separa totalmente translação de rotação. Não fornece SLAM, profundidade, ancoragem real ou rastreamento 6DoF. Movimentos rápidos, pessoas, telas, paredes lisas e pouca luz provocam falhas. Centralize quando necessário. Use toque como alternativa.
+
+VISOR DE CELULAR
+O botão Visor cria duas vistas aproximadas da interface e tenta ativar tela cheia e orientação horizontal. Gire o aparelho manualmente se necessário. Saia pelo botão Sair do visor ou Esc. É um modo de exibição dividido, sem calibração óptica, IPD ou estereoscopia real. A câmera é monoscópica. Não é uma implementação WebXR e não executa aplicativos nativos do Quest.
+O projeto é independente da Meta. Um site em um celular sem sensores não reproduz todas as funções, segurança, precisão ou desempenho de um headset dedicado.
+Use sentado e em local livre de obstáculos; não use esse rastreamento para caminhar. Pare em caso de desconforto.
+
+VERIFICAÇÃO
+JavaScript verificado com node --check.
+Algoritmo validado com deslocamento sintético conhecido, cena sem textura e máscara total de exclusão.
+Interface validada no Chromium em 1440×900 e 390×844: notas persistentes, bloqueio de URLs não HTTP, recuperação de câmera negada, arraste de painéis e entrada/saída do visor; sem erros JavaScript.
+A IA de mãos depende do download externo e não foi validada com câmera física neste ambiente. O comportamento real deve ser verificado no celular de destino.
+
+ARQUIVOS
+index.html — estrutura
+style.css — interface responsiva e ambientes CSS
+app.js — painéis, câmera, mãos, apps e visor
+motion.js — estimativa visual por blocos, sem dependências
+LEIA-ME.txt — instruções e limites
+LICENCAS.txt — créditos
+Nenhuma instalação npm, chave de API ou backend é necessário.

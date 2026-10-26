@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#101927">
+<title>Órbita · seu espaço virtual</title><link rel="stylesheet" href="style.css">
+</head>
+<body>
+<video id="camera" autoplay muted playsinline></video><canvas id="landmarks"></canvas>
+<div id="vista"><div id="scenery"><div class="sun"></div><div class="mountain back"></div><div class="mountain front"></div><div class="water"></div><div class="gridfloor"></div></div></div>
+<header class="topbar"><a class="brand" href="#" aria-label="Início Órbita"><span class="logo">◉</span> órbita<span class="badge">LAB</span></a><div class="topright"><span id="clock"></span><button id="fullscreen" title="Tela cheia" aria-label="Tela cheia">⛶</button><button id="help" aria-label="Ajuda">?</button></div></header>
+<main id="space" aria-label="Espaço virtual"><div class="eyeworld" id="leftEye"></div><div class="eyeworld" id="rightEye" hidden></div></main>
+<div id="handCursor" hidden></div>
+<aside class="telemetry"><span class="liveDot"></span><span id="trackingStatus">Controle por toque</span><span id="quality">sem câmera</span></aside>
+<nav class="dock" aria-label="Aplicativos"><button data-app="home" title="Início"><span>⌂</span><small>Início</small></button><button data-app="browser" title="Navegador"><span>◎</span><small>Navegador</small></button><button data-app="notes" title="Notas"><span>▤</span><small>Notas</small></button><button data-app="media" title="Cinema"><span>▷</span><small>Cinema</small></button><i></i><button data-app="settings" title="Ajustes"><span>⚙</span><small>Ajustes</small></button><button id="vr"><span>▣</span><small>Visor</small></button></nav>
+<button id="exitVR" hidden>Sair do visor</button><div id="toast" role="status" aria-live="polite"></div>
+<dialog id="welcome"><div class="dialogmark">◉</div><span class="eyebrow">SEU ESPAÇO. NOVAS POSSIBILIDADES.</span><h1>Entre na sua órbita.</h1><p>Um espaço virtual no navegador, feito para explorar com as mãos — ou com um simples toque.</p><div class="introgrid"><div><b>✧</b><strong>Mãos livres</strong><span>Aponte e faça uma pinça para selecionar.</span></div><div><b>⌖</b><strong>Sem giroscópio</strong><span>Experimente estimar movimento pela câmera.</span></div></div><button class="primary" id="enter">Explorar meu espaço <span>↗</span></button><p class="fine">Protótipo independente inspirado em interfaces espaciais. Não reproduz todos os recursos de um Meta Quest.</p></dialog>
+<dialog id="helpDialog"><span class="eyebrow">GUIA RÁPIDO</span><h2>Encontre seu jeito de explorar.</h2><p><b>Toque ou mouse:</b> arraste o fundo para olhar. Arraste a barra superior de um painel para movê-lo. Use o canto inferior para redimensionar.</p><p><b>Mãos:</b> em Ajustes, ative a câmera e depois a IA. A ponta do indicador move o cursor. Abra polegar e indicador; depois junte-os para clicar. Mantenha a pinça na barra para arrastar um painel.</p><p><b>Movimento visual:</b> use a câmera traseira e um ambiente iluminado com detalhes fixos. Ative a estimativa e centralize. Paredes lisas, pouca luz e objetos em movimento reduzem a precisão. Este recurso não reconhece ou mapeia o cômodo.</p><p><b>Visor:</b> gire o celular na horizontal. O modo divide a interface em duas vistas aproximadas; não é VR com posição 3D. Sites externos têm interação por toque.</p><p>Use sentado, em local livre de obstáculos. Se houver desconforto, saia do visor. Teclas: <b>R</b> centraliza; <b>Esc</b> sai do visor.</p><button class="primary" id="closeHelp">Entendi</button></dialog>
+<script src="motion.js"></script><script src="app.js" defer></script></body></html>
