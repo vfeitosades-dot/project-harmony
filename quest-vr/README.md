@@ -1,5 +1,5 @@
 <!-- Mãos/VR 3.2: rastreamento com identidades estáveis e HUD externo oculto no VR. -->
-# Harmony MR 3.4
+# Harmony MR 3.5
 
 Atualização de desempenho: workers, vídeo nativo, menos repinturas e contador real de FPS.
 [Detalhes e comparação de desempenho](PERFORMANCE.md). Meta de 60 fps, dependente do aparelho.
@@ -387,3 +387,19 @@ Trocar de aba reaproveita os vídeos, as camadas das mãos e o cenário, sem
 reiniciar a câmera. O modelo local de mãos e as otimizações da 3.3 foram mantidos.
 Testes incluem movimentos das janelas em toque/mouse/indicador, persistência,
 estéreo, preservação do vídeo ao vivo, jogos, direção e mãos com modelo real.
+
+## Mãos com menos travadas — 3.5
+
+O modelo local agora roda em worker, com inferência CPU, sem executar a rede
+na thread que desenha os controles. Uma correção pontual no runtime incluído
+permite reconhecer as duas mãos nessa execução separada. A imagem enviada ao
+rastreador tem até 480 pixels no maior lado; o vídeo de realidade mista mantém
+a resolução da câmera. Não há fila de imagens: apenas uma inferência por vez.
+Continuam os 21 pontos, a seleção por permanência, as abas móveis e o painel
+principal no modo VR. Se o WebView não oferecer suporte, ou o worker falhar,
+o app usa automaticamente o motor compatível. APK: versão 3.5, código 10.
+
+O teste com modelo real e foto de duas mãos passou sem internet, incluindo
+perda e recuperação das mãos e falha forçada do worker. Os números de
+desempenho em computador estão em `quest-vr/PERFORMANCE.md`; não representam
+medição em um celular Android.

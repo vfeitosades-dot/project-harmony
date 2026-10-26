@@ -349,18 +349,51 @@ function trimHandOutputs(engine){
   changed=true;
  }return changed;
 }
-async function loadLocalHandsEngine(){
+// The bundled graph runs off the UI thread; landmarks alone return to the scene.
+function localHandsWorkerMain(trimOutputs){
+ let engine,latest={landmarks:[]};
+ self.onmessage=async event=>{const m=event.data;try{
+  if(m.op==='init'){
+   if(typeof OffscreenCanvas!=='function')throw Error('OffscreenCanvas unavailable');
+   self.createMediapipeSolutionsPackedAssets={locateFile:file=>m.base+file};
+   importScripts(m.base+'hands.js');
+   engine=new self.Hands({locateFile:file=>m.base+file});const trimmed=trimOutputs(engine);
+   // CPU inference leaves the graphics queue available for camera and VR composition.
+   engine.setOptions({useCpuInference:true,selfieMode:false,maxNumHands:2,modelComplexity:0,minDetectionConfidence:.5,minTrackingConfidence:.5});
+   engine.onResults(result=>{latest={landmarks:result.multiHandLandmarks||[],handedness:(result.multiHandedness||[]).map(v=>[{categoryName:v.label,score:v.score}])};result.image?.close?.();});
+   await engine.initialize();self.postMessage({id:m.id,ready:true,trimmed});return;
+  }
+  if(m.op==='infer'){
+   const begin=performance.now();try{await engine.send({image:m.image});}finally{m.image.close();}
+   self.postMessage({id:m.id,result:latest,spent:performance.now()-begin});
+  }
+ }catch(error){m.image?.close?.();self.postMessage({id:m.id,error:error.message||'Local hand inference failed'});}};
+}
+function handInputSize(source){const w=source.videoWidth||source.width||640,h=source.videoHeight||source.height||480,scale=Math.min(1,480/Math.max(w,h));return {width:Math.max(1,Math.round(w*scale)),height:Math.max(1,Math.round(h*scale))};}
+async function createLocalHandsBackground(base){
+ if(typeof Worker!=='function'||typeof OffscreenCanvas!=='function'||typeof createImageBitmap!=='function')return null;
+ let task;try{
+  task=new BackgroundTask('('+localHandsWorkerMain.toString()+')('+trimHandOutputs.toString()+')');
+  const ready=await task.call({op:'init',base},[],30000);URL.revokeObjectURL(task.url);
+  return {background:true,isolated:true,bundled:true,compatible:false,trimmedOutputs:ready.trimmed,task,async infer(source){
+   const begin=performance.now(),size=handInputSize(source),image=await createImageBitmap(source,{resizeWidth:size.width,resizeHeight:size.height,resizeQuality:'low'});
+   try{const message=await task.call({op:'infer',image},[image]);return {...message,modelSpent:message.spent,spent:performance.now()-begin};}catch(error){image.close();throw error;}
+  },close(){task.close();}};
+ }catch(error){task?.close();console.info('Mãos: execução separada indisponível.',error.message);return null;}
+}
+async function loadLocalHandsEngine(isolate=true){
  const base=new URL('assets/hands/',location.href).href;
- // Use the verified GPU/canvas path; this legacy release's worker path loses detections.
+ if(isolate){const isolated=await createLocalHandsBackground(base);if(isolated)return isolated;}
+ // Compatibility path for older WebViews; keep the exact same normalized landmarks.
  if(!self.Hands){if(!localHandsScript)localHandsScript=new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=base+'hands.js';script.onload=resolve;script.onerror=()=>{localHandsScript=null;reject(new Error('Não foi possível abrir o modelo local de mãos'));};document.head.appendChild(script);});await localHandsScript;}
  const engine=new self.Hands({locateFile:file=>base+file});const trimmed=trimHandOutputs(engine);let latest={landmarks:[]};
  engine.setOptions({selfieMode:false,maxNumHands:2,modelComplexity:0,minDetectionConfidence:.5,minTrackingConfidence:.5});
  engine.onResults(result=>{latest={landmarks:result.multiHandLandmarks||[],handedness:(result.multiHandedness||[]).map(v=>[{categoryName:v.label,score:v.score}])};if(typeof ImageBitmap!=='undefined'&&result.image instanceof ImageBitmap)result.image.close();});
- await engine.initialize();return {background:true,bundled:true,compatible:true,trimmedOutputs:trimmed,async infer(source){const begin=performance.now();await engine.send({image:source});return {result:latest,spent:performance.now()-begin};},close(){void engine.close();}};
+ await engine.initialize();const input=document.createElement('canvas'),ctx=input.getContext('2d',{alpha:false});return {background:true,bundled:true,compatible:true,trimmedOutputs:trimmed,async infer(source){const begin=performance.now(),size=handInputSize(source);if(input.width!==size.width||input.height!==size.height){input.width=size.width;input.height=size.height;}ctx.drawImage(source,0,0,size.width,size.height);await engine.send({image:input});return {result:latest,spent:performance.now()-begin};},close(){void engine.close();}};
 }
 async function recoverHandEngine(error){
  if(hand.recovering)return;console.info('Mãos: modo compatível após falha.',error?.message);hand.recovering=true;hand.phase='loading';const run=hand.run;const failed=hand.engine;hand.engine=null;failed?.close();clearHands();if(failed?.compatible){hand.recovering=false;stopCamera('Não foi possível iniciar as mãos. Atualize o Android System WebView/Chrome e tente novamente.');hand.phase='error';return;}
- try{const replacement=await loadLocalHandsEngine();if(hand.run!==run){replacement.close();return;}hand.engine=replacement;hand.lastVideo=-1;hand.phase='searching';tell('Mãos iniciadas no modo compatível. Mostre a mão inteira para a câmera.');}
+ try{const replacement=await loadLocalHandsEngine(false);if(hand.run!==run){replacement.close();return;}hand.engine=replacement;hand.lastVideo=-1;hand.phase='searching';tell('Mãos iniciadas no modo compatível. Mostre a mão inteira para a câmera.');}
  catch{if(hand.run===run){hand.phase='error';stopCamera('Não foi possível iniciar as mãos. Atualize o Android System WebView/Chrome e tente novamente.');hand.phase='error';}}
  finally{hand.recovering=false;}
 }

@@ -112,3 +112,33 @@ persistência, movimento por ponteiro/teclado/indicador e alinhamento dos olhos.
 `spatial-browser.cjs` verifica que o vídeo continua tocando, no mesmo elemento e
 com o mesmo stream ao trocar de app. Nenhuma taxa de FPS adicional é prometida
 com base nesses testes; o desempenho no celular precisa ser medido no aparelho.
+
+## 3.5 — inferência local isolada da interface
+
+O caminho padrão agora usa o modelo incluído em worker com inferência CPU.
+O runtime legado tinha duas falhas nesse caminho: tentava importar o TFLite
+como JavaScript e criava o contexto gráfico sem o mesmo registro usado pelo
+grafo e pelas texturas de entrada. Corrigidos somente esses trechos, com
+alterações documentadas no NOTICE. O worker recebe ImageBitmap de até 480 px
+no maior lado e retorna somente landmarks/classificações. A resolução do
+vídeo visível e a geometria normalizada dos pontos não mudam.
+
+Comparação reproduzível entre 3.4 e 3.5, Chromium desktop com WebGL por
+software, internet bloqueada e foto pública com duas mãos:
+
+| Medida | 3.4 | 3.5 |
+| --- | ---: | ---: |
+| Tempo mediano de 8 inferências reais consecutivas | 357,2 ms | 76,0 ms |
+| Animação durante 3 s de uso com mãos e direção ativas | 10,9 fps | 30,1 fps |
+| Maior intervalo de animação nesses 3 s | 550 ms | 33,5 ms |
+| Mãos detectadas em cada inferência | 2 | 2 |
+
+Cerca de 79% menos tempo por inferência neste ambiente. A medição consecutiva
+é um teste de estresse distinto da taxa adaptativa de uso normal. CPU versus
+GPU por software, captura sintética e computador não permitem extrapolar
+esses valores para Android, GPU física, condições reais ou garantir 60 fps.
+
+Comando: executar `tests/real-hand-efficiency-browser.cjs` com
+`QUEST_BASELINE_URL` apontando para 3.4 e `QUEST_TEST_URL` para 3.5.
+`real-hands-browser.cjs` também verifica limpar ao perder mãos, readquirir
+e recuperar após encerrar o worker de propósito, sem baixar outro modelo.

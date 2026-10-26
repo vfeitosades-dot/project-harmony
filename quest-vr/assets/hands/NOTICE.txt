@@ -3,6 +3,16 @@ Copyright Google LLC and MediaPipe Authors. Apache License 2.0.
 Source: https://www.npmjs.com/package/@mediapipe/hands/v/0.4.1675469240
 Package integrity verified against the npm registry:
 sha512-GxoZvL1mmhJxFxjuyj7vnC++JIuInGznHBin5c7ZSq/RbcnGyfEcJrkM/bMu5K1Mz/2Ko+vEX6/+wewmEHPrHg==
-Unmodified JavaScript, WASM, graph and model files from the official package.
+Files from the official package; hands.js worker patches are documented below.
+Other JavaScript, WASM, graph and model files remain unmodified.
 
 The unused full-complexity landmark model is omitted; this app uses modelComplexity=0 (lite).
+
+Harmony MR 3.5 worker compatibility patches to hands.js (pinned 0.4.1675469240):
+- Exclude model data entries from importScripts; modelComplexity already fetches
+  and overrides the landmark model as binary data.
+- Initialize OffscreenCanvas through the same exported createContext API used by
+  the browser path, keeping both WASM graph and input textures on that context.
+  Assign the missing input WebGL context K. Require WebGL2, falling back to the
+  unmodified browser path on unsupported devices.
+The npm integrity above describes the original distribution, before these patches.

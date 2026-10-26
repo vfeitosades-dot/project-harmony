@@ -1,4 +1,4 @@
-# Harmony MR 3.4 para Android
+# Harmony MR 3.5 para Android
 
 APK de instalação direta para Android 8.0 ou mais recente. A interface HTML
 está incluída no aplicativo: não depende de publicar a última versão na Netlify.
@@ -60,3 +60,19 @@ Versão 3.4 (`versionCode=9`): botões maiores, abas móveis com posições salv
 assistente local de confiança/calibração da direção. A câmera continua em execução
 ao trocar de aba. O modelo local de mãos permanece o mesmo. A interface principal
 e o dock são mantidos no VR; apenas o HUD externo fica oculto.
+
+## Mãos com menos travadas — 3.5
+
+O modelo local agora roda em worker, com inferência CPU, sem executar a rede
+na thread que desenha os controles. Uma correção pontual no runtime incluído
+permite reconhecer as duas mãos nessa execução separada. A imagem enviada ao
+rastreador tem até 480 pixels no maior lado; o vídeo de realidade mista mantém
+a resolução da câmera. Não há fila de imagens: apenas uma inferência por vez.
+Continuam os 21 pontos, a seleção por permanência, as abas móveis e o painel
+principal no modo VR. Se o WebView não oferecer suporte, ou o worker falhar,
+o app usa automaticamente o motor compatível. APK: versão 3.5, código 10.
+
+O teste com modelo real e foto de duas mãos passou sem internet, incluindo
+perda e recuperação das mãos e falha forçada do worker. Os números de
+desempenho em computador estão em `quest-vr/PERFORMANCE.md`; não representam
+medição em um celular Android.
