@@ -60,15 +60,17 @@ public final class MainActivity extends Activity {
                 if (!HOST.equals(request.getUrl().getHost())) return null;
                 String path = request.getUrl().getPath();
                 boolean index = "/index.html".equals(path);
+                boolean spatialAsset = path != null && path.startsWith("/assets/spatial/")
+                    && !path.contains("..") && path.substring("/assets/spatial/".length()).indexOf('/') < 0 && path.endsWith(".js");
                 boolean handAsset = path != null && path.startsWith("/assets/hands/")
-                    && !path.contains("..") && path.substring(14).indexOf('/') < 0;
-                if (!"https".equals(request.getUrl().getScheme()) || (!index && !handAsset))
+                    && !path.contains("..") && path.substring("/assets/hands/".length()).indexOf('/') < 0;
+                if (!"https".equals(request.getUrl().getScheme()) || (!index && !handAsset && !spatialAsset))
                     return new WebResourceResponse("text/plain", "UTF-8", 404, "Not Found", Collections.emptyMap(), new ByteArrayInputStream(new byte[0]));
                 String mime = index ? "text/html" : path.endsWith(".js") ? "application/javascript"
                     : path.endsWith(".wasm") ? "application/wasm" : "application/octet-stream";
                 try {
                     return new WebResourceResponse(mime, "UTF-8", 200, "OK",
-                        Collections.singletonMap("Permissions-Policy", "camera=(self)"), getAssets().open(path.substring(1)));
+                        Collections.singletonMap("Permissions-Policy", "camera=(self), xr-spatial-tracking=(self)"), getAssets().open(path.substring(1)));
                 } catch (java.io.IOException error) {
                     return new WebResourceResponse("text/plain", "UTF-8", 404, "Not Found", Collections.emptyMap(), new ByteArrayInputStream(new byte[0]));
                 }

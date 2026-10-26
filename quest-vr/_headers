@@ -1,5 +1,5 @@
 /*
-  Permissions-Policy: camera=(self)
+  Permissions-Policy: camera=(self), xr-spatial-tracking=(self)
 /
   Cache-Control: no-cache
 /index.html

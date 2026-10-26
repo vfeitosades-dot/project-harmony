@@ -1,5 +1,5 @@
 <!-- Mãos/VR 3.2: rastreamento com identidades estáveis e HUD externo oculto no VR. -->
-# Harmony MR 3.5.1
+# Harmony MR 3.6
 
 Atualização de desempenho: workers, vídeo nativo, menos repinturas e contador real de FPS.
 [Detalhes e comparação de desempenho](PERFORMANCE.md). Meta de 60 fps, dependente do aparelho.
@@ -418,3 +418,16 @@ tremor limitado e convergência quando a mão para. O teste com modelo real
 verifica duas mãos, perda, readquisição e fallback. Isso não elimina o atraso
 físico da câmera e da inferência nem garante movimento instantâneo no celular.
 APK 3.5.1, código 11; mantém a assinatura para atualizar o aplicativo instalado.
+
+## Interface espacial — 3.6
+
+Até cinco janelas independentes e simultâneas, em planos 3D, com posição,
+rotação, profundidade, escala e tamanho salvos. Vidro translúcido, animações
+de entrada/saída e foco, dock flutuante e controles por mouse/toque/mãos.
+A câmera virtual gera paralaxe por profundidade sem deslocar as janelas.
+O renderizador WebXR opcional usa WebGL e controles de headset quando o
+navegador oferece uma sessão imersiva. O APK mantém VR Box e não exige headset.
+
+Consulte [SPATIAL.md](SPATIAL.md) para controles, testes e diferenças entre
+o mundo virtual, a estimativa de rotação pela câmera do celular e o 6DoF
+fornecido por um headset WebXR. APK 3.6, código 12, com a mesma assinatura.

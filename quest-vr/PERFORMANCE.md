@@ -162,3 +162,21 @@ com ruído alternado de mão parada reduzido em todas as taxas. O teste também
 verifica resposta no primeiro quadro de apresentação, convergência após parar
 e os orçamentos separados do worker e do fallback. São trajetórias sintéticas,
 sem medição de latência física de uma mão real até a tela do Android.
+
+## 3.6 — planos independentes sem reiniciar o rastreamento
+
+Até cinco painéis DOM em perspectiva CSS 3D, com pose independente. O modelo
+de mãos e seu agendamento rápido permanecem iguais aos da 3.5.1. Mover, girar
+ou redimensionar altera somente as transformações e dimensões do painel.
+Atualizar um aplicativo conserva o DOM dos demais e as superfícies de vídeo
+e esqueleto. Desfoque desligado em celular, com mãos, em VR e com várias janelas.
+
+O renderer nativo WebXR é carregado localmente, sem biblioteca ou modelos
+adicionais. Ele desenha quads WebGL, com texturas de interface em cache e
+atualizações de conteúdo espaçadas (350 ms). Não converte DOM em imagem em
+cada quadro. Poses de olhos e controles vêm da sessão XR quando disponível.
+Para digitação, use o navegador antes de entrar: não foi incluído teclado VR.
+
+Ver `SPATIAL.md` e os testes `windows-browser.cjs` / `native-xr-browser.cjs`.
+Validação de headset utiliza poses sintéticas; não houve ensaio de hardware.
+O fluxo sem giroscópio no celular continua estimando somente a rotação visual.
