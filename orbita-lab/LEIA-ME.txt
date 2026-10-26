@@ -1,3 +1,17 @@
+ÓRBITA OS 2.0 — atualização visual baseada nas referências
+
+NOVIDADES
+Biblioteca com cartões coloridos, menu lateral, busca, filtro e ordenação.
+Dock compacto com indicadores disponíveis do aparelho e seletor de janelas.
+Cidade futurista vetorial incluída em assets/horizon-city.svg.
+Barra suspensa abaixo de cada painel: arraste para mover; + aproxima; − afasta; ↶/↷ inclinam; alfinete fixa o painel na visão; minimize e restaure pelo seletor de janelas.
+Organizar painéis coloca janelas lado a lado no desktop; no celular empilha com seletor.
+Navegador com até 12 abas por janela e múltiplas janelas independentes.
+Aba + cria uma aba vazia. Na página inicial de uma aba, Nova janela flutuante cria outro painel.
+Botão de grade na busca alterna para ícones sobre o ambiente.
+Arquivos abre fotos e vídeos locais; até 24 por seleção.
+A perspectiva é um efeito CSS; não é curvatura 3D real ou um sistema operacional do Quest.
+
 ÓRBITA LAB — espaço virtual para celular
 
 INICIAR
@@ -43,5 +57,7 @@ style.css — interface responsiva e ambientes CSS
 app.js — painéis, câmera, mãos, apps e visor
 motion.js — estimativa visual por blocos, sem dependências
 LEIA-ME.txt — instruções e limites
+assets/horizon-city.svg — cenário vetorial local
+README.md — documentação do repositório
 LICENCAS.txt — créditos
 Nenhuma instalação npm, chave de API ou backend é necessário.

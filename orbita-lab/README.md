@@ -1,6 +1,16 @@
-# Órbita Lab
+# Órbita OS 2.0
 
 Protótipo de interface espacial para celular e desktop, inspirado em headsets VR. Projeto independente, sem vínculo com a Meta.
+
+## Interface baseada nas referências
+
+Biblioteca com menu lateral, busca, filtros, ordenação e cartões coloridos. Dock compacto, cenário futurista vetorial incluído e uma barra suspensa própria para cada janela.
+
+- Aproximar, afastar, inclinar, fixar na visão, minimizar e restaurar painéis.
+- Organizar janelas lado a lado no desktop; sobrepor no celular com seletor de janelas.
+- Várias janelas de navegador independentes, com até 12 abas por janela.
+- Grade livre opcional e galeria de fotos e vídeos locais.
+- Atalhos web para YouTube, Spotify, Instagram, WhatsApp e Facebook (sem emular seus aplicativos nativos).
 
 ## Recursos
 
@@ -36,4 +46,4 @@ Consulte [LEIA-ME.txt](LEIA-ME.txt) para instruções, privacidade, compatibilid
 
 ## Verificação
 
-JavaScript verificado com `node --check`; movimento validado com imagens sintéticas. Interface testada no Chromium em desktop e celular, incluindo notas, URLs, arraste, câmera negada e modo visor. Rastreamento de mãos e movimento precisam de validação em aparelho físico.
+JavaScript verificado com `node --check`; movimento validado com imagens sintéticas. Interface testada no Chromium em desktop e celular, incluindo busca, filtros, grade livre, múltiplas abas e janelas, distância, inclinação, fixação, minimização, organização, notas, URLs, câmera negada e modo visor. O efeito espacial é feito com perspectiva CSS; não é uma superfície 3D curva ou um sistema operacional de headset. Rastreamento de mãos e movimento precisam de validação em aparelho físico.
