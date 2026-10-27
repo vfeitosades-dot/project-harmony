@@ -1,0 +1,74 @@
+RESCISÃO EXPLOSIVA — PROJETO GAMEMAKER
+====================================
+
+Formato: .yyz (a extensão correta do projeto compactado do GameMaker).
+Projeto original em GML moderno. Alvo principal: Windows, teclado e mouse.
+Referência de versão: GameMaker 2024.11 ou posterior, com suporte a GML 2.3+.
+Não é um executável: é um projeto com código, sprites, áudio e dados editáveis.
+
+IMPORTAR
+1. Abra o GameMaker.
+2. Use Import Project / Importar Projeto e selecione RESCISAO_EXPLOSIVA.yyz.
+   Dependendo da versão, essa opção aparece na tela inicial ou no menu File.
+3. Escolha uma NOVA pasta vazia para extrair o projeto.
+4. Selecione Windows como alvo e pressione F5 para compilar e jogar.
+5. Se sua IDE preferir o projeto descompactado, extraia o .yyz como ZIP e
+   abra RESCISAO_EXPLOSIVA.yyp na raiz. Não renomeie .yyz para .yyp.
+
+CONTROLES
+A/D ou setas: mover. Mouse: mirar. Botão esquerdo: disparar (pode segurar).
+Mire no chão para subir; mire atrás de você para avançar.
+Atire novamente no ar para continuar subindo. Não existe pulo convencional.
+R: retornar ao último ponto salvo, com vida restaurada.
+Esc: pausa. Enter: confirmar/avançar. M: som. F11: tela cheia.
+W/S ou setas: navegar no menu. T na pausa: voltar ao menu.
+
+O JOGO
+Zé trabalha na fábrica de chocolate Cacau & Cia. O patrão, Dr. Cacau,
+o demite sem motivo. Zé compra uma bazuca num ferro-velho e volta para
+encerrar o império do chefe. Uma aventura cartunesca, sem violência gráfica.
+
+Seis setores desenhados à mão, dois chefes, drones, chocolate quente,
+wafer destrutível, válvulas de explosão, porta com temporizador,
+puzzle 1-2-3, recibos opcionais, checkpoints, prólogo e final.
+
+Não há munição limitada: o desafio é controlar o recuo. A própria explosão
+não tira sua vida. Drones, chefes e chocolate quente causam dano.
+Cores dos chefes: vermelho = blindado; verde = pode receber dano.
+Não fique sobre a marca vermelha no chão. Dr. Cacau fica mais agressivo
+quando perde metade da vida.
+
+SALVAMENTO
+O setor desbloqueado é salvo em rescisao_save.ini na pasta de salvamento
+do GameMaker. Continuar entra no setor mais avançado liberado; escolher
+setor permite repetir os anteriores. Checkpoints e progresso de puzzles
+valem para a tentativa atual e não são gravados ao fechar o jogo.
+Novo jogo reinicia a campanha, mas preserva os setores já desbloqueados.
+Estatísticas de disparos/recibos são da sessão, não um placar persistente.
+
+EDIÇÃO
+Sprites: pasta Sprites no Asset Browser, com PNGs e camadas reais.
+Fases: Included Files > campaign.json (coordenadas em pixels; origem no topo).
+A sala rm_factory inicializa obj_game, que carrega as seis áreas por dados.
+Os seis setores não aparecem como seis salas preenchidas no Room Editor;
+a geometria é declarada no JSON. Consulte Docs/LEVEL_DESIGN.md.
+Lógica: scr_world, scr_action e scr_render. Eventos de obj_game:
+Create, Step, Draw, Draw GUI e Clean Up. Nenhuma extensão é necessária.
+
+VALIDAÇÃO
+Estrutura do pacote, referências de recursos e arquivos conferidos.
+12 verificações de lógica passaram num adaptador JavaScript das funções GML.
+Rotas físicas de navegação chegaram às saídas dos seis setores nesse adaptador.
+Esses testes não equivalem a executar o jogo inteiro: navegação foi isolada
+com chefes desativados e portas abertas; puzzles e chefes foram testados à parte.
+Não há GameMaker instalado neste ambiente: importação, compilação GML,
+renderização nativa, áudio nativo e jogabilidade final AINDA precisam ser
+confirmados na IDE. Não há promessa de compilação ou teste nativo realizado.
+Veja Docs/VALIDACAO.md e os relatórios anexos.
+
+ARTE E ÁUDIO
+Sprites e sons de gameplay originais, criados para este projeto.
+A referência visual foi usada como direção: personagem compacto, óculos
+ciano, contorno escuro e leitura clara. Não foram extraídos sprites do vídeo.
+DejaVu Sans acompanha o projeto sob sua licença, incluída em datafiles.
+GUIA_PIXEL_ART.png explica o elenco; MAPA_DAS_FASES.png mostra a geometria.
