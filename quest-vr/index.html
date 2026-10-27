@@ -26,17 +26,17 @@
 @media(max-width:650px){#ui{flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;top:54px;left:12px;right:12px;padding-bottom:5px;scrollbar-width:thin}#ui button{min-height:43px;font-size:11px;padding:9px 12px;flex-shrink:0}body:not(.vr) .panel{max-height:570px;padding:18px}.window-header{flex-wrap:wrap;min-height:48px}.window-header h1{font-size:22px}.head-actions{gap:6px}.round{width:43px;height:43px;flex-basis:43px}.window-tabs{margin-bottom:10px}.window-tab{min-height:43px;font-size:12px;max-width:115px}.grid{max-height:255px!important}body:not(.vr) .app-art{height:86px}body:not(.vr) .dock{padding:9px;gap:5px;margin-top:32px}body:not(.vr) .dock .btn{width:44px;height:44px;border-radius:12px}.dock .btn .icon{width:24px;height:24px}.tracking-grid{grid-template-columns:repeat(3,1fr)}.tracking-card{padding:10px 6px}.tracking-card .btn{padding:8px 4px;font-size:10px}.game-board{height:230px}.game-help{font-size:11px}.golf-controls{flex-wrap:wrap;gap:5px}.vr .panel{padding:20px}.vr .round{width:44px;height:44px}#handState{top:108px;bottom:auto;max-width:94vw}#fpsState{top:137px;bottom:auto}}
 /* Independent, world-space planes. Only the camera viewport fills the screen. */
 #stage,.eye{overflow:clip}.svg-slot{display:inline-flex;align-items:center;justify-content:center;position:relative;line-height:0;flex-shrink:0;z-index:1}
-.spatial-window{height:0;transform-origin:0 0;transform-style:preserve-3d;pointer-events:none;will-change:transform}
-.spatial-window .panel{position:relative;width:100%!important;transform:translate(-50%,-50%);pointer-events:auto;max-height:650px;min-height:260px;padding:25px 25px 33px;border-radius:27px;border:1px solid #d5fff03d;background:linear-gradient(135deg,#729d9b18,#182d3420 65%),rgba(19,30,36,.86);box-shadow:0 28px 65px #0005,0 1px 0 #e5fff83d inset,0 -1px 0 #ffffff08 inset;animation:spatial-reveal .24s cubic-bezier(.2,.7,.2,1) both;isolation:isolate;backface-visibility:hidden}
+.spatial-window{height:auto;transform-origin:0 0;transform-style:preserve-3d;pointer-events:none}
+.spatial-window .panel{position:relative;width:100%!important;transform:none;isolation:isolate;z-index:0;pointer-events:auto;max-height:650px;min-height:260px;padding:25px 25px 33px;border-radius:27px;border:1px solid #d5fff03d;background:linear-gradient(135deg,#729d9b18,#182d3420 65%),rgba(19,30,36,.97);box-shadow:0 28px 65px #0005,0 1px 0 #e5fff83d inset,0 -1px 0 #ffffff08 inset;animation:spatial-reveal .24s cubic-bezier(.2,.7,.2,1) backwards;backface-visibility:hidden}
 body:not(.vr) .spatial-window .panel{width:100%!important}
 .spatial-window.is-active .panel{border-color:#b2f6e677;box-shadow:0 28px 65px #0006,0 1px 0 #e5fff855 inset,0 0 0 1px #73ecc016}
 .window-caption{display:flex;justify-content:space-between;gap:12px;color:#b5ccc4;font-size:9px;letter-spacing:1.6px;margin-bottom:15px;pointer-events:none}.window-distance{letter-spacing:.5px;color:#91afa8;white-space:nowrap}.spatial-window .window-header{align-items:center;min-height:46px}.spatial-window .window-header h1:before{display:none}.spatial-window .window-header h1{font-size:25px;letter-spacing:-.8px}.spatial-window .subtle{font-size:11px}.head-actions{flex-shrink:0}.round{border:1px solid #e4fff00b;background:#d8f7ef0b;border-radius:15px;color:#cee4db;transition:background .14s,transform .14s,box-shadow .14s}.round:hover,.round.hov,.round:focus-visible{background:#b4f5dc20;transform:scale(1.06);box-shadow:0 0 0 1px #baffdd66}.round[data-id=window-close]:hover{background:#fb8c8c30}
 .spatial-controls{display:none;border:1px solid #bbe5d929;border-radius:16px;padding:13px;margin-bottom:17px;background:#091c2366}.show-controls .spatial-controls{display:block}.spatial-controls label{display:flex;align-items:center;gap:12px;font-size:11px;color:#bed6cb;margin:10px 0}.spatial-controls input{flex:1;min-width:40px;accent-color:#9ce6cf}.spatial-controls p{font-size:10px;color:#a6bfb8;margin:12px 0 0;line-height:1.5}.pose-buttons{display:flex;gap:6px;flex-wrap:wrap}.pose-buttons button{min-width:42px;min-height:40px;padding:9px 12px;border-radius:10px;border:1px solid #cbf2df22;background:#c6ffe111;font-size:11px}.window-resize{position:absolute;right:5px;bottom:5px;width:36px;height:30px;border:0;border-radius:9px;background:#88cbb718;color:#aecfc4;cursor:nwse-resize;touch-action:none;pointer-events:auto;font-size:17px}
 .dock,.spatial-taskbar{transform-origin:0 0}
 .spatial-taskbar{pointer-events:auto;max-width:740px}.spatial-taskbar .window-tabs{margin:0;padding:5px;max-width:760px;background:#10262f9c;border:1px solid #d2fae320;border-radius:18px;box-shadow:0 10px 28px #0003}.spatial-taskbar .window-tab{border-radius:13px;min-width:82px;font-size:11px;min-height:38px;background:transparent;border-color:transparent}.spatial-taskbar .window-tab.active{background:#9cebc621;color:#c8ffe7;border-color:#9cebc644}.dock{background:linear-gradient(130deg,#b0e6d015,#273c4812),#14252dde;border-color:#e0fff133;box-shadow:0 18px 45px #0005,0 1px 0 #e7fff524 inset;border-radius:25px}.dock .utility-note{display:grid}.dock .btn{transition:background .15s,transform .15s,box-shadow .15s}.dock .btn:hover,.dock .btn.hov,.dock .btn:focus-visible{transform:translateY(-4px);box-shadow:0 7px 18px #0004}.is-closing{pointer-events:none!important}.is-closing .panel{animation:spatial-close .18s ease-in both;pointer-events:none}.xr-active #stage{opacity:0;pointer-events:none}.xr-active #ui,.xr-active .welcome,.xr-active #ret,.xr-active #status{display:none!important}
-@keyframes spatial-reveal{from{opacity:0;transform:translate(-50%,-48%) scale(.95)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
-@keyframes spatial-close{to{opacity:0;transform:translate(-50%,-50%) scale(.94)}}
-@media(min-width:900px) and (hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){body:not(.vr):not(.hands-running):not(.multi-window) .spatial-window .panel{backdrop-filter:blur(9px)!important;-webkit-backdrop-filter:blur(9px)!important}}
+@keyframes spatial-reveal{from{opacity:0;transform:translateY(7px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes spatial-close{to{opacity:0;transform:scale(.97)}}
+@media(min-width:900px) and (hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){body:not(.vr):not(.hands-running):not(.multi-window) .spatial-window .panel{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}}
 @media(max-width:650px){.spatial-window .panel{border-radius:23px;padding:20px 20px 32px}.spatial-window .window-header{flex-wrap:nowrap;gap:10px}.spatial-window .window-header h1{font-size:22px}.spatial-window .head-actions{gap:5px}.spatial-window .round{width:40px;height:42px;flex-basis:40px;border-radius:12px}.spatial-window .head-actions .window-grip{display:none}.window-caption{font-size:8px;letter-spacing:1px}.spatial-taskbar{max-width:610px}.spatial-taskbar .window-tabs{max-width:610px}.dock .btn{width:44px!important;height:46px!important}.dock{gap:6px!important}.dock .divider{display:none}.dock .utility-note{display:grid!important}.window-resize{width:42px;height:34px}}
 @media(prefers-reduced-motion:reduce){.spatial-window .panel,.is-closing .panel{animation:none!important}.round,.dock .btn{transition:none!important}}
 
@@ -61,7 +61,7 @@ body:not(.vr) .spatial-window .panel{width:100%!important}
 <button class="settings-close">Concluir</button></form></dialog>
 <dialog id="cameraAccess" role="dialog" aria-modal="true" aria-labelledby="cameraAccessTitle"><h2 id="cameraAccessTitle">Ativar câmera do dispositivo</h2><p id="cameraAccessMessage" role="status" aria-live="polite">Toque no botão abaixo. O navegador solicitará acesso à câmera selecionada. Se a permissão já estiver salva, a câmera poderá abrir diretamente.</p><p>As imagens são processadas no aparelho. Use o site em HTTPS no Chrome ou Safari; uma prévia do GitHub ou de ZIP não executa este aplicativo.</p><div class="camera-actions"><button id="cameraAllow" type="button">Permitir câmera traseira</button><button id="cameraOpen" type="button">Abrir página em outra aba</button><button id="cameraLater" type="button">Agora não</button></div></dialog>
 <dialog id="objectPanel" role="dialog" aria-modal="true" aria-labelledby="objectTitle"><h2 id="objectTitle">Escolha sua referência</h2><p>Toque em um objeto na imagem ou arraste para marcar sua área. Ele precisa ficar parado. A IA reconhece uma lista limitada de objetos; você pode marcar uma caixa manualmente mesmo sem reconhecimento.</p><canvas id="objectPreview" width="640" height="480" aria-label="Imagem da câmera: toque ou arraste para marcar um objeto"></canvas><label>Nome <input id="anchorName" maxlength="40" placeholder="Ex.: caixa"></label><p id="objectInfo" role="status">Você já pode marcar uma área. A IA inicia automaticamente com a câmera. As imagens ficam no aparelho.</p><div id="objectList"></div><div class="camera-actions"><button id="objectAI" type="button">Recarregar IA de objetos</button><button id="objectClear" type="button">Limpar referência</button><button id="objectClose" type="button">Voltar</button></div></dialog><div id="anchorState" role="status">Sem objeto fixado</div>
-<script src="assets/spatial/geometry.js"></script>
+<script src="assets/spatial/geometry.js?v=3.6.1"></script>
 <script>
 'use strict';
 const S={reach:1.6,hand:false,hx:.5,hy:.5,d:520,dwell:1200,vr:false,apps:[],yaw:0,pitch:0,view:'library',openViews:['library'],windowPositions:Object.create(null),filter:'all',env:'forest',mixed:false,brightness:100,note:'',recents:[],camera:{x:0,y:0,z:0}};
@@ -80,7 +80,7 @@ const WINDOW_NAMES={library:'Biblioteca',home:'Início',notes:'Notas',gallery:'A
 const POSE_DEFAULT={x:0,y:0,z:0,rx:0,ry:0,rz:0,scale:1,width:innerWidth<650?460:670,height:0};
 let windowMove=null,renderingFocus=null,spatialRevision=0;
 const closingWindows=new Map();
-function windowPose(id=S.view){return {...POSE_DEFAULT,...S.windowPositions[id]};}
+function windowPose(id=S.view){return {...POSE_DEFAULT,...S.windowPositions[id],depthBias:Math.max(0,WINDOW_VIEWS.indexOf(id))*.025};}
 function windowTransform(id=S.view){return `transform:${SpatialGeometry.css(windowPose(id),S.d)}`;}
 function sanitizePose(value){const out={...POSE_DEFAULT};for(const [key,min,max]of [['x',-2200,2200],['y',-1200,1200],['z',-1800,1800],['rx',-65,65],['ry',-180,180],['rz',-30,30],['scale',.55,1.65],['width',460,960],['height',0,780]])if(Number.isFinite(value?.[key]))out[key]=Math.round(clamp(value[key],min,max)*100)/100;if(out.height>0)out.height=Math.max(330,out.height);return out;}
 function defaultWindowPlacement(n){const angle=(n%2?1:-1)*Math.ceil(n/2)*64,r=angle*Math.PI/180,radius=Math.max(600,S.d+80);return n?{x:Math.sin(r)*radius,y:0,z:Math.cos(r)*radius-S.d,ry:-angle}:{};}
@@ -145,7 +145,7 @@ function content(){
  if(S.view==='gallery')return header('Ambientes','Um cenário para cada momento')+environments()+`<div class="intro-card" style="margin-top:22px;margin-bottom:0"><span class="eyebrow">Menos distrações</span><h2>Encontre seu ritmo.</h2><p>Cenários originais desenhados no aparelho, sem baixar imagens. Escolha um tema e ele será lembrado neste navegador.</p></div>`;
  if(S.view==='notes')return header('Notas','Seu rascunho, salvo neste navegador')+`<textarea class="note-editor" maxlength="20000" placeholder="O que você quer criar hoje?" aria-label="Suas notas">${escapeHTML(S.note)}</textarea><div class="footer-line"><span class="note-status">Salvo localmente · sem sincronização</span><span class="note-count">${S.note.length}/20000</span></div>`;
  if(S.view==='guide')return header('Primeiros passos')+`<div class="guide-list"><div class="guide-item"><b>01 · Olhe ao redor</b>Arraste com mouse ou dedo. No celular, ative Direção pela câmera, mostre um cenário fixo e centralize. R também centraliza.</div><div class="guide-item"><b>02 · Suas mãos são o controle</b>Ative as mãos, mostre a mão inteira e aponte com o indicador. Mantenha o indicador sobre um botão até o círculo completar. Afaste o cursor antes de repetir.</div><div class="guide-item"><b>03 · Entre no VR Box</b>Coloque o celular na horizontal e ative a tela dividida. Cada olho recebe uma versão da interface. No VR a biblioteca e o dock continuam disponíveis; só os controles externos ficam ocultos. Saia com Voltar, Esc ou dois toques fora dos painéis.</div><div class="guide-item"><b>04 · Ajuste para você</b>Abra Conforto para sensibilidade, suavização, câmera selecionada ou traseira e tempo de seleção.</div><div class="guide-item"><b>05 · Janelas no seu espaço</b>Abra até cinco aplicativos ao mesmo tempo. Arraste o título para mover e a alça do canto para redimensionar. O botão de ajustes de cada janela controla distância, giro e escala. O último botão do dock organiza o conjunto.</div><div class="guide-item"><b>06 · Headset compatível</b>Quando o navegador oferece WebXR, aparece Entrar no headset VR. Use os controles para apontar, clicar e arrastar. No celular, o VR Box mantém duas vistas; a câmera continua estimando apenas a rotação.</div></div>`;
- return header('Sobre este espaço')+`<div class="intro-card"><span class="eyebrow">Harmony MR · 3.6</span><h2>Uma interface espacial.<br>No seu navegador.</h2><p>Biblioteca flutuante, dock colorido, mãos articuladas, três minijogos próprios e visão do ambiente. Visual inspirado nos vídeos enviados do EnJoyTheMR/EnJoyTheVR.</p></div><div class="guide-list"><div class="guide-item"><b>O que funciona aqui</b>Janelas 3D independentes, posição e tamanho salvos, seleção por permanência, mãos com 21 pontos, rotação pela câmera, toque, mouse e VR Box. Sessão WebXR e controles VR quando o navegador oferece suporte.</div><div class="guide-item"><b>Sobre o hardware</b>No celular, a câmera estima rotação, sem medir posição 6DoF ou profundidade. Em headset compatível, o WebXR usa a pose fornecida pelo aparelho. Projeto independente, sem vínculo com Meta ou EnJoyTheMR. A visão do ambiente é uma imagem 2D da câmera duplicada no VR Box. Não executa jogos ou scripts do aplicativo de referência.</div></div>`;
+ return header('Sobre este espaço')+`<div class="intro-card"><span class="eyebrow">Harmony MR · 3.6.1</span><h2>Uma interface espacial.<br>No seu navegador.</h2><p>Biblioteca flutuante, dock colorido, mãos articuladas, três minijogos próprios e visão do ambiente. Visual inspirado nos vídeos enviados do EnJoyTheMR/EnJoyTheVR.</p></div><div class="guide-list"><div class="guide-item"><b>O que funciona aqui</b>Janelas 3D independentes, posição e tamanho salvos, seleção por permanência, mãos com 21 pontos, rotação pela câmera, toque, mouse e VR Box. Sessão WebXR e controles VR quando o navegador oferece suporte.</div><div class="guide-item"><b>Sobre o hardware</b>No celular, a câmera estima rotação, sem medir posição 6DoF ou profundidade. Em headset compatível, o WebXR usa a pose fornecida pelo aparelho. Projeto independente, sem vínculo com Meta ou EnJoyTheMR. A visão do ambiente é uma imagem 2D da câmera duplicada no VR Box. Não executa jogos ou scripts do aplicativo de referência.</div></div>`;
 }
 function windowMarkup(id){const focus=S.view,game=spatial.game;renderingFocus=focus;S.view=id;if(['targets','memory','golf'].includes(id))spatial.game=spatial.games[id]||null;let html;try{html=content();}finally{S.view=focus;spatial.game=game;renderingFocus=null;}const p=windowPose(id);return `<div class="obj spatial-window ${id===focus?'is-active':''}" data-window="${id}" style="width:${p.width}px;${windowTransform(id)}"><section class="panel" aria-label="${WINDOW_NAMES[id]}" style="${p.height?'height:'+p.height+'px;max-height:'+p.height+'px':''}">${html}<button class="window-resize" data-window-resize aria-label="Redimensionar ${WINDOW_NAMES[id]}" title="Arraste para redimensionar">◢</button></section></div>`;}
 function scene(){return S.openViews.map(windowMarkup).join('')+`<nav class="obj dock" style="${pos(0,S.d*.85,300)}" aria-label="Menu universal"><button class="system-pill" data-id="quick" aria-label="Configurações rápidas">${icon('clock')}<span class="live-clock"></span></button><button class="btn profile" data-id="tracking" aria-label="Central MR">${icon('hand')}</button><span class="divider"></span><button class="btn home ${S.view==='home'?'selected':''}" data-id="home" aria-label="Início">${icon('home')}</button><button class="btn ${S.view==='library'?'selected':''}" data-id="library" aria-label="Biblioteca">${icon('grid')}</button><button class="btn ${S.view==='gallery'?'selected':''}" data-id="gallery" aria-label="Ambientes">${icon('image')}</button><button class="btn ${S.mixed?'selected':''}" data-id="mixed" aria-label="Alternar visão do ambiente">${icon('headset')}</button><button class="btn utility-note" data-id="notes" aria-label="Notas">${icon('note')}</button><span class="divider"></span><button class="btn ${S.view==='quick'?'selected':''}" data-id="quick" aria-label="Ajustes rápidos">${icon('settings')}</button><button class="btn" data-id="rc" aria-label="Centralizar visão">${icon('center')}</button><button class="btn" data-id="window-arrange" aria-label="Organizar janelas">${icon('windows')}</button></nav><nav class="obj spatial-taskbar" style="${pos(0,S.d*.85,365)}" aria-label="Alternar janelas">${windowTabs()}</nav>`;}
@@ -174,7 +174,7 @@ function build(){
 function updateSpatialDock(eye){const key=[S.yaw,S.pitch,S.camera.x,S.camera.y,S.camera.z,S.d].join(':');if(updateSpatialDock.key!==key){updateSpatialDock.key=key;const camera=new DOMMatrix().translate(S.camera.x,S.camera.y,S.camera.z).rotateAxisAngle(0,1,0,-S.yaw).rotateAxisAngle(1,0,0,-S.pitch);updateSpatialDock.transforms=[300,365].map(y=>camera.translate(0,y,-S.d*.85).toString()+' translate(-50%,-50%)');}['.dock','.spatial-taskbar'].forEach((selector,i)=>{const node=eye.querySelector(selector),value=updateSpatialDock.transforms[i];if(node&&node._pose!==value){node._pose=value;node.style.transform=value;}});}
 function size(){sceneEyes().forEach((e,i)=>{
  if(!e._layout||e._layout.vw!==innerWidth||e._layout.vh!==innerHeight){e._layout={vw:innerWidth,vh:innerHeight,w:e.clientWidth,h:e.clientHeight,world:e.querySelector('.world'),pointer:e.querySelector('.r'),skeleton:e.querySelector('.sk'),ambient:e.querySelector('.ambient-canvas'),rect:e.getBoundingClientRect()};}
- const layout=e._layout;const compact=!S.vr&&innerWidth<650;const desired=Math.max(.11,compact?Math.min(.85,(layout.h-170)/900,(layout.w-36)/windowPose().width):Math.min(.92,layout.h/760,layout.w/750));const scale=desired*520/1100;const ex=S.vr?(i?-4:4):0;const transform=`scale(${scale}) translateX(${ex}px) translateZ(1100px) rotateX(${S.pitch.toFixed(3)}deg) rotateY(${S.yaw.toFixed(3)}deg) translate3d(${-S.camera.x}px,${-S.camera.y}px,${-S.camera.z}px)`;if(layout.transform!==transform){layout.transform=transform;layout.world.style.transform=transform;}updateSpatialDock(e);});}
+ const layout=e._layout;const compact=!S.vr&&innerWidth<650;const desired=Math.max(.11,compact?Math.min(.85,(layout.h-170)/900,(layout.w-36)/POSE_DEFAULT.width):Math.min(.92,layout.h/760,layout.w/750));const scale=desired*520/1100;const ex=S.vr?(i?-4:4):0;const transform=`scale(${scale}) translateX(${ex}px) translateZ(1100px) rotateX(${S.pitch.toFixed(3)}deg) rotateY(${S.yaw.toFixed(3)}deg) translate3d(${-S.camera.x}px,${-S.camera.y}px,${-S.camera.z}px)`;if(layout.transform!==transform){layout.transform=transform;layout.world.style.transform=transform;}updateSpatialDock(e);});}
 window.addEventListener('resize',size);
 async function enterVR(){if(vision.active&&!hand.stream&&!hand.starting)void startCamera();S.vr=true;build();try{await document.documentElement.requestFullscreen?.();}catch{tell('Tela dividida ativa. A tela cheia não está disponível neste navegador.');}try{await screen.orientation?.lock?.('landscape');}catch{}resetSelection();}
 function act(id){
@@ -289,7 +289,7 @@ const video=$('cv'), status=$('status');
 let lastStatus='',drag=null,suppressClickUntil=0,frameAt=performance.now(),modeChangedAt=0;
 function tell(message){if(message!==lastStatus){status.textContent=message;lastStatus=message;}}
 function resetSelection(){selection.id=null;selection.since=performance.now();selection.fired=false;}
-function clearHands(){hand.nextAt=0;stableHands?.reset();hand.visibleTracks=[];hand.primaryId=null;hand.tx=hand.ty=undefined;hand.revision=(hand.revision||0)+1;S.hand=false;hand.points=[];hand.primary=null;hand.wrist=null;hand.filters=[];hand.candidateAt=0;hand.acquired=0;hand.lastSeen=0;hand.pinched=false;hand.pinchAt=0;hand.releaseAt=0;hand.armed=false;document.body.classList.remove('pinching');resetSelection();}
+function clearHands(){hand.rawLandmarks=[];hand.previousRawLandmarks=[];hand.rawAt=hand.previousRawAt=0;hand.nextAt=0;stableHands?.reset();hand.visibleTracks=[];hand.primaryId=null;hand.tx=hand.ty=undefined;hand.revision=(hand.revision||0)+1;S.hand=false;hand.points=[];hand.primary=null;hand.wrist=null;hand.filters=[];hand.candidateAt=0;hand.acquired=0;hand.lastSeen=0;hand.pinched=false;hand.pinchAt=0;hand.releaseAt=0;hand.armed=false;document.body.classList.remove('pinching');resetSelection();}
 const oldBuild=build;
 build=function(){finishWindowMove();rememberWindow();stage._hit=null;oldBuild();updateDockSelection();resetSelection();document.querySelectorAll('[data-id]').forEach(n=>{if(!n.hasAttribute('role'))n.setAttribute('role','button');n.tabIndex=0;if(!n.hasAttribute('aria-label'))n.setAttribute('aria-label',n.textContent.trim());});$('bExit').hidden=!S.vr;$('bVR').setAttribute('aria-pressed',String(S.vr));};
 const oldAct=act;
@@ -371,11 +371,11 @@ function createVisualTracker(w,h){try{if(typeof Worker==='function')return new B
 
 // Filtro One Euro: estável em repouso e rápido durante o movimento.
 class OneEuro{
- constructor(){this.value=null;this.raw=null;this.derivative=0;this.time=0;}
+ constructor(cutoff=3.8,beta=10){this.cutoff=cutoff;this.beta=beta;this.value=null;this.raw=null;this.derivative=0;this.time=0;}
  step(v,t){if(this.value===null){this.value=this.raw=v;this.time=t;return v;}
  const dt=clamp((t-this.time)/1000,.001,.2),alpha=c=>1/(1+1/(2*Math.PI*c*dt));
  this.derivative+=alpha(8)*((v-this.raw)/dt-this.derivative);
- this.value+=alpha(3.8+10*Math.abs(this.derivative))*(v-this.value);
+ this.value+=alpha(this.cutoff+this.beta*Math.abs(this.derivative))*(v-this.value);
  this.raw=v;this.time=t;return this.value;
  }
 }
@@ -487,10 +487,29 @@ function updateHands(now){
  }
  try{consumeHands(hand.engine.detectForVideo(video,now),now,performance.now()-begin);}catch(error){console.error(error);stopCamera('O rastreador foi interrompido. Ative as mãos para tentar novamente.');}
 }
+// Coherent palm motion + relative finger articulation, without another model.
+const HAND_PARENTS=[-1,0,1,2,3,0,5,6,7,0,9,10,11,0,13,14,15,0,17,18,19];
+class HandShapeFilter {
+ constructor(){this.anchor=[new OneEuro(),new OneEuro()];this.fingers=Array.from({length:21},()=>[new OneEuro(4.5,6),new OneEuro(4.5,6)]);this.previous=null;this.lengths=new Float32Array(21);this.pending=Array.from({length:21},()=>null);this.repairs=0;}
+ step(points,now){
+  const norm=p=>Math.hypot(p.x,p.y,p.z||0),difference=(a,b)=>({x:a.x-b.x,y:a.y-b.y,z:(a.z||0)-(b.z||0)}),palm=Math.max(.025,norm(difference(points[9],points[0]))),clean=points.map(p=>({...p}));this.repairs=0;
+  for(let i=1;i<21;i++){
+   const parent=HAND_PARENTS[i],v=difference(points[i],points[parent]),length=norm(v),expected=this.lengths[i]*palm;
+   if(this.previous&&expected>.002&&length>expected*2.25&&length-expected>palm*.25){
+    const pending=this.pending[i],confirmed=pending&&norm(difference(v,pending))<palm*.15;
+    if(!confirmed){const old=difference(this.previous[i],this.previous[parent]),oldLength=Math.max(.001,norm(old)),scale=expected/oldLength;clean[i]={x:clean[parent].x+old.x*scale,y:clean[parent].y+old.y*scale,z:(clean[parent].z||0)+old.z*scale};this.pending[i]=v;this.repairs++;continue;}
+   }
+   this.pending[i]=null;const ratio=length/palm;if(!this.lengths[i]||ratio>this.lengths[i]*2.25)this.lengths[i]=ratio;else this.lengths[i]+=(ratio-this.lengths[i])*.08;
+  }
+  const wrist=clean[0],x=this.anchor[0].step(wrist.x,now),y=this.anchor[1].step(wrist.y,now);
+  const result=clean.map((p,i)=>i?{x:x+this.fingers[i][0].step(p.x-wrist.x,now),y:y+this.fingers[i][1].step(p.y-wrist.y,now),z:Number.isFinite(p.z)?p.z:0}:{x,y,z:Number.isFinite(wrist.z)?wrist.z:0});this.previous=clean;return result;
+ }
+}
+
 // Track hands in camera coordinates; mirror/crop exactly once at display time.
 class StableHands {
  constructor(){this.reset();}
- reset(){this.tracks=[];this.serial=0;this.primaryId=null;this.primarySeen=0;this.lastUpdate=0;this.expiry=1000;}
+ reset(){this.tracks=[];this.visible=[];this.serial=0;this.primaryId=null;this.primarySeen=0;this.lastUpdate=0;this.expiry=1000;}
  valid(points){
   if(!Array.isArray(points)||points.length!==21||!points.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.y)&&p.x>=-.25&&p.x<=1.25&&p.y>=-.25&&p.y<=1.25))return false;
   const palm=distance(points[0],points[9]),width=distance(points[5],points[17]);if(palm<.025||palm>.8||width<.015||width>.9)return false;
@@ -500,24 +519,28 @@ class StableHands {
  update(landmarks,now,handedness=[]){
   if(this.lastUpdate)this.expiry=clamp((now-this.lastUpdate)*4,700,5000);this.lastUpdate=now;
   const candidates=[];for(const p of landmarks||[]){if(this.valid(p)&&!candidates.some(q=>distance(p[0],q[0])<.035&&distance(p[9],q[9])<.035))candidates.push(p);if(candidates.length===2)break;}const labelOf=p=>{const c=handedness[(landmarks||[]).indexOf(p)]?.[0];return c&&c.score>=.8?c.categoryName:null;};const available=this.tracks.filter(t=>now-t.last<this.expiry),pairs=[];
-  candidates.forEach((p,i)=>available.forEach(t=>{const wrist=distance(p[0],t.raw[0]),palm=distance(p[9],t.raw[9]),scale=distance(p[0],p[9])/Math.max(.025,distance(t.raw[0],t.raw[9]));if(wrist<.24&&palm<.3&&scale>.4&&scale<2.5)pairs.push({i,t,cost:wrist*.65+palm*.35+(t.label&&labelOf(p)&&t.label!==labelOf(p)?.12:0)});}));
-  pairs.sort((a,b)=>a.cost-b.cost);const assigned=new Map(),used=new Set();for(const p of pairs)if(!assigned.has(p.i)&&!used.has(p.t.id)){assigned.set(p.i,p.t);used.add(p.t.id);}
+  candidates.forEach((p,i)=>available.forEach(t=>{const wrist=distance(p[0],t.raw[0]),palm=distance(p[9],t.raw[9]),scale=distance(p[0],p[9])/Math.max(.025,distance(t.raw[0],t.raw[9]));if(wrist<.24&&palm<.3&&scale>.4&&scale<2.5)pairs.push({i,t,cost:wrist*.65+palm*.35+(t.label&&labelOf(p)&&t.label!==labelOf(p)?.38:0)});}));
+  // Solve the two-hand assignment jointly rather than greedily swapping identities.
+  const options=candidates.map((_,i)=>[...pairs.filter(p=>p.i===i),{i,t:null,cost:.85}]);let chosen=[],best=Infinity;
+  if(options.length===1)chosen=[options[0].reduce((a,b)=>a.cost<b.cost?a:b)];
+  else if(options.length===2)for(const a of options[0])for(const b of options[1]){if(a.t&&b.t&&a.t.id===b.t.id)continue;const cost=a.cost+b.cost;if(cost<best){best=cost;chosen=[a,b];}}
+  const assigned=new Map(chosen.filter(p=>p.t).map(p=>[p.i,p.t]));
   const visible=[];
   candidates.forEach((points,i)=>{
-   let t=assigned.get(i);if(!t){t={id:++this.serial,first:now,last:now,frames:0,label:labelOf(points),filters:Array.from({length:21},()=>[new OneEuro(),new OneEuro()]),display:null};this.tracks.push(t);}
-   if(now-t.last>this.expiry){t.first=now;t.frames=0;t.filters=Array.from({length:21},()=>[new OneEuro(),new OneEuro()]);t.display=null;}
+   let t=assigned.get(i);if(!t){t={id:++this.serial,first:now,last:now,frames:0,label:labelOf(points),shape:new HandShapeFilter(),display:null};this.tracks.push(t);}
+   if(now-t.last>this.expiry){t.first=now;t.frames=0;t.shape=new HandShapeFilter();t.display=null;}
    t.raw=points.map(p=>({...p}));t.last=now;t.frames++;
-   t.filtered=points.map((p,j)=>({x:t.filters[j][0].step(p.x,now),y:t.filters[j][1].step(p.y,now),z:Number.isFinite(p.z)?p.z:0}));
+   t.filtered=t.shape.step(points,now);const label=labelOf(points);if(label)t.label=label;
    if(!t.display)t.display=t.filtered.map(p=>({...p}));
    if(t.frames>=2&&now-t.first>=40)visible.push(t);
   });
-  this.tracks=this.tracks.filter(t=>now-t.last<this.expiry);
+  this.tracks=this.tracks.filter(t=>now-t.last<this.expiry).sort((a,b)=>b.last-a.last).slice(0,4);this.visible=visible;
   let primary=visible.find(t=>t.id===this.primaryId);
   if(primary)this.primarySeen=now;
   else if(this.primaryId===null||now-this.primarySeen>200){primary=visible.slice().sort((a,b)=>distance(b.raw[0],b.raw[9])-distance(a.raw[0],a.raw[9]))[0];this.primaryId=primary?.id??null;if(primary)this.primarySeen=now;}
   return {visible,primary};
  }
- animate(dt){let moved=false;const alpha=1-Math.exp(-Math.min(.1,dt)/.006);for(const t of this.tracks){if(!t.display||!t.filtered)continue;for(let i=0;i<21;i++){const target=t.filtered[i],p=t.display[i],dx=target.x-p.x,dy=target.y-p.y;if(Math.abs(dx)+Math.abs(dy)>.00008){p.x+=dx*alpha;p.y+=dy*alpha;moved=true;}else{p.x=target.x;p.y=target.y;}}}return moved;}
+ animate(dt){let moved=false;const alpha=1-Math.exp(-Math.min(.1,dt)/.006);for(const t of this.visible){if(!t.display||!t.filtered)continue;for(let i=0;i<21;i++){const target=t.filtered[i],p=t.display[i],dx=target.x-p.x,dy=target.y-p.y;if(Math.abs(dx)+Math.abs(dy)>.00008){p.x+=dx*alpha;p.y+=dy*alpha;moved=true;}else{p.x=target.x;p.y=target.y;}}}return moved;}
 }
 let stableHands=null;
 const handCameraCache={stream:null,pref:null,front:false};
@@ -527,7 +550,7 @@ function handCameraIsFront(){
 }
 function consumeHands(result,now,spent){
  if(!stableHands)stableHands=new StableHands();
- hand.rawCount=(result.landmarks||[]).length;hand.rawLandmarks=result.landmarks||[];hand.resultCount=(hand.resultCount||0)+1;hand.lastSpent=spent;hand.freshWindow=clamp(spent*3+150,250,1800);
+ hand.previousRawLandmarks=hand.rawLandmarks||[];hand.previousRawAt=hand.rawAt||0;hand.rawAt=now;hand.rawCount=(result.landmarks||[]).length;hand.rawLandmarks=result.landmarks||[];hand.resultCount=(hand.resultCount||0)+1;hand.lastSpent=spent;hand.freshWindow=clamp(spent*3+150,250,1800);
  hand.revision=(hand.revision||0)+1;
  // Isolated inference can run again as soon as a fresh frame is available.
  // Keep the conservative CPU budget only for the main-thread compatibility path.
@@ -812,7 +835,7 @@ async function startVisual(){
  }catch(error){if(run===vision.run){stopVisual(false);showCameraProblem(error);}releaseUnusedCamera(stream);}
  finally{vision.starting=false;updateCameraBusy();$('bVision').disabled=false;}
 }
-function visualMasks(w,h){return hand.points.map(points=>{let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;for(const p of points){minX=Math.min(minX,p.x*w);maxX=Math.max(maxX,p.x*w);minY=Math.min(minY,p.y*h);maxY=Math.max(maxY,p.y*h);}return {x0:minX-10,x1:maxX+10,y0:minY-10,y1:maxY+10};});}
+function visualMasks(w,h){const now=performance.now(),groups=[...hand.points];if(hand.stream&&now-hand.rawAt<250)groups.push(...(hand.rawLandmarks||[]));if(hand.stream&&now-hand.previousRawAt<200)groups.push(...(hand.previousRawLandmarks||[]));return groups.filter(points=>points?.length===21&&points.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.y))).map(points=>{let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;for(const p of points){minX=Math.min(minX,p.x*w);maxX=Math.max(maxX,p.x*w);minY=Math.min(minY,p.y*h);maxY=Math.max(maxY,p.y*h);}const padX=Math.max(10,(maxX-minX)*.12),padY=Math.max(10,(maxY-minY)*.12);return {x0:minX-padX,x1:maxX+padX,y0:minY-padY,y1:maxY+padY};});}
 function beginSceneCalibration(){
  visualCoach.reset();
  clearObjectReference();vision.sceneCalibrated=false;vision.calibration={since:null,last:null,progress:0};
@@ -1255,13 +1278,14 @@ function handDisplayPoint(p,width,height){const t=handProjection(width,height);r
 function renderHands(){
  let rendered=null;sceneEyes().forEach(eye=>{
   const canvas=eye._layout?.skeleton||eye.querySelector('.sk'),tracks=hand.visibleTracks||[],visible=prefs.hands&&tracks.length>0&&performance.now()-hand.lastSeen<(hand.freshWindow||250);
-  const layout=eye._layout||{w:eye.clientWidth,h:eye.clientHeight},key=[!!visible,hand.revision,S.mixed,layout.w,layout.h,handCameraIsFront()].join(':');
+  const layout=eye._layout||{w:eye.clientWidth,h:eye.clientHeight},ratio=Math.max(1,Math.min(1.5,devicePixelRatio||1,1440/Math.max(layout.w,layout.h))),key=[!!visible,hand.revision,S.mixed,layout.w,layout.h,handCameraIsFront(),ratio].join(':');
   if(canvas.dataset.frame===key)return;canvas.dataset.frame=key;canvas.style.display=visible?'':'none';if(!visible)return;
-  const w=Math.max(1,Math.round(layout.w)),h=Math.max(1,Math.round(layout.h));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
-  const c=canvas.getContext('2d');c.clearRect(0,0,w,h);if(rendered&&rendered.width===w&&rendered.height===h){c.drawImage(rendered,0,0);return;}const projection=handProjection(w,h);c.lineWidth=2.5;c.lineCap='round';c.lineJoin='round';
+  const w=Math.max(1,Math.round(layout.w)),h=Math.max(1,Math.round(layout.h)),bw=Math.round(w*ratio),bh=Math.round(h*ratio);if(canvas.width!==bw||canvas.height!==bh){canvas.width=bw;canvas.height=bh;}
+  const c=canvas.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,bw,bh);if(rendered&&rendered.width===bw&&rendered.height===bh){c.drawImage(rendered,0,0);return;}c.setTransform(ratio,0,0,ratio,0,0);const projection=handProjection(w,h);c.lineWidth=2.5;c.lineCap='round';c.lineJoin='round';
   for(const t of tracks){const points=t.projected||(t.projected=new Float32Array(42));for(let i=0;i<21;i++){points[i*2]=(t.display[i].x*projection.sx+projection.x)*w/1000;points[i*2+1]=(t.display[i].y*projection.sy+projection.y)*h/1000;}
+   c.fillStyle=t.id===hand.primaryId?'#5ae6bc18':'#9daaf318';c.beginPath();[0,5,9,13,17].forEach((index,j)=>j?c.lineTo(points[index*2],points[index*2+1]):c.moveTo(points[index*2],points[index*2+1]));c.closePath();c.fill();
    c.strokeStyle=t.id===hand.primaryId?'#82f4ce':'#b2baff';c.beginPath();for(const chain of CONNECTIONS){chain.forEach((index,i)=>{const x=points[index*2],y=points[index*2+1];i?c.lineTo(x,y):c.moveTo(x,y);});}c.stroke();
-   for(let i=0;i<21;i++){const x=points[i*2],y=points[i*2+1];c.fillStyle=i===8?'#b2ffe0':'#e2fff3';c.beginPath();c.arc(x,y,i===8?4:2.5,0,Math.PI*2);c.fill();}
+   c.fillStyle='#e2fff3';c.beginPath();for(let i=0;i<21;i++){if(i===8)continue;const x=points[i*2],y=points[i*2+1];c.moveTo(x+2.5,y);c.arc(x,y,2.5,0,Math.PI*2);}c.fill();c.fillStyle='#b2ffe0';c.beginPath();c.arc(points[16],points[17],4,0,Math.PI*2);c.fill();
   }rendered=canvas;
  });
 }
@@ -1269,6 +1293,11 @@ function animateHands(now,dt){
  if(stableHands?.animate(dt))hand.revision=(hand.revision||0)+1;
  if(!S.hand||!hand.primaryId)return;const track=hand.visibleTracks?.find(t=>t.id===hand.primaryId);if(!track)return;
  const eye=stage.firstElementChild,layout=eye._layout;if(!layout)return;const p=handDisplayPoint(track.display[8],layout.w,layout.h);S.hx=clamp(p[0]/1000,.005,.995);S.hy=clamp(p[1]/1000,.005,.995);hand.pointerVisible=p[0]>=0&&p[0]<=1000&&p[1]>=0&&p[1]<=1000;
+}
+function updateViewPose(pose,dt){
+ const dy=pose.yaw-S.yaw,dp=pose.pitch-S.pitch;
+ if(vision.active&&prefs.directionAI&&!drag&&Math.hypot(...direction.velocity)<2.5&&Math.hypot(dy,dp)<.065)return;
+ const a=1-Math.exp(-dt/.012),maxStep=720*dt;S.yaw+=clamp(dy*a,-maxStep,maxStep);S.pitch=clamp(S.pitch+clamp(dp*a,-maxStep,maxStep),-75,75);size();
 }
 function tick(now){
  const dt=clamp((now-frameAt)/1000,.001,.06);recordFrame(now);frameAt=now;
@@ -1278,9 +1307,7 @@ function tick(now){
    const pose=direction.pose(now,{prediction:vision.active?0:prefs.prediction,adaptive:prefs.directionAI});
    if(pose.fresh){
     // The estimator already smooths sensor noise; only a short display interpolation remains.
-    const a=1-Math.exp(-dt/.012),maxStep=720*dt;
-    S.yaw+=clamp((pose.yaw-S.yaw)*a,-maxStep,maxStep);
-    S.pitch=clamp(S.pitch+clamp((pose.pitch-S.pitch)*a,-maxStep,maxStep),-75,75);size();
+    updateViewPose(pose,dt);
    }
   }
   if(motion.calibration&&now-motion.calibration.started>7000){motion.calibration=null;tell('Calibração sem sinal estável. Tente novamente com o aparelho parado.');}
@@ -1379,4 +1406,4 @@ $('cameraAccess').addEventListener('close',resetSelection);
 $('cameraAccess').addEventListener('cancel',()=>{if(cancelCameraRequest){stopVisual(false);stopCamera('');cancelCameraRequest?.();}});
 build();revealWindow(S.view);requestAnimationFrame(tick);
 try{if(!sessionStorage.getItem('camera-intro-v1')){sessionStorage.setItem('camera-intro-v1','seen');cameraPanel(cameraEnvironmentError()?.message||'Toque em Permitir câmera selecionada. O navegador pedirá acesso; se você já autorizou este site, a câmera abrirá diretamente.');}}catch{cameraPanel('Toque em Permitir câmera selecionada para solicitar acesso ao navegador.');}
-</script><script src="assets/spatial/xr.js"></script></body></html>
+</script><script src="assets/spatial/xr.js?v=3.6.1"></script></body></html>

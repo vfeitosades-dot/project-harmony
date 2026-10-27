@@ -180,3 +180,29 @@ Para digitação, use o navegador antes de entrar: não foi incluído teclado VR
 Ver `SPATIAL.md` e os testes `windows-browser.cjs` / `native-xr-browser.cjs`.
 Validação de headset utiliza poses sintéticas; não houve ensaio de hardware.
 O fluxo sem giroscópio no celular continua estimando somente a rotação visual.
+
+## 3.6.1 — estabilidade sem trocar o modelo
+
+Sem novos modelos ou mais inferências: a execução CPU no worker e a cadência
+adaptativa da 3.5.1 continuam. Filtro coerente por palma/dedos e reparo temporal
+de segmentos usam somente os 21 landmarks já recebidos. Associação conjunta de
+até duas mãos; no máximo quatro identidades no histórico e animação somente
+das mãos visíveis, evitando acumular trabalho com rastros antigos.
+
+O teste instrumental conta seis preenchimentos para duas mãos por par estéreo,
+contra 42 antes. A nitidez usa escala máxima de 1,5, limitada pelo tamanho da
+superfície; o segundo olho reutiliza o primeiro desenho. Sem sombras borradas
+ou processamento extra de imagem no esqueleto.
+
+Camadas de janela deixam de ter altura zero. A centralização é aplicada uma
+vez ao plano externo; a animação de entrada não retém transformação ao terminar.
+Desfoque desligado, separação mínima de planos e escala da câmera independente
+do aplicativo ativo. Ruído subpixel em repouso deixa de atualizar a matriz
+da cena a cada quadro; movimento real e controles manuais continuam respondendo.
+Máscaras de mãos recentes, incluindo landmarks brutos, ajudam a excluir gestos
+da estimativa de rotação da câmera, sem segmentação por outro modelo.
+
+`stability-regression-browser.cjs` verifica coerência, saltos e recuperação,
+cruzamento de identidades, limite do histórico, desenho HiDPI e estabilidade
+de janelas. Continuam os testes com modelo real, perdas, readquisição e fallback.
+Não há garantia de FPS ou rastreamento perfeito em qualquer aparelho físico.

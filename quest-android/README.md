@@ -1,4 +1,4 @@
-# Harmony MR 3.6 para Android
+# Harmony MR 3.6.1 para Android
 
 APK de instalação direta para Android 8.0 ou mais recente. A interface HTML
 está incluída no aplicativo: não depende de publicar a última versão na Netlify.
@@ -104,3 +104,22 @@ navegador oferece uma sessão imersiva. O APK mantém VR Box e não exige headse
 Consulte [SPATIAL.md](../quest-vr/SPATIAL.md) para controles, testes e diferenças entre
 o mundo virtual, a estimativa de rotação pela câmera do celular e o 6DoF
 fornecido por um headset WebXR. APK 3.6, código 12, com a mesma assinatura.
+
+## Estabilidade das janelas e mãos — 3.6.1
+
+Corrigida a composição das janelas: a camada 3D tem dimensões reais, o painel
+é centralizado uma única vez, a animação não mantém uma transformação extra
+após terminar e planos coplanares recebem uma separação mínima. O tamanho de
+uma janela não altera mais o zoom da cena no celular. Desfoque removido para
+evitar artefatos de composição; vidro, bordas e iluminação continuam por cores
+e gradientes. Pequeno ruído de rotação em repouso é retido, sem filtrar controles
+por mouse ou a pose de headset. Mãos recebem máscaras visuais recentes para
+evitar confundir gestos com movimento do ambiente.
+
+O esqueleto passa a filtrar deslocamento da palma e articulação dos dedos
+separadamente. Saltos isolados de juntas usam o histórico do próprio segmento;
+mudanças repetidas são aceitas para não prender os dedos. A associação de duas
+mãos é conjunta e o histórico fica limitado a quatro identidades recentes.
+Renderização mais nítida com escala limitada e pontos agrupados: seis
+preenchimentos por par de mãos, em vez de 42. Modelo leve e worker mantidos,
+sem novos downloads nem inferências adicionais. APK 3.6.1, código 13.

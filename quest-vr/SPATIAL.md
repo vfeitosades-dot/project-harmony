@@ -1,4 +1,4 @@
-# Janelas espaciais — Harmony MR 3.6
+# Janelas espaciais — Harmony MR 3.6.1
 
 Abra Biblioteca, Notas, Ambientes ou um minijogo. Agora até cinco aplicativos
 podem permanecer visíveis ao mesmo tempo, cada um com sua posição, rotação,
@@ -84,9 +84,9 @@ uma câmera comum em passthrough estereoscópico.
 
 Entradas e saídas animam opacidade e escala, inclusive nos quads WebXR. Foco usa transformações curtas.
 A preferência do sistema por movimento reduzido é respeitada. O vidro combina
-transparência, gradiente, borda iluminada e sombras. Desfoque real só é aplicado
-com uma janela em desktop sem mãos; fica desligado em celular, VR e múltiplas
-janelas para reduzir a carga gráfica.
+transparência, gradiente, borda iluminada e sombras. Na versão 3.6.1, o desfoque fica desligado
+em todos os modos para evitar artefatos de composição. O efeito de vidro
+continua com transparência moderada e gradientes.
 
 Mãos continuam no worker local, sem fila e com a resposta rápida da versão
 3.5.1. Superfícies de câmera e esqueletos são reutilizados. No WebXR, texturas
@@ -102,3 +102,19 @@ paralaxe, persistência, mãos, VR Box, toque e layout de celular.
 `native-xr-browser.cjs` executa WebGL e testa seleção por raios, arraste,
 poses compartilhadas, modais e descarte de recursos com poses XR sintéticas.
 Não houve validação em headset físico nem medição de latência em celular.
+
+## Estabilidade — 3.6.1
+
+A geometria e a superfície de composição têm o mesmo tamanho. A centralização
+fica no plano externo; a animação do conteúdo termina sem reter uma matriz
+de transformação. Pequenos afastamentos fixos entre planos evitam conflito
+quando duas janelas têm a mesma profundidade. Redimensionar uma janela não
+altera o campo de visão das demais. A câmera visual retém ruído inferior a
+0,065 grau em repouso; movimentos claros continuam imediatos. A pose WebXR
+não passa por esse filtro da câmera de celular.
+
+Ver `tests/stability-regression-browser.cjs`: dimensões de camada, ausência de
+animação residual, zoom estável, coerência de dedos/palma, correção e recuperação
+de saltos, identidades ao cruzar mãos e desenho agrupado em tela de alta densidade.
+O modelo real também é verificado com foto de duas mãos e sem acesso à rede.
+Esses testes não substituem validação em um celular físico.
