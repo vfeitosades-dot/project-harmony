@@ -1,0 +1,21 @@
+{
+  "game": "TRIOBUG - Amigos em Pane!",
+  "version": "0.1 beta",
+  "target": "Windows x86_64",
+  "engine": "Godot 4.6.3 stable official",
+  "renderer": "Compatibility / OpenGL",
+  "official_template": "https://github.com/godotengine/godot-builds/releases/download/4.6.3-stable/Godot_v4.6.3-stable_export_templates.tpz",
+  "official_release_template_sha256": "91724f15024a3a545e28ccd83134403d31ce2323a38e51c95e4dfa282f732ab6",
+  "standalone_exe_sha256": "2b97bcd08155f3a999115451911977275b2eac432f9a6df5b12c1b664f00ff61",
+  "portable_exe_sha256": "91724f15024a3a545e28ccd83134403d31ce2323a38e51c95e4dfa282f732ab6",
+  "portable_pck_sha256": "23ded612ab0bd8873eb11f99b9210a69ab9f77af285fa786dd87b129e8f09260",
+  "checks": {
+    "solo": "27 assertions passed",
+    "integrated_multiplayer": "39 assertions passed in 3 local processes",
+    "exported_content": "headless boot + graphical menu/solo/HUD/3 robots/credits passed in Linux Godot using embedded pack",
+    "native_windows_execution": "not tested",
+    "hardware_fps": "not measured",
+    "antivirus_scan": "not performed"
+  },
+  "screenshots": "Actual engine renderings. Room 2 and 3 cameras/robot positions arranged for scenic capture."
+}

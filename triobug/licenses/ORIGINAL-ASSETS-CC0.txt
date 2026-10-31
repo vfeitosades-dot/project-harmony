@@ -1,0 +1,15 @@
+TRIOBUG original procedural visual assets and synthesized audio
+
+To the extent possible under law, the authors waive all copyright and related
+or neighboring rights in the original visual assets generated procedurally by
+this project and the original synthesized WAV files in audio/.
+
+These assets are provided under CC0 1.0 Universal:
+https://creativecommons.org/publicdomain/zero/1.0/
+
+No third-party model, texture, recorded sample, or commercial music was used
+to create these original assets. The Godot engine, its built-in resources,
+and its third-party components retain their respective licenses; see
+GODOT-LICENSE.txt and GODOT-COPYRIGHT.txt.
+
+The GDScript source code is covered by the MIT license in the project LICENSE.

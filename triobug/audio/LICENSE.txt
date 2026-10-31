@@ -1,0 +1,3 @@
+TRIOBUG original synthesized audio
+Generated for this project with Python mathematical oscillators and deterministic noise.
+No samples or third-party music used. These audio files are dedicated to the public domain under CC0 1.0.
