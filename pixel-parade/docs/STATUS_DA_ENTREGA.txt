@@ -1,0 +1,5 @@
+Pixel Parade, demo 2026-11-02
+Jogo web: 6 chefes; solo + co-op local; parry, dash, magias e especiais.
+APK Android debug: compilado no GitHub Actions run 41547839157, SHA256 2e20ba1ed475260b60e60dc7ee317f67b74be4fa944e3e8e43b494512f812446.
+APK estruturalmente validado (classes.dex + assets/web/index.html). Ainda nao testado em Android fisico.
+Online entre aparelhos nao implementado.

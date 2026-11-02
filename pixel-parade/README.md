@@ -10,11 +10,11 @@ Jogo **original** 2D em pixel art para navegador e Android, gênero boss-rush co
 - Indicadores de vida, chefe, progresso salvo no navegador, derrota/recomeçar, desbloqueio progressivo, pausas.
 - Suporte inicial a teclado, gamepads e controles touch para o jogador 1.
 - PNGs originais dos personagens, dos seis chefes e duas pranchas de referência visual. O jogo atual desenha sprites proceduralmente; os PNGs são guias visuais para integração posterior.
-- Projeto Android WebView e workflow de compilação via GitHub Actions **incluídos como fonte**, não como APK já compilado.
+- Projeto Android WebView e workflow de compilação via GitHub Actions incluídos; **APK debug compilado e verificado** em `Build/PixelParade_Debug_Android.apk` (GitHub Actions run 41547839157).
 
 ## O que NÃO está pronto
 
-- **Não há APK compilado neste ZIP**, pois o ambiente atual não possui Android SDK/Gradle. GitHub Actions pode gerá-lo quando o projeto estiver publicado, com a integração apropriada.
+- O APK debug foi compilado remotamente pelo GitHub Actions e está neste ZIP. **Ainda não foi testado em um telefone Android físico**, portanto podem existir problemas de compatibilidade/controles touch.
 - **Online entre aparelhos ainda não implementado.** O multiplayer jogável é cooperativo local no mesmo aparelho/computador.
 - Três fases de plataforma corrida, loja, mapa de campanha, cenas animadas completas, trilha musical arranjada e exportação release assinada estão descritos no PROMPT_COMPLETO.txt para desenvolvimento futuro.
 - Ainda necessita teste de execução em telefone Android físico.
@@ -51,12 +51,13 @@ No gamepad, A pula, X ou gatilho direito dispara magia, B dash, Y parry, ombro e
 
 O workflow `.github/workflows/build-pixel-parade-apk.yml` assume que a pasta inteira do projeto está em `pixel-parade/` na raiz do repositório. Mover o workflow para `.github/workflows/build-pixel-parade-apk.yml` **na raiz**. Ao enviar, ir a `Actions` > `Build Pixel Parade APK` > `Run workflow`, e após o build concluído baixar `PixelParade-APK-debug` (ZIP contendo o APK). A existência do YAML não garante sucesso: conferir logs e artifact real.
 
-O arquivo APK debug só deve ser distribuído para testes. Para distribuição pública, configurar assinatura release e acompanhar as políticas atuais do Google Play.
+Também há um APK debug válido em `Build/PixelParade_Debug_Android.apk`. SHA256: `2e20ba1ed475260b60e60dc7ee317f67b74be4fa944e3e8e43b494512f812446`. O arquivo APK debug só deve ser distribuído para testes. Para distribuição pública, configurar assinatura release e acompanhar as políticas atuais do Google Play.
 
 ## Estrutura
 
 ```
 PixelParade_Projeto/
+├── Build/PixelParade_Debug_Android.apk (DEMO compilada)
 ├── PROMPT_COMPLETO.txt
 ├── README.md
 ├── web/index.html
