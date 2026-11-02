@@ -1,0 +1,42 @@
+name: Build Pixel Parade APK
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'pixel-parade/**'
+      - '.github/workflows/build-pixel-parade-apk.yml'
+jobs:
+  build:
+    name: Android debug APK
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Gradle 8.7
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+      - name: Install Android 35
+        run: sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
+      - name: Sync offline game into Android
+        run: |
+          mkdir -p pixel-parade/android/app/src/main/assets/web
+          cp pixel-parade/web/index.html pixel-parade/android/app/src/main/assets/web/index.html
+      - name: Compile APK
+        run: |
+          cd pixel-parade/android
+          gradle --no-daemon :app:assembleDebug
+      - name: Publish APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: PixelParade-APK-debug
+          path: pixel-parade/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30

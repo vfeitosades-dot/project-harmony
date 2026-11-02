@@ -1,0 +1,103 @@
+PROMPT PROFISSIONAL — PIXEL PARADE: O CIRCO DAS FAÍSCAS
+Versão de especificação 1.0 | Jogo original 2D para Android APK + HTML5 + PC
+
+PAPEL DA IA
+Você é uma equipe profissional de game design, programação gameplay, arte em pixel art, animação 2D, som procedural, QA e engenharia Android. Continue e evolua o projeto pré-existente do diretório `web/` e `android/`. Sua missão é criar uma experiência inédita, divertida e bem-acabada, no gênero boss-rush run-and-gun 2D, com controles muito responsivos, fases curtas e cheias de personalidade, cooperativo para 2 jogadores e foco em desempenho nos celulares Android intermediários.
+
+DIREITOS E DIREÇÃO CRIATIVA
+O jogo pode usar como INSPIRAÇÃO DE GÊNERO a fluidez, o desafio e o formato de batalhas de chefes de Cuphead. NÃO copiar ou recriar o nome, a marca, personagens, fases, arte, objetos icônicos, animações, sons, melodias ou cenários do jogo. A linguagem visual deste projeto será EXCLUSIVAMENTE pixel art minimalista, com 16 a 24 cores, robôs viajantes e um circo cósmico de engrenagens. Usar exclusivamente assets criados para esta obra. Os arquivos PNG do projeto são referências originais de composição, personagens e cores.
+
+CONCEITO / HISTÓRIA
+Dois pequenos viajantes mecânicos, Bolin e Pingo, caem em um circo dimensional movido por estrelas. Para religar a grande máquina de luz, precisam vencer seis artistas e guardiões de arenas temáticas. Entre as arenas existe um mapa de progresso, com melodias originais, pequenas cenas em pixel art e personagens secundários. Clima: humor, magia, aventura, circo antigo, céu noturno e brilho retrô, sem gore.
+
+1. PLATAFORMAS E ENTREGAS
+- Android: exportar APK debug testável e opcionalmente APK release assinado quando houver keystore, package com.pixelparade.game, orientação horizontal. Não afirmar que o APK está pronto sem compilar e verificar se o arquivo é válido.
+- Browser: HTML5 funcionando offline sem CDN, teclado, gamepad e touch; canvas 480x270 ou 640x360 interno, escalado pixel-perfect.
+- Projeto-fonte completo com arquivos .html/.js/.css, artes PNG, scripts de geração e README, além de projeto Android nativo com WebView ou Godot, conforme as restrições de build.
+- Metas de FPS: 60 em aparelhos Android intermediários; desligar pós-processamento caro e usar renderização por lotes, limitar partículas e pooling de projéteis.
+- Salvar progresso localmente: chefes concluídos, estrelas, dificuldade, configurações e opções de acessibilidade.
+
+2. MECÂNICAS CENTRAIS
+- Movimento horizontal com aceleração curta (0 a 100% em 70–100 ms), desaceleração controlada e velocidade constante; nenhuma patinação.
+- Pulo com física arcade e botão acessível, gravidade, coyote-time de 90 ms, jump buffer 100 ms e altura variável (soltando o botão antes).
+- Dash horizontal curto com cooldown de 0,8 s, efeito de rastro, segurança para não atravessar plataformas. Invulnerabilidade apenas durante janela bem delimitada.
+- Ataque de magia automática (segurar botão), visando chefes e inimigos quando apropriado; distância e velocidade legíveis; variações desbloqueáveis de ataque: feixe leve, spread de energia, bumerangue prismático, orbe teleguiado e magia carregada. Todas as opções são fantasia/cartoon, não armas reais.
+- Parry em projéteis COR-DE-ROSA: janela de 150–220 ms, feedback visual e sonoro evidente, acúmulo de 1 ponto de energia; 3 pontos habilitam um especial. Não permitir parry em projéteis normais.
+- Especial custando três pontos: explosão mágica breve com animação única e dano maior; risco/recompensa.
+- Invulnerabilidade temporária após receber dano, cintilação do sprite e feedback de HUD. 4 corações como padrão, ajustáveis no modo acessível.
+- Reanimação no cooperativo: jogador ativo realiza parry próximo ao aliado incapacitado para revivê-lo com 1 coração e 1,5 s de segurança. Definir limite de distância e cooldown.
+- Dificuldade com três modos: passeio, normal, desafio; padrões e velocidades mantêm consistência, não trapacear com ataques invisíveis.
+
+3. COMBATE E TELEGRÁFICOS
+- Todo ataque perigoso possui aviso com animação que dura 0,3–0,6 s, zona visual delimitada e breve som original.
+- Tipos: leque circular, onda horizontal, orbes perseguidoras, chuva diagonal, saltos controlados, plataformas móveis, escudo temporário e zonas de perigo do chão. Nunca gerar ataque sem saída possível.
+- Detecção com hitboxes separadas do sprite. Configurar margem justa para o jogador; testar overlaps.
+- Partículas em layer separado, vida curta, máximo 150 simultâneas no Android. Object pooling em disparos/efeitos.
+- A câmera mostra os dois jogadores no mesmo campo, sem tela dividida nas arenas fixas. Shake reduzido e opcional. Visual legível em telas pequenas.
+
+4. PERSONAGENS
+BOLIN: robô viajante pêssego, capacete quadrado, visor escuro azul, antena luminosa, botas azuis. Silhueta de 32x32, 4 estados base, 8 frames de corrida e 4 de salto.
+PINGO: robô turquesa com a mesma escala e mobilidade, visor azul, acabamento diferente, personalidade animada por squash/stretch. Sem ficar visualmente confundível com Bolin.
+Animações: idle 6 quadros, correr 8, pular 4, aterrissar 3, dash 5, parry 5, disparar 4, dano 4, reviver 6 e celebrar 8. Paleta limitada, contorno de 1–2 px, renderização nearest-neighbor.
+
+5. SEIS CHEFES ORIGINAIS — TRÊS ATOS CADA
+CHEFE 1 — REI PINHÃO, Fábrica das Nuvens: engrenagem dourada gigantesca. Ato 1 solta parafusos de energia em linha. Ato 2 abre armadilhas dentadas que avançam, com um orbe rosa para parry. Ato 3 gira, tenta bloquear parte dos disparos e acelera o padrão. Cenário industrial com rodas giratórias ao fundo.
+CHEFE 2 — MADAME MARÉ, Aquário Celeste: medusa cósmica em aquário flutuante. Ato 1 bolhas lentas e espaçadas. Ato 2 bolhas em órbita e feixes luminosos. Ato 3 troca o ritmo da maré e envia ondas no chão. Fundo azul, parallax de cardumes geométricos e coral fantasioso.
+CHEFE 3 — CARACOL METEORO, Jardim das Estrelas: caracol com concha de planeta. Ato 1 meteoros telegráficos. Ato 2 avanços lentos e rastros brilhantes. Ato 3 pequenos planetas orbitam o chefe, com aberturas claras para avançar. Paleta coral e lilás.
+CHEFE 4 — FANTASMA DO FAROL, Porto da Meia-Noite: fantasma luminoso com cauda de vento e chapéu de marinheiro próprio. Ato 1 orbes diagonais. Ato 2 projéteis cruzados e ondas do farol. Ato 3 o cenário fica escuro por instantes, mas telegráficos e personagem continuam nítidos. Fundo de porto, mar e estrelas.
+CHEFE 5 — CACTO CATRACA, Deserto Sonoro: cacto mecânico de dois braços, olhos expressivos. Ato 1 sementes luminosas. Ato 2 solos rítmicos com projéteis em arco. Ato 3 tempestade de areia suave com aviso de ataque. Cenário desértico de fitas musicais.
+CHEFE 6 — MAESTRO ECLIPSE, Teatro dos Cometas: maestro lunar robótico, chefe final. Ato 1 notas mágicas em arco. Ato 2 conduz duas constelações rivais com padrões simétricos. Ato 3 muda a cor do teatro e alterna sequência de parry rosa e esquiva. Final com fogos de confete abstratos e cena sem violência gráfica.
+Cada chefe deve ter intro de 2 segundos (pulável), nome, animação em loop, expressão variando por ato, barra de vida, VFX específicos, padrão previsível, áudio original e animação final.
+
+6. FASES EXTRAS RUN-AND-GUN
+Construir 3 fases curtas de 2–4 min: "Passarela das Centelhas", "Túneis de Papel" e "Jardim das Nuvens". Incluir plataformas, objetos coletáveis, mini-inimigos originais, checkpoints e minichefes. Não reutilizar layout de nenhum jogo comercial. 20-30 moedas distribuídas por fase. Coletar todas não deve ser obrigatório para avançar. Boss-rush desbloqueia-se progressivamente.
+
+7. MULTIPLAYER
+- Singleplayer completo com Bolin.
+- Cooperativo LOCAL 2 jogadores em PC com 2 gamepads, ou teclado com comandos separados. O projeto demonstrativo incluso já disponibiliza co-op local em tela compartilhada.
+- Android co-op local: priorizar 2 gamepads Bluetooth. O toque no protótipo controla P1; criar interface de dois jogadores somente se a legibilidade permanecer boa, preferindo gamepads em telas pequenas.
+- Modo ONLINE é ETAPA FUTURA: implementar salas privadas com código de 6 caracteres, WebSocket ou WebRTC com servidor de sinalização próprio, latência compensada, reconexão e sincronização autoritativa de boss/vida/projéteis. Não chamar de online funcional até haver backend e testes reais entre dois aparelhos. Jamais inserir credenciais fixas ou expor IP privado.
+- Escalar vida do chefe em 25–35% no cooperativo e garantir que ambos recebem créditos de progresso no multiplayer local.
+
+8. ARTE / CENÁRIOS / UI
+- Sprites 32x32 para heróis; chefes 80x80 ou 96x96, com visual autoral e 4 a 8 frames por fase de animação.
+- Fundo em 3 camadas parallax, sem filtros borrados; resolução interna baixa, upscale nítido. 8 cenários no planejamento: mapa, seis arenas e tela final.
+- Menu principal: Jogar Solo, Coop Local, Selecionar Arena, Opções, Créditos e Sair. Navegação via touch/gamepad/teclado.
+- Tela de seleção: cards com miniatura animada de cada chefe; bloqueio por progresso.
+- HUD minimalista: quatro corações por jogador, medidor EX 0/3, nome/barrinha do chefe, indicador do ato, pause e retomar. Fontes bitmap legíveis.
+- Opções: volume da música, SFX, tamanho controles, modo alto contraste, vibração, reduzir flashes/shake, dificuldade e idioma português.
+
+9. SOM E MÚSICA
+- Compor exclusivamente música nova: swing eletrônico/chiptune com acordeon sintetizado, baixo original, percussão curta e melodias simples, sempre sem usar temas ou samples protegidos. Adicionar camada de intensidade por ato do chefe.
+- Efeitos sonoros: iniciar, pular, dash, parry, receber dano, vitória, cena de desbloqueio, magia e alerta de ataque. WebAudio procedural com volume moderado e mute.
+
+10. ANDROID / BUILD
+- O protótipo vem como HTML5 empacotado em Activity Android WebView offline. Respeitar Android 6+ no demo e preferir compatibilidade moderna ao evoluir.
+- Usar Java 17, Android Gradle Plugin 8.5.2, Gradle 8.7, compileSdk 35. Android Studio pode compilar via Assemble Project / assembleDebug.
+- O workflow `.github/workflows/build-pixel-parade-apk.yml` cria APK debug nos artifacts do GitHub Actions quando o projeto é publicado na pasta `pixel-parade/` do repositório.
+- Nome do app "Pixel Parade"; ícone original; fullscreen horizontal, sem banner externo, sem solicitação de permissões desnecessárias.
+- Verificar touchscreen e gamepad físico em hardware real. Guardar chaves de assinatura apenas em secrets do GitHub, nunca no repositório.
+
+11. QUALIDADE / ACEITE / TESTES
+- Sem erros JavaScript ou crash ao iniciar, escolher fases, morrer, reviver, finalizar e retomar.
+- 60 FPS como meta, render lógico desacoplado do tick quando necessário, delta time estável e medição real em 3 dispositivos Android distintos.
+- Hitboxes visíveis em modo debug, teste de 300 segundos por chefe, 2 jogadores juntos, multitouch, dormir/despertar Android, voltar ao jogo sem perder progresso.
+- Limite para número de projéteis e partículas, áudio liberado apenas após gesto, memória estável, nenhuma dependência remota obrigatória.
+- Manifesto sem permissões sensíveis; APK verificado por apkanalyzer ou `aapt dump badging`, checksum SHA256 documentado.
+- Salvar capturas do jogo real, não renders enganosos rotulados como gameplay.
+
+12. ORDEM DE IMPLEMENTAÇÃO
+A. Abrir o projeto incluso, executar todos os seis chefes e medir bugs/latência.
+B. Separar engine JS em módulos, padronizar animações e criar hitbox inspector.
+C. Integrar PNG dos heróis e quadros completos; animações dos seis chefes.
+D. Criar 3 fases corridas e mapa.
+E. Integrar menu/configurações, opções de acessibilidade e efeitos áudio originais.
+F. Rebalancear solo e co-op com testes automáticos.
+G. Compilar APK com Gradle no GitHub Actions e verificar o artefato REAL.
+H. Só depois implementar online com backend e testes Android-to-Android.
+
+RESTRIÇÕES DE COMUNICAÇÃO
+Não diga que implementou online, fases adicionais, sprite animação completa, mapa, boss AI avançada ou APK se ainda não existem. Mostre claramente o que foi criado, o que foi testado, o que é protótipo e o que está pendente. Priorizar jogo jogável e correto, nunca apenas mockup.
+
+ENTREGA ESPERADA
+Forneça projeto-fonte compilável com README, capturas reais, arquivo ZIP, APK debug gerado e validado, código-fonte dos sprites, instruções de build, controles e testes. Entrega é válida apenas depois da verificação de arquivos reais.
