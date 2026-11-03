@@ -1,0 +1,69 @@
+CONSTRUTOR VS CORREDORES — VISUAL STUD CLASSICO
+
+ARQUIVO
+Construtor_vs_Corredores.rbxlx
+Arquivo de lugar Roblox em XML, com código incorporado e cenário visível no editor.
+Não é necessário importar scripts manualmente.
+
+ABRIR E TESTAR
+1. No Roblox Studio, use Arquivo > Abrir do arquivo e selecione o .rbxlx.
+2. Na aba Test, inicie um servidor local com 2 jogadores (Clients and Servers).
+3. Aguarde a seleção do construtor (15s) e a preparação (8s).
+4. Um cliente recebe a câmera de construção; o outro corre pela arena.
+5. Use plataformas para conectar largada, checkpoints e chegada.
+6. Cair perde uma vida; perder as três transforma o corredor em ajudante.
+7. A chegada abre até 10s adicionais; tempo esgotado dá vitória ao construtor.
+
+CONTROLES
+Corredor: WASD, Espaço para saltar, Q ou botão DASH.
+Construtor: selecione uma peça na barra inferior, clique no mundo para colocar.
+R / botão GIRAR: gira 90 graus. Z / DESFAZER: desfaz em até 2s com reembolso de 50%.
+T / ALTURA: alterna os 3 níveis. WASD: desloca câmera. Roda do mouse: zoom.
+Em toque: catálogo e botões na tela; toque no mundo para colocar.
+As zonas próximas de largada/checkpoints/chegada são protegidas.
+
+ESCOPO
+Os seis textos do ZIP são especificações, não um projeto com scripts prontos.
+Esta entrega implementa uma base inspirada nas etapas 01–05, com um cliente
+mínimo adicional para testar a construção sem usar a Command Bar.
+Inclui configuração, módulos compartilhados, dados, pontuação, mapa procedural,
+temas, rodadas, vidas, checkpoints, dash, ajudantes, energia, catálogo de 21
+peças, validação de colocação, expiração e desfazer.
+
+PENDÊNCIAS IMPORTANTES
+- As 21 peças têm modelos próprios criados no Blender e studs nativos.
+  Os comportamentos de serras, lasers, portais, plataformas móveis e outros efeitos especiais
+  ainda NÃO têm os comportamentos da etapa 06. Há TODO_ETAPA6 no PieceService.
+- As etapas 06–10 detalhadas não estavam no ZIP. Não estão concluídas.
+- O cliente incluído é uma interface de teste; menu completo, efeitos,
+  acessibilidade completa, áudio, animações e replay ainda precisam de trabalho.
+- Sons e animações ficam silenciosos com rbxassetid://0. Não há IDs inventados.
+- A eliminação por queda funciona. Danos por peças dependem da etapa 06.
+- O cenário é reconstruído pelo MapService ao iniciar; edições manuais no
+  cenário de prévia serão substituídas ao pressionar Play.
+- Esta base precisa de validação e polimento antes de publicação pública.
+
+DADOS
+Em lugar ainda não publicado (GameId=0), o Studio funciona em memória.
+Para testar persistência, publique uma cópia de teste e habilite o acesso a
+API Services nas configurações de segurança. O DataStore usa PlayerData_v1.
+O serviço usa UpdateAsync, tentativas com backoff e trava temporária de sessão.
+Se o carregamento falhar, a sessão fica temporária e não salva sobre o dado real.
+Não habilite APIs de produção para testes que possam alterar dados reais.
+
+VALIDAÇÃO REALIZADA
+- Os 25 scripts de execução foram compilados com Luau 0.698 sem erro de sintaxe.
+- O XML final foi lido e regravado pelo rbxmk 0.9.1, preservando os 26 scripts.
+  Referências, geometria e estrutura também foram conferidas.
+- Testes com simulação local de APIs: constantes congeladas, limpeza de opções,
+  catálogo, limites de chamadas, geração de mapa, zonas, colocação, rejeições e desfazer.
+- Roblox Studio não estava disponível: execução real multiplayer, física,
+  persistência externa e apresentação em telas diferentes ainda precisam ser testadas.
+
+REVISAO VISUAL
+Biblioteca de 32 prefabs criada no Blender 4.3.2: 21 peças e 11 elementos
+de cenário. O Roblox usa geometria Part nativa exportada dessa biblioteca,
+com Plastic, SurfaceType.Studs e Inlet. Não depende de IDs de mesh ou textura.
+Lobby, largada, chegada, checkpoints, árvores, ilhas, nuvens, bancos, postes,
+troféu e oficina foram remodelados. As fotos são renders do Blender;
+a apresentação no Roblox Studio ainda precisa de inspeção dentro do motor.
