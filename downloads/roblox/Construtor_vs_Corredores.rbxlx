@@ -19571,10 +19571,11 @@ function S.damage(p,pieceId,byBuilder)
  end
 end
 local function playerFromHit(hit) local char=hit:FindFirstAncestorOfClass(&quot;Model&quot;) return char and Players:GetPlayerFromCharacter(char) end
-local function hook(obj,tag)
- if not obj:IsA(&quot;BasePart&quot;) or hooked[obj] then return end hooked[obj]=true
- table.insert(connections,obj.Touched:Connect(function(hit)
-  local p=playerFromHit(hit) if not p or not S.isAlive(p) then return end local rec=records[p] if rec.frozen then return end
+local function contact(obj,tag,p)
+  if not p or not S.isAlive(p) then return end local rec=records[p] if rec.frozen then return end
+  local root=U.getCharacterRoot(p) if not root then return end
+  local rel=obj.CFrame:PointToObjectSpace(root.Position)
+  if math.abs(rel.X)&gt;obj.Size.X/2+2 or math.abs(rel.Z)&gt;obj.Size.Z/2+2 or math.abs(rel.Y)&gt;obj.Size.Y/2+6 then return end
   if tag==&quot;KillPlane&quot; then S.damage(p,&quot;Queda&quot;)
   elseif tag==&quot;Hazard&quot; then
    local piece=obj:FindFirstAncestorOfClass(&quot;Model&quot;) or obj
@@ -19588,13 +19589,17 @@ local function hook(obj,tag)
     R.Toast:FireClient(p,&quot;Checkpoint &quot;..index..&quot; salvo!&quot;,&quot;good&quot;) R.PieceActivated:FireClient(p,&quot;checkpoint&quot;,obj.Position)
    end
   elseif tag==&quot;FinishLine&quot; then
-   if (p:GetAttribute(&quot;CheckpointIndex&quot;) or 0)&lt;#C.ARENA.CHECKPOINTS_Z then return end
+   if (p:GetAttribute(&quot;CheckpointIndex&quot;) or 0)&lt;#C.ARENA.CHECKPOINTS_Z then
+    if os.clock()&gt;(rec.finishWarnAt or 0) then rec.finishWarnAt=os.clock()+3 R.Toast:FireClient(p,&quot;Passe pelos 3 checkpoints antes de terminar.&quot;,&quot;warn&quot;) end return end
    rec.finished=true finishCount+=1 p:SetAttribute(&quot;InRound&quot;,false) Score.registerFinish(p,finishCount)
    R.ReachedFinish:FireAllClients(p.UserId,finishCount) R.Toast:FireClient(p,&quot;Chegada! Posicao #&quot;..finishCount,&quot;good&quot;) S.Finished:Fire(p,finishCount)
   elseif tag==&quot;FakeCheckpoint&quot; and os.clock()&gt;(rec.fakeAt or 0) then
    rec.fakeAt=os.clock()+2 R.PieceActivated:FireClient(p,&quot;CheckpointFalso&quot;,obj.Position) R.Toast:FireClient(p,&quot;Era um checkpoint falso!&quot;,&quot;warn&quot;)
   end
- end))
+end
+local function hook(obj,tag)
+ if not obj:IsA(&quot;BasePart&quot;) or hooked[obj] then return end hooked[obj]=true
+ table.insert(connections,obj.Touched:Connect(function(hit) contact(obj,tag,playerFromHit(hit)) end))
 end
 function S.startRound(runners)
  S.endRound() active=true finishCount=0 records={}
@@ -19635,6 +19640,11 @@ function S.init()
     local root=U.getCharacterRoot(p)
     if root then
      if root.Position.Y&lt;C.ARENA.ORIGIN.Y+C.ARENA.KILL_Y-2 then S.damage(p,&quot;Queda&quot;) end
+     if os.clock()&gt;(rec.objectiveAt or 0) then
+      rec.objectiveAt=os.clock()+.1
+      for _,obj in ipairs(CS:GetTagged(&quot;Checkpoint&quot;)) do if obj:IsA(&quot;BasePart&quot;) then contact(obj,&quot;Checkpoint&quot;,p) end end
+      for _,obj in ipairs(CS:GetTagged(&quot;FinishLine&quot;)) do if obj:IsA(&quot;BasePart&quot;) then contact(obj,&quot;FinishLine&quot;,p) end end
+     end
      local speed=Vector3.new(root.AssemblyLinearVelocity.X,0,root.AssemblyLinearVelocity.Z).Magnitude
      if speed&gt;C.RUNNER.WALKSPEED*3 and os.clock()&gt;(rec.motionUntil or 0) then rec.speedTime+=dt else rec.speedTime=0 end
      if rec.speedTime&gt;1 then rec.speedTime=0 S.respawnAtCheckpoint(p) warn(&quot;[Runner] Velocidade irregular: &quot;..p.UserId) end
@@ -20012,12 +20022,13 @@ end
 local function hideModal() if modal then modal:Destroy() modal=nil end end
 local function openModal(title,height)
  hideModal() menu.Visible=false
- modal=panel(root,UDim2.new(.9,0,0,height),UDim2.fromScale(.5,.5)) modal.AnchorPoint=Vector2.new(.5,.5) modal.ZIndex=20
- local scale=Instance.new(&quot;UIScale&quot;) scale.Scale=math.min(1,(workspace.CurrentCamera.ViewportSize.Y-24)/height) scale.Parent=modal
+ local visibleHeight=math.min(height,workspace.CurrentCamera.ViewportSize.Y-24)
+ modal=panel(root,UDim2.new(.9,0,0,visibleHeight),UDim2.fromScale(.5,.5)) modal.AnchorPoint=Vector2.new(.5,.5) modal.ZIndex=20
  local max=Instance.new(&quot;UISizeConstraint&quot;) max.MaxSize=Vector2.new(500,height) max.Parent=modal
- text(modal,title,UDim2.new(1,-70,0,40),UDim2.fromOffset(14,8),19).TextXAlignment=Enum.TextXAlignment.Left
+ local body=Instance.new(&quot;ScrollingFrame&quot;) body.Size=UDim2.fromScale(1,1) body.BackgroundTransparency=1 body.BorderSizePixel=0 body.ScrollBarThickness=3 body.ScrollingDirection=Enum.ScrollingDirection.Y body.CanvasSize=UDim2.fromOffset(0,height) body.ClipsDescendants=true body.Active=true body.Parent=modal
+ text(body,title,UDim2.new(1,-70,0,40),UDim2.fromOffset(14,8),19).TextXAlignment=Enum.TextXAlignment.Left
  button(modal,&quot;\u{d7}&quot;,UDim2.fromOffset(32,32),UDim2.new(1,-44,0,12),hideModal)
- return modal
+ return body
 end
 function UI.toast(s,kind)
  local token={} UI.token=token toast.Text=s toast.TextColor3=kind==&quot;bad&quot; and C.COLORS.DANGER or kind==&quot;good&quot; and C.COLORS.SUCCESS or fg toast.Visible=true toast.TextTransparency=1
@@ -20060,10 +20071,14 @@ function UI.dashCooldown(seconds)
  local token={} UI.dashToken=token task.spawn(function() for i=math.ceil(seconds),1,-1 do if UI.dashToken~=token then return end dash.Text=&quot;Dash \u{b7} &quot;..i task.wait(1) end dash.Text=&quot;Dash \u{b7} Q&quot; end)
 end
 function UI.showResult(d)
- result=openModal(d.winner==&quot;Runners&quot; and &quot;Corredores venceram&quot; or &quot;Construtor venceu&quot;,280)
- local lines={&quot;+&quot;..d.rewards.coins..&quot; moedas     +&quot;..d.rewards.xp..&quot; XP&quot;}
- for _,r in ipairs(d.podium) do local p=Players:GetPlayerByUserId(r.userId) table.insert(lines,&quot;#&quot;..r.place..&quot;   &quot;..(p and p.DisplayName or tostring(r.userId))..&quot;   \u{b7}   &quot;..r.points..&quot; pontos&quot;) end
- text(result,table.concat(lines,&quot;\n\n&quot;),UDim2.new(1,-32,1,-72),UDim2.fromOffset(16,60),15)
+ local content=openModal(d.winner==&quot;Runners&quot; and &quot;Corredores venceram&quot; or &quot;Construtor venceu&quot;,math.max(180,114+#d.podium*34)) result=modal
+ local reward=text(content,&quot;+&quot;..d.rewards.coins..&quot; moedas   \u{b7}   +&quot;..d.rewards.xp..&quot; XP&quot;,UDim2.new(1,-32,0,28),UDim2.fromOffset(16,58),15) reward.TextColor3=accent
+ for i,r in ipairs(d.podium) do
+  local p=Players:GetPlayerByUserId(r.userId)
+  local name=text(content,&quot;#&quot;..r.place..&quot;   &quot;..(p and p.DisplayName or tostring(r.userId)),UDim2.new(.7,-16,0,30),UDim2.fromOffset(16,100+(i-1)*34),14)
+  name.TextWrapped=false name.TextTruncate=Enum.TextTruncate.AtEnd name.TextXAlignment=Enum.TextXAlignment.Left
+  local points=text(content,r.points..&quot; pts&quot;,UDim2.new(.3,-16,0,30),UDim2.new(.7,0,0,100+(i-1)*34),13) points.TextXAlignment=Enum.TextXAlignment.Right points.TextColor3=muted
+ end
 end
 local function help()
  local m=openModal(&quot;Como jogar&quot;,320)
@@ -20071,7 +20086,7 @@ local function help()
 end
 local function shop()
  local m=openModal(&quot;Loja&quot;,485)
- text(m,&quot;Cosmeticos. Sem vantagens na corrida.&quot;,UDim2.new(1,-32,0,28),UDim2.fromOffset(16,53),12).TextColor3=muted
+ UI.shopBalance=text(m,&quot;Saldo: &quot;..tostring(UI.coins or 0)..&quot; moedas \u{b7} Apenas cosmeticos&quot;,UDim2.new(1,-32,0,28),UDim2.fromOffset(16,53),12) UI.shopBalance.TextColor3=muted
  for i,d in ipairs(require(RS.Modules.PassCatalog)) do
   local b=button(m,d.name..&quot; \u{b7} &quot;..(d.id&gt;0 and &quot;Ver preco&quot; or &quot;Em breve&quot;),UDim2.new(1,-32,0,44),UDim2.fromOffset(16,94+(i-1)*88),function()
    if Players.LocalPlayer:GetAttribute(d.attribute) then UI.toast(&quot;Voce ja possui este passe.&quot;,&quot;info&quot;) return end
@@ -20116,7 +20131,7 @@ function UI.init(callbacks)
  for i,item in ipairs({{&quot;Girar \u{b7} R&quot;,function() actions.rotate() end},{&quot;Altura \u{b7} T&quot;,function() actions.height() end},{&quot;Desfazer \u{b7} Z&quot;,function() RS.Remotes.UndoPiece:FireServer() end}}) do button(dock,item[1],UDim2.new(.31,0,0,30),UDim2.new(.02+(i-1)*.33,0,0,32),item[2]) end
  cards=Instance.new(&quot;ScrollingFrame&quot;) cards.Size=UDim2.new(1,-20,0,57) cards.Position=UDim2.fromOffset(10,70) cards.BackgroundTransparency=1 cards.BorderSizePixel=0 cards.ScrollBarThickness=3 cards.ScrollingDirection=Enum.ScrollingDirection.X cards.Parent=dock
  dash=button(root,&quot;Dash \u{b7} Q&quot;,UDim2.fromOffset(106,46),UDim2.new(1,-118,1,-70),function() RS.Remotes.UseDash:FireServer() end) dash.Visible=false
- RS.Remotes.StatsUpdate.OnClientEvent:Connect(function(d) balance.Text=tostring(d.coins or 0)..&quot; moedas \u{b7} Nivel &quot;..tostring(d.level or 1) end)
+ RS.Remotes.StatsUpdate.OnClientEvent:Connect(function(d) UI.coins=d.coins or 0 balance.Text=tostring(UI.coins)..&quot; moedas \u{b7} Nivel &quot;..tostring(d.level or 1) if UI.shopBalance and UI.shopBalance.Parent then UI.shopBalance.Text=&quot;Saldo: &quot;..tostring(UI.coins)..&quot; moedas \u{b7} Apenas cosmeticos&quot; end end)
  return UI
 end
 return UI
