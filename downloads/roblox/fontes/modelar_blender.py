@@ -135,6 +135,42 @@ for i,id in enumerate(ids):
  elif id=='CheckpointFalso':
   base(color='purple');p('Mastro',(.4,5,.4),(2,2,1),'white');p('Bandeira',(2.4,1.7,.25),(.8,3.5,1),'red',stud=True)
   p('X',(3,.15,.5),(0,.6,0),'yellow',rot=(0,45,0));p('X',(3,.15,.5),(0,.6,0),'yellow',rot=(0,-45,0))
+# Segunda passagem de acabamento: paineis, rebites e faixas de aviso.
+dims=[(8,1,8),(4,1,4),(8,1,8),(8,4,1),(8,1,8),(12,1,12),(8,1,12),(4,4,12),(8,1,8),(8,1,8),(12,4,2),(4,8,4),(8,4,4),(4,4,4),(8,1,8),(8,1,8),(4,4,4),(4,6,4),(8,1,8),(8,6,1),(8,1,8)]
+for i,id in enumerate(ids):
+ current=id;offset=((i%7)*18,0,(i//7)*20);w,h,d=dims[i]
+ if id not in ['BombaRelogio','Laser','Serra','Pendulo','MarteloEmpurrao','Ventilador','PortalTroll']:
+  for x in (-w/2+.4,w/2-.4):
+   for z in (-d/2+.3,d/2-.3):
+    p('Parafuso cromado',(.23,.16,.23),(x,h/2+.09,z),'silver','Cylinder')
+  p('Placa de serie',(min(w*.55,2.6),.35,.08),(0,-h*.22,-d/2-.05),'dark')
+  for x in (-.45,0,.45):p('Indicador',(.16,.15,.06),(x,-h*.22,-d/2-.12),'cyan',glow=True)
+  if d>=4 and h<=1:
+   for x in (-w/2+.25,w/2-.25):
+    p('Reforco',(.5,.7,d*.8),(x,-.45,0),'dark')
+   for x in (-1,0,1):p('Saida de ar',(.3,.1,1.1),(x,.56,-d/2+1.2),'dark')
+ if id in ['Serra','Espinhos','EspinhosEscondidos','Lava','Esteira']:
+  for x in range(-int(w/2)+1,int(w/2),2):p('Faixa de seguranca',(.7,.12,.6),(x,.64,-d/2+.35),'yellow',rot=(0,35,0))
+ if id=='Laser':
+  for x in (-5,5):
+   p('Painel emissor',(1.4,.6,.08),(x,-.8,-1.05),'silver')
+   for dx in (-.35,0,.35):p('Indicador',(.16,.16,.08),(x+dx,-.8,-1.12),'cyan',glow=True)
+ if id=='Serra':
+  for x in (-1.5,1.5):
+   for z in (-4.8,4.8):p('Rebite do trilho',(.3,.15,.3),(x,.34,z),'silver','Cylinder')
+  p('Motor do trilho',(1.8,.8,1.2),(0,.6,4.7),'blue',stud=True)
+ if id=='Ventilador':
+  p('Placa do motor',(.8,.4,.08),(0,.8,-.65),'silver')
+ if id=='MarteloEmpurrao':
+  for x in (-2,0,2):p('Rebite do martelo',(.3,.3,.15),(x,1,-1.6),'silver','Ball')
+ if id=='BombaRelogio':
+  for a in range(8):
+   r=a*math.tau/8;p('Cinta metalica',(.8,.25,.22),(math.cos(r)*1.65,-.25,math.sin(r)*1.65),'silver',rot=(0,-a*45,0))
+  for x in (-.45,.1,.65):p('Digito',(.2,.3,.08),(x,.05,-1.83),'white',glow=True)
+ if id=='PortalTroll':
+  for y in (-1.5,0,1.5):
+   for x in (-1.6,1.6):p('Cristal',(.42,.42,.3),(x,y,-.55),'cyan','Ball',glow=True)
+
 # Elementos de cenario, todos criados no Blender e exportados com os mesmos parametros.
 offset=(0,0,0)
 asset('Ilha')
