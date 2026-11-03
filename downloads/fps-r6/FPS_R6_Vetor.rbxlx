@@ -244,15 +244,15 @@ local function worldIdle(time)
  return CFrame.new()
 end
 function A.WorldBase(torso)
- -- Two-hand shoulder-ready silhouette (the left shooter in the reference).
- -- A small right offset braces the rear, while the muzzle stays near centre.
- return CFrame.new(torso.Size.X*.125,torso.Size.Y*.26,-torso.Size.Z*.5-1.09)*CFrame.Angles(0,.08,0)
+ -- Right-handed stance: butt plate rests on the front of the right shoulder.
+ -- Offsets use the R6 torso, never accessory bounds.
+ return CFrame.new(torso.Size.X*.45,torso.Size.Y*.26,-torso.Size.Z*.5-1.02)
 end
 function A.WorldSample(now,phase,move,run,jump,aim)
  local steady=1-.8*aim
  return worldIdle(now)*CFrame.new(math.sin(phase)*.012*move*steady,
   math.cos(phase*2)*.012*move*steady+.035*jump+.045*aim,-.025*aim)
-  *CFrame.Angles(-.055*run+.035*jump,math.sin(phase)*.012*move*steady-.08*aim,.018*run)
+  *CFrame.Angles(-.055*run+.035*jump,math.sin(phase)*.012*move*steady,.018*run)
 end
 return A
 </ProtectedString>
@@ -823,7 +823,7 @@ function F.Build(parent,scale)
   end
  end
  local function point(name,pos) local a=Instance.new(&quot;Attachment&quot;) a.Name=name a.CFrame=CFrame.new(pos*scale) a.Parent=root return a end
- point(&quot;WorldLeftGrip&quot;,Vector3.new(-.55,-.1,-.48))
+ point(&quot;WorldLeftGrip&quot;,Vector3.new(-.58,-.08,-.24))
  point(&quot;AimPoint&quot;,Vector3.new(0,1.04,.55)) point(&quot;Muzzle&quot;,Vector3.new(0,.29,-3.38)) point(&quot;LeftGrip&quot;,Vector3.new(-.3,-.08,-.95)) point(&quot;RightGripPoint&quot;,Vector3.new(.05,-.3,.12)) point(&quot;MagazinePivot&quot;,Vector3.new(0,-.46,-.65))
  m.Parent=parent return m
 end
@@ -1021,9 +1021,9 @@ return S
 							<Item class="Attachment" referent="ASSET8">
 								<Properties>
 									<CoordinateFrame name="CFrame">
-										<X>-0.550000012</X>
-										<Y>-0.100000001</Y>
-										<Z>-0.479999989</Z>
+										<X>-0.579999983</X>
+										<Y>-0.0799999982</Y>
+										<Z>-0.239999995</Z>
 										<R00>1</R00>
 										<R01>0</R01>
 										<R02>0</R02>
@@ -5395,9 +5395,9 @@ return S
 						<Item class="Attachment" referent="ASSET167">
 							<Properties>
 								<CoordinateFrame name="CFrame">
-									<X>-0.550000012</X>
-									<Y>-0.100000001</Y>
-									<Z>-0.479999989</Z>
+									<X>-0.579999983</X>
+									<Y>-0.0799999982</Y>
+									<Z>-0.239999995</Z>
 									<R00>1</R00>
 									<R01>0</R01>
 									<R02>0</R02>

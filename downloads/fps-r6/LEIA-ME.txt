@@ -15,7 +15,7 @@ Cadencia 0.11s, recarga 1.65s, alcance 500 studs.
 
 POSE NOVA
 Idle autoral com keyframes de respiracao em AnimationController.WorldIdle.
-WorldBase coloca a arma alta no peito, com leve apoio a direita. O cano fica
+WorldBase apoia a arma no ombro direito, fora do centro do peito. O cano fica
 horizontal em Idle neutro; a elevacao segue a mira com suavizacao.
 WorldSample faz as transicoes de caminhada, corrida e salto sem deixar
 a arma caida para o chao. Corrida inclina apenas levemente o cano.
@@ -65,9 +65,11 @@ RBXLX validado e regravado com rbxmk, fontes preservadas e Luau compilado.
 Roblox Studio nao esta disponivel neste ambiente. Aparencia em avatares
 reais e replicacao em rede ainda precisam de verificacao com 2 clientes.
 
-REFERENCIA VISUAL - PEGADA DE DUAS MAOS
-Usada a postura do personagem a esquerda da imagem enviada: arma elevada,
-traseira junto ao lado direito do peito, apoio esquerdo pela frente/lateral.
-O viewmodel e o modelo original permanecem iguais. Apenas pontos invisiveis
-de apoio, offsets e orientacoes dos ombros foram ajustados nesta revisao.
-ADS compensa o pequeno angulo lateral do Idle para alinhar o cano a frente.
+POSTURA FINAL: ARMA NO LADO DIREITO DO PERSONAGEM
+A arma fica no lado direito anatomico (local +X), nao no centro do peito.
+A placa da coronha repousa na frente do ombro direito. O cano segue em
+frente, horizontal em Idle neutro. Nao ha mais angulo lateral compensatorio.
+Mao direita no cabo; a esquerda cruza pela frente para apoiar a arma.
+A pose de R6 e estilizada com membros rigidos, preservando a skin.
+Teste exige a coronha a menos de 0.23 stud da regiao do ombro direito,
+contato das maos, ausencia de alongamento e passagem livre da mira.

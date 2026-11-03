@@ -49,15 +49,15 @@ local function worldIdle(time)
  return CFrame.new()
 end
 function A.WorldBase(torso)
- -- Two-hand shoulder-ready silhouette (the left shooter in the reference).
- -- A small right offset braces the rear, while the muzzle stays near centre.
- return CFrame.new(torso.Size.X*.125,torso.Size.Y*.26,-torso.Size.Z*.5-1.09)*CFrame.Angles(0,.08,0)
+ -- Right-handed stance: butt plate rests on the front of the right shoulder.
+ -- Offsets use the R6 torso, never accessory bounds.
+ return CFrame.new(torso.Size.X*.45,torso.Size.Y*.26,-torso.Size.Z*.5-1.02)
 end
 function A.WorldSample(now,phase,move,run,jump,aim)
  local steady=1-.8*aim
  return worldIdle(now)*CFrame.new(math.sin(phase)*.012*move*steady,
   math.cos(phase*2)*.012*move*steady+.035*jump+.045*aim,-.025*aim)
-  *CFrame.Angles(-.055*run+.035*jump,math.sin(phase)*.012*move*steady-.08*aim,.018*run)
+  *CFrame.Angles(-.055*run+.035*jump,math.sin(phase)*.012*move*steady,.018*run)
 end
 return A
 ]=] end
@@ -578,7 +578,7 @@ function F.Build(parent,scale)
   end
  end
  local function point(name,pos) local a=Instance.new("Attachment") a.Name=name a.CFrame=CFrame.new(pos*scale) a.Parent=root return a end
- point("WorldLeftGrip",Vector3.new(-.55,-.1,-.48))
+ point("WorldLeftGrip",Vector3.new(-.58,-.08,-.24))
  point("AimPoint",Vector3.new(0,1.04,.55)) point("Muzzle",Vector3.new(0,.29,-3.38)) point("LeftGrip",Vector3.new(-.3,-.08,-.95)) point("RightGripPoint",Vector3.new(.05,-.3,.12)) point("MagazinePivot",Vector3.new(0,-.46,-.65))
  m.Parent=parent return m
 end
