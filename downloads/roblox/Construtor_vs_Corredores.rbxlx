@@ -19040,6 +19040,7 @@ function D.save(p,release)
  local data=U.deepCopy(cache[p]) data.stats.timePlayed+=math.floor(os.clock()-m.joined) m.joined=os.clock() cache[p].stats.timePlayed=data.stats.timePlayed
  local accepted=false
  local ok=retry(function()
+  accepted=false
   return store:UpdateAsync(&quot;Player_&quot;..p.UserId,function(old)
    if not old or not old._session or old._session.id~=session then return nil end
    local snapshot=U.deepCopy(data)
@@ -19048,7 +19049,9 @@ function D.save(p,release)
   end)
  end)
  m.busy=false
- if not accepted then m.noSave=true end
+ if ok and not accepted then m.noSave=true if p.Parent then R.Toast:FireClient(p,&quot;Outra sessao assumiu os dados. Esta sessao nao sera salva.&quot;,&quot;warn&quot;) end end
+ if not ok and p.Parent and not m.warned then m.warned=true R.Toast:FireClient(p,&quot;Falha temporaria ao salvar. Tentaremos novamente.&quot;,&quot;warn&quot;) end
+ if ok and accepted then m.warned=false end
  return ok and accepted
 end
 function D.addCoins(p,n) if D.update(p,function(d) d.coins=math.max(0,d.coins+math.round(n)) end) then push(p) end end
