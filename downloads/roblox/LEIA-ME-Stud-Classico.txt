@@ -1,85 +1,71 @@
-CONSTRUTOR VS CORREDORES — VISUAL STUD CLASSICO
+CONSTRUTOR VS CORREDORES — R6 / INTERFACE MINIMALISTA
 
-ARQUIVO
-Construtor_vs_Corredores.rbxlx
-Arquivo de lugar Roblox em XML, com código incorporado e cenário visível no editor.
-Não é necessário importar scripts manualmente.
+ENTREGA
+Abra Construtor_vs_Corredores.rbxlx no Roblox Studio. Scripts, modelos, cenarios,
+interface e personagens sao criados pelo proprio projeto; nao precisa montar
+GUI, importar meshes nem publicar animacoes externas.
 
-ABRIR E TESTAR
-1. No Roblox Studio, use Arquivo > Abrir do arquivo e selecione o .rbxlx.
-2. Na aba Test, inicie um servidor local com 2 jogadores (Clients and Servers).
-3. Aguarde a seleção do construtor (15s) e a preparação (8s).
-4. Um cliente recebe a câmera de construção; o outro corre pela arena.
-5. Use plataformas para conectar largada, checkpoints e chegada.
-6. Cair perde uma vida; perder as três transforma o corredor em ajudante.
-7. A chegada abre até 10s adicionais; tempo esgotado dá vitória ao construtor.
+O QUE HA NESTA VERSAO
+- Rig R6 proprio, sete partes e seis Motor6D, gerado no servidor.
+- Animacoes autorais por codigo: respiracao, caminhada, salto, aceno,
+  celebracao e piscar. Cada cliente anima os personagens visiveis.
+- Cinco cenarios com caminhos jogaveis e fundos distintos: Cidade, Deserto,
+  Gelo, Lava e Espaco. A rodada sorteia um tema diferente do anterior.
+- Cidade com predios/janelas; deserto com piramides/cactos; gelo com torres;
+  lava com vulcoes/brasas; espaco com planetas/estacoes/paineis solares.
+- Lobby com percurso de treino, piso de seguranca, escada e retorno interativo.
+- As 21 pecas possuem comportamento no servidor: plataformas, degrau que
+  dissolve, plataforma movel/giratoria, esteira, serra em trilho, espinhos,
+  espinhos intermitentes, laser intermitente, pendulo, martelo de empurrao,
+  bomba com explosao, lava, trampolim, ventilador, portal com saida visivel,
+  gelo escorregadio, parede atravessavel e checkpoint falso.
+- Aviso de 1,5s antes de armar pecas. Dano usa vidas e invulnerabilidade.
+- Rodadas, checkpoints sequenciais, dash, ajudantes, pontuacao, moedas, XP,
+  ranking global, energia, limite de pecas, expiracao e desfazer.
+- HUD compacto. Loja, ajuda e opcoes ficam no menu. Catalogo de construcao
+  aparece apenas para construtor/ajudante. Modais escalam para telas menores.
+- Tres camisas com moedas. Reequipar uma camisa ja comprada nao cobra de novo.
+- Passes VIP e Rastro Neon preparados e EM BREVE, conforme escolha do criador.
 
 CONTROLES
-Corredor: WASD, Espaço para saltar, Q ou botão DASH.
-Construtor: selecione uma peça na barra inferior, clique no mundo para colocar.
-R / botão GIRAR: gira 90 graus. Z / DESFAZER: desfaz em até 2s com reembolso de 50%.
-T / ALTURA: alterna os 3 níveis. WASD: desloca câmera. Roda do mouse: zoom.
-Em toque: catálogo e botões na tela; toque no mundo para colocar.
-As zonas próximas de largada/checkpoints/chegada são protegidas.
+WASD: andar. Espaco: saltar. Q/botao: dash. G/menu: acenar.
+Construtor: clique/toque no mapa para colocar; R gira; T muda altura;
+Z desfaz dentro da janela. Rodinha/pinca aproxima camera; WASD desloca camera.
+No fim do treino, aproxime-se do marcador dourado e use a interacao de retorno.
 
-ESCOPO
-Os seis textos do ZIP são especificações, não um projeto com scripts prontos.
-Esta entrega implementa uma base inspirada nas etapas 01–05, com um cliente
-mínimo adicional para testar a construção sem usar a Command Bar.
-Inclui configuração, módulos compartilhados, dados, pontuação, mapa procedural,
-temas, rodadas, vidas, checkpoints, dash, ajudantes, energia, catálogo de 21
-peças, validação de colocação, expiração e desfazer.
+ANTES DE PUBLICAR
+Esta entrega NAO foi executada dentro do Roblox Studio neste ambiente.
+Foi verificada por compilador Luau, leitor/escritor Roblox e testes com APIs
+simuladas. Esses testes nao comprovam fisica, replicacao, renderizacao,
+controles de dispositivos ou compras reais no motor Roblox.
 
-PENDÊNCIAS IMPORTANTES
-- As 21 peças têm modelos próprios criados no Blender e studs nativos.
-  Os comportamentos de serras, lasers, portais, plataformas móveis e outros efeitos especiais
-  ainda NÃO têm os comportamentos da etapa 06. Há TODO_ETAPA6 no PieceService.
-- As etapas 06–10 detalhadas não estavam no ZIP. Não estão concluídas.
-- O cliente incluído é uma interface de teste; menu completo, efeitos,
-  acessibilidade completa, áudio, animações e replay ainda precisam de trabalho.
-- Sons e animações ficam silenciosos com rbxassetid://0. Não há IDs inventados.
-- A eliminação por queda funciona. Danos por peças dependem da etapa 06.
-- O cenário é reconstruído pelo MapService ao iniciar; edições manuais no
-  cenário de prévia serão substituídas ao pressionar Play.
-- Esta base precisa de validação e polimento antes de publicação pública.
+1. Abra uma copia e teste um servidor local com pelo menos 2 clientes.
+2. Complete uma rodada, teste os 3 checkpoints, queda, dash e chegada.
+3. Teste entrada tardia, saida do construtor, reset/morte e virada em ajudante.
+4. Passe pelos cinco mapas. No servidor, pode chamar:
+   require(game.ServerScriptService.Services.MapService).buildArena("Gelo")
+   Faca isso fora de rodada: trocar mapa manualmente no meio invalida gatilhos.
+5. Teste dano, empurrao, portal, bomba, movimentos e limites de construcao.
+6. Confira UI no Device Emulator, incluindo toque, menu e botoes de construcao.
+7. Publique uma copia de teste para validar salvamento e acesso a API Services.
+8. Somente depois publique a versao destinada aos jogadores.
 
-DADOS
-Em lugar ainda não publicado (GameId=0), o Studio funciona em memória.
-Para testar persistência, publique uma cópia de teste e habilite o acesso a
-API Services nas configurações de segurança. O DataStore usa PlayerData_v1.
-O serviço usa UpdateAsync, tentativas com backoff e trava temporária de sessão.
-Se o carregamento falhar, a sessão fica temporária e não salva sobre o dado real.
-Não habilite APIs de produção para testes que possam alterar dados reais.
+DADOS E MONETIZACAO
+Dados em memoria em Studio nao publicado. Para persistencia, use experiencia
+publicada com API Services disponivel. Falha ao carregar ativa sessao temporaria
+que nao sobrescreve dados reais. Dados usam UpdateAsync e trava de sessao.
+Passes usam MarketplaceService; beneficios sao concedidos apos verificar posse
+no servidor. Para ativar, crie os passes e preencha os IDs em
+ReplicatedStorage.Modules.PassCatalog. IDs atuais sao zero, sem compras.
+Camisas com moedas usam CosmeticService: preco e saldo sao validados no servidor.
+Audio e opcional: SoundBank continua sem IDs configurados; sons sao silenciosos.
+Nao ha IDs de audio, textura, mesh ou animacao inventados.
 
-VALIDAÇÃO REALIZADA
-- Os 25 scripts de execução foram compilados com Luau 0.698 sem erro de sintaxe.
-- O XML final foi lido e regravado pelo rbxmk 0.9.1, preservando os 26 scripts.
-  Referências, geometria e estrutura também foram conferidas.
-- Testes com simulação local de APIs: constantes congeladas, limpeza de opções,
-  catálogo, limites de chamadas, geração de mapa, zonas, colocação, rejeições e desfazer.
-- Roblox Studio não estava disponível: execução real multiplayer, física,
-  persistência externa e apresentação em telas diferentes ainda precisam ser testadas.
-
-REVISAO VISUAL
-Biblioteca de 32 prefabs criada no Blender 4.3.2: 21 peças e 11 elementos
-de cenário. O Roblox usa geometria Part nativa exportada dessa biblioteca,
-com Plastic, SurfaceType.Studs e Inlet. Não depende de IDs de mesh ou textura.
-Lobby, largada, chegada, checkpoints, árvores, ilhas, nuvens, bancos, postes,
-troféu e oficina foram remodelados. As fotos são renders do Blender;
-a apresentação no Roblox Studio ainda precisa de inspeção dentro do motor.
-
-REVISAO: DETALHES, INTERFACE, EFEITOS E PASSES
-Os modelos agora incluem reforcos, paineis, indicadores, parafusos e faixas.
-Interface: loja, saldo, barras de tempo/energia animadas, entrada e hover.
-Efeitos locais: particulas de colocacao/chegada, entrada elastica das pecas,
-helices e serras animadas, pulsacao de cristais e lentes. As animacoes de
-perigo sao visuais; nao implementam os comportamentos de dano da etapa 06.
-VIP e Rastro Neon sao cosmeticos e nao alteram energia, velocidade ou vidas.
-Passes ficam EM BREVE por escolha do criador. Para ativar:
-1. Publique a experiencia e crie os passes no Creator Dashboard do Roblox.
-2. Copie os IDs para ReplicatedStorage.Modules.PassCatalog (id=0 atualmente).
-3. Publique novamente e teste a loja numa copia de teste apropriada.
-Os precos vem do MarketplaceService; nao ha precos nem IDs inventados.
-A posse e consultada no servidor. Cancelamento, ID desconhecido e falha de
-API foram testados e nao concedem beneficio. Compras reais nao foram testadas.
-Previa_UI_Detalhada.png e uma ilustracao do layout, nao captura do Studio.
+LIMITES DA VALIDACAO
+- Nao afirmamos que o jogo esta livre de bugs ou pronto para publicacao publica
+  sem a verificacao no Roblox Studio descrita acima.
+- O rosto/corpo R6 usa um avatar proprio. A aparencia do catalogo do usuario
+  nao e importada automaticamente. Camisas de moedas mudam a cor do torso.
+- Renders do Blender e o diagrama da interface sao previas, nao capturas do Studio.
+- O cenario e gerado de novo em Play. Para edita-lo permanentemente, altere
+  MapArt/WorldContent/MapService, em vez de apenas mover a pre-visualizacao.
