@@ -290,14 +290,14 @@ function Controller:Cleanup()
  if active==self then
   Run:UnbindFromRenderStep(&quot;VetorFPSPre&quot;) Run:UnbindFromRenderStep(&quot;VetorFPSPost&quot;)
   local camera=workspace.CurrentCamera if camera then camera.CFrame=camera.CFrame*self.lastKick:Inverse() camera.FieldOfView=self.oldFOV or C.FOV end self.lastKick=CFrame.new()
-  Players.LocalPlayer.CameraMode=self.oldMode or Enum.CameraMode.Classic Input.MouseIconEnabled=self.oldIcon~=false Input.MouseBehavior=self.oldMouse or Enum.MouseBehavior.Default
+  Players.LocalPlayer.CameraMode=self.oldMode or Enum.CameraMode.Classic Input.MouseDeltaSensitivity=self.oldSensitivity or 1 Input.MouseIconEnabled=self.oldIcon~=false Input.MouseBehavior=self.oldMouse or Enum.MouseBehavior.Default
   self.hud:SetVisible(false) active=nil
  end
 end
 function Controller:Equip()
  if active then active:Cleanup() end self:Cleanup() active=self
  self.token+=1 self.equipped=true self.at=now() self.lastFire=-1e5 self.pending={} self.sentAim=false self.sentRun=false
- local camera=workspace.CurrentCamera self.oldFOV=camera.FieldOfView self.oldMode=Players.LocalPlayer.CameraMode self.oldMouse=Input.MouseBehavior self.oldIcon=Input.MouseIconEnabled
+ local camera=workspace.CurrentCamera self.oldFOV=camera.FieldOfView self.oldMode=Players.LocalPlayer.CameraMode self.oldMouse=Input.MouseBehavior self.oldIcon=Input.MouseIconEnabled self.oldSensitivity=Input.MouseDeltaSensitivity or 1
  Players.LocalPlayer.CameraMode=Enum.CameraMode.LockFirstPerson Input.MouseIconEnabled=false
  self.vm=View.new(camera) self.hud:SetVisible(true)
  local char=Players.LocalPlayer.Character self.character=char
@@ -336,7 +336,8 @@ function Controller:Shoot()
  R.Fire:FireServer(self.life,self.seq,camera.CFrame.Position,direction)
  local params=RaycastParams.new() params.FilterType=Enum.RaycastFilterType.Exclude params.FilterDescendantsInstances={self.character,self.vm.model} params.IgnoreWater=true
  local hit=workspace:Raycast(camera.CFrame.Position,direction*C.Range,params)
- local muzzle=self.vm.gun.Handle.Muzzle.WorldPosition Effects.Shot(muzzle,hit and hit.Position or camera.CFrame.Position+direction*C.Range)
+ local muzzle=self.vm.gun.Handle.Muzzle.WorldPosition Effects.Shot(muzzle,hit and hit.Position or camera.CFrame.Position+direction*C.Range,hit and hit.Normal or nil)
+ self.hud:Pulse()
 end
 function Controller:Step(dt)
  if active~=self or not self.vm then return end
@@ -365,7 +366,8 @@ function Controller:Step(dt)
  local camera=workspace.CurrentCamera local kick,alpha=self.vm:Step(dt,camera,{state=state,time=math.max(0,phase),speed=speed,running=running,aim=aim},Input:GetMouseDelta())
  camera.CFrame=camera.CFrame*kick self.lastKick=kick self.vm.root.CFrame=camera.CFrame
  camera.FieldOfView=self.oldFOV+(C.ADSFOV-self.oldFOV)*alpha
- self.hud:Tick(alpha) self.hud:Update(self:Ammo(),self.reserve,state,self.reloading and math.clamp(phase/C.ReloadTime,0,1) or 0,phase)
+ Input.MouseDeltaSensitivity=self.oldSensitivity*(1-.42*alpha)
+ self.hud:Tick(alpha,dt,speed,running) self.hud:Update(self:Ammo(),self.reserve,state,self.reloading and math.clamp(phase/C.ReloadTime,0,1) or 0,phase)
 end
 function Controller.attach(tool)
  local self=setmetatable({tool=tool,token=0,connections={},hidden={},pending={},life=0,revision=0,seq=0,ack=0,ammo=C.Magazine,reserve=C.Reserve,reloading=false,reloadEnd=0,inspectEnd=0,readyAt=0,equipped=false,lastKick=CFrame.new()},Controller)
@@ -408,7 +410,7 @@ return Controller
 local C=require(script.Parent.WeaponConfig)
 local H={} H.__index=H
 function H.new(actions)
- local pg=Players.LocalPlayer:WaitForChild(&quot;PlayerGui&quot;) local gui=pg:FindFirstChild(&quot;GunHUD&quot;) or Instance.new(&quot;ScreenGui&quot;) gui.Name=&quot;GunHUD&quot; gui.ResetOnSpawn=false gui.DisplayOrder=20 gui.IgnoreGuiInset=false gui.Enabled=false gui.Parent=pg
+ local pg=Players.LocalPlayer:WaitForChild(&quot;PlayerGui&quot;) local gui=pg:FindFirstChild(&quot;GunHUD&quot;) or Instance.new(&quot;ScreenGui&quot;) gui.Name=&quot;GunHUD&quot; gui.ResetOnSpawn=false gui.DisplayOrder=20 gui.IgnoreGuiInset=true gui.Enabled=false gui.Parent=pg
  local old=gui:FindFirstChild(&quot;Root&quot;) if old then old:Destroy() end
  local root=Instance.new(&quot;Frame&quot;) root.Name=&quot;Root&quot; root.Size=UDim2.fromScale(1,1) root.BackgroundTransparency=1 root.Parent=gui
  local function label(text,size,pos,fs)
@@ -421,6 +423,7 @@ function H.new(actions)
  local hint=label(&quot;R  recarregar    H  inspecionar    Shift  correr&quot;,UDim2.new(.9,0,0,22),UDim2.new(.05,0,1,-30),11) hint.TextColor3=Color3.fromRGB(151,168,187) hint.Visible=not Input.TouchEnabled
  local cross={}
  for _,v in ipairs({{-7,0,4,1},{4,0,4,1},{0,-7,1,4},{0,4,1,4}}) do local f=Instance.new(&quot;Frame&quot;) f.Size=UDim2.fromOffset(v[3],v[4]) f.Position=UDim2.new(.5,v[1],.5,v[2]) f.BackgroundColor3=Color3.fromRGB(225,240,248) f.BorderSizePixel=0 f.Parent=root table.insert(cross,f) end
+ local dot=Instance.new(&quot;Frame&quot;) dot.Name=&quot;CenterDot&quot; dot.Size=UDim2.fromOffset(2,2) dot.Position=UDim2.new(.5,-1,.5,-1) dot.BorderSizePixel=0 dot.BackgroundColor3=Color3.fromRGB(255,207,109) dot.Parent=root
  local hit=label(&quot;\u{d7}&quot;,UDim2.fromOffset(42,42),UDim2.new(.5,-21,.5,-21),32) hit.Visible=false
  local track=Instance.new(&quot;Frame&quot;) track.Size=UDim2.fromOffset(130,2) track.Position=UDim2.new(.5,-65,.6,26) track.BackgroundColor3=Color3.fromRGB(36,53,71) track.BorderSizePixel=0 track.Visible=false track.Parent=root
  local fill=Instance.new(&quot;Frame&quot;) fill.Size=UDim2.fromScale(0,1) fill.BackgroundColor3=Color3.fromRGB(76,197,214) fill.BorderSizePixel=0 fill.Parent=track
@@ -439,7 +442,7 @@ function H.new(actions)
  button(&quot;RELOAD&quot;,UDim2.new(1,-84,.5,90),actions.reload)
  button(&quot;CORRER&quot;,UDim2.new(0,20,.5,90),actions.run)
  button(&quot;INSPECT&quot;,UDim2.new(0,20,.5,30),actions.inspect)
- return setmetatable({gui=gui,root=root,ammo=ammo,status=status,debugLabel=debugLabel,hit=hit,cross=cross,track=track,fill=fill,connections=connections},H)
+ return setmetatable({gui=gui,root=root,ammo=ammo,status=status,debugLabel=debugLabel,hit=hit,cross=cross,dot=dot,bloom=0,track=track,fill=fill,connections=connections},H)
 end
 function H:SetVisible(v) self.gui.Enabled=v end
 function H:Update(ammo,reserve,state,progress,phase)
@@ -452,7 +455,17 @@ end
 function H:Hit(critical)
  self.hitAt=os.clock()+.15 self.hit.Visible=true self.hit.TextColor3=critical and Color3.fromRGB(255,192,91) or Color3.fromRGB(235,242,248)
 end
-function H:Tick(aim) if (self.hitAt or 0)&lt;os.clock() then self.hit.Visible=false end for _,f in ipairs(self.cross) do f.Visible=aim&lt;.9 end end
+function H:Pulse() self.bloom=math.min((self.bloom or 0)+3,13) end
+function H:Tick(aim,dt,speed,running)
+ dt=dt or 1/60 self.bloom=(self.bloom or 0)*math.exp(-dt*13)
+ local gap=5+math.clamp((speed or 0)/16,0,1)*4+self.bloom+(running and 6 or 0)
+ local offsets={{-gap-4,-.5},{gap,-.5},{-.5,-gap-4},{-.5,gap}}
+ for i,f in ipairs(self.cross) do
+  f.Position=UDim2.new(.5,offsets[i][1],.5,offsets[i][2]) f.BackgroundTransparency=aim f.Visible=aim&lt;.98
+ end
+ self.dot.BackgroundTransparency=aim self.dot.Visible=aim&lt;.98
+ local left=(self.hitAt or 0)-os.clock() self.hit.Visible=left&gt;0 self.hit.TextTransparency=1-math.clamp(left/.15,0,1)
+end
 function H:Destroy() for _,c in ipairs(self.connections) do c:Disconnect() end if self.root.Parent then self.root:Destroy() end end
 return H
 </ProtectedString>
@@ -513,16 +526,33 @@ end
 local function arm(joint,torso,target,dt)
  if not joint or not joint.Parent then return end
  local base=bases[joint] or joint.C0
- local shoulder=(torso.CFrame*base).Position local delta=target-shoulder if delta.Magnitude&lt;.05 then return end
+ local part=joint.Part1 if not part then return end
+ local half=part.Size.Y*.5
+ -- Solve the palm at the actual bottom of the R6 arm, not its centre.
+ local rest=torso.CFrame*base*joint.C1:Inverse()
+ local shoulder=(rest*CFrame.new(0,half,0)).Position
+ local delta=target-shoulder if delta.Magnitude&lt;.05 then return end
  local rotation=CFrame.lookAt(Vector3.zero,delta.Unit)*CFrame.Angles(math.pi/2,0,0)
- local desired=CFrame.new(target-delta.Unit)*rotation.Rotation
+ local desired=CFrame.new(target-delta.Unit*half)*rotation.Rotation
  local transform=base:Inverse()*torso.CFrame:ToObjectSpace(desired)*joint.C1
- apply(joint,transform,1-math.exp(-dt*18))
+ -- Weapon motion is already smoothed. A second arm lerp breaks palm contact.
+ apply(joint,transform,1)
 end
 function T.init(serverMode)
  if not serverMode then
-  RS:WaitForChild(&quot;FPSSystem&quot;):WaitForChild(&quot;Remotes&quot;):WaitForChild(&quot;WeaponFX&quot;).OnClientEvent:Connect(function(id,a,b)
-   if id~=Players.LocalPlayer.UserId then Effects.Shot(a,b) end
+  -- Animator.Transform is client-local; neutralize its tool/idle arm offsets
+  -- after animation evaluation, preserving the replicated server C0 pose.
+  Run.PreSimulation:Connect(function()
+   for _,player in ipairs(Players:GetPlayers()) do
+    local char=player.Character local torso=char and char:FindFirstChild(&quot;Torso&quot;) local tool=char and char:FindFirstChild(&quot;Rifle&quot;)
+    if torso and tool and tool:FindFirstChild(&quot;Handle&quot;) and tool.Handle:FindFirstChild(&quot;WorldGrip&quot;) then
+     for _,name in ipairs({&quot;Right Shoulder&quot;,&quot;Left Shoulder&quot;,&quot;Neck&quot;}) do local joint=torso:FindFirstChild(name) if joint then joint.Transform=CFrame.new() end end
+     tool.Handle.WorldGrip.Transform=CFrame.new() local mag=tool.Handle:FindFirstChild(&quot;MagazineMotor&quot;) if mag then mag.Transform=CFrame.new() end
+    end
+   end
+  end)
+  RS:WaitForChild(&quot;FPSSystem&quot;):WaitForChild(&quot;Remotes&quot;):WaitForChild(&quot;WeaponFX&quot;).OnClientEvent:Connect(function(id,a,b,normal)
+   if id~=Players.LocalPlayer.UserId then Effects.Shot(a,b,normal) end
   end)
   return
  end
@@ -545,7 +575,7 @@ function T.init(serverMode)
    r.phase+=dt*(7.5+3.5*r.runWeight)*math.clamp(speed/C.WalkSpeed,0,1.5)
    local stride=math.sin(r.phase)*(.5+.4*r.runWeight)*r.moveWeight
    local jump=r.h.FloorMaterial==Enum.Material.Air and not r.root.Anchored
-   for name,j in pairs(r.j) do if j.Parent then
+   for name,j in pairs(r.j) do if j.Parent and not (held and (name==&quot;Right Shoulder&quot; or name==&quot;Left Shoulder&quot;)) then
     local target=CFrame.new()
     if name==&quot;Right Hip&quot; then target=CFrame.Angles(jump and -.25 or stride,0,0) elseif name==&quot;Left Hip&quot; then target=CFrame.Angles(jump and .25 or -stride,0,0)
     elseif name==&quot;Right Shoulder&quot; then target=CFrame.Angles(-stride,0,.04) elseif name==&quot;Left Shoulder&quot; then target=CFrame.Angles(stride,0,-.04)
@@ -559,7 +589,7 @@ function T.init(serverMode)
     local phase=state==&quot;Reloading&quot; and now-(reloadEnd-C.ReloadTime) or state==&quot;Inspecting&quot; and now-(inspectEnd-C.InspectTime) or age
     local pose,left,mag=Anim.Sample(state,math.max(0,phase))
     if state==&quot;Running&quot; then pose=CFrame.new(.1,-.2,.1)*CFrame.Angles(-.25,.15,.15) end
-    if tool:GetAttribute(&quot;Aiming&quot;) then pose=CFrame.new(0,.65,.05)*pose end
+    if tool:GetAttribute(&quot;Aiming&quot;) then pose=CFrame.new(-.08,.18,-.12)*pose end
     local since=now-(r.char:GetAttribute(&quot;FPSLastShotAt&quot;) or -1e5) if since&gt;=0 and since&lt;.15 then pose=pose*CFrame.new(0,0,.08*math.exp(-since*25))*CFrame.Angles(.035*math.exp(-since*25),0,0) end
     r.pose=r.pose:Lerp(CFrame.Angles(tool:GetAttribute(&quot;AimPitch&quot;) or 0,0,0)*pose,alpha) r.magPose=r.magPose:Lerp(mag,alpha) if r.grip~=grip then r.grip=grip r.gripBase=grip.C0 end
     grip.Transform=CFrame.new() grip.C0=r.gripBase*r.pose
@@ -680,16 +710,41 @@ return table.freeze({
 				<Item class="ModuleScript" referent="FPS28">
 					<Properties>
 						<string name="Name">WeaponEffects</string>
-						<ProtectedString name="Source">local Debris=game:GetService(&quot;Debris&quot;) local Tween=game:GetService(&quot;TweenService&quot;)
+						<ProtectedString name="Source">-- Local, short-lived effects. No physical forces or external texture assets.
+local Debris=game:GetService(&quot;Debris&quot;) local Tween=game:GetService(&quot;TweenService&quot;)
 local E={}
-function E.Shot(a,b)
- local distance=(b-a).Magnitude
- if distance&gt;.01 then
-  local p=Instance.new(&quot;Part&quot;) p.Name=&quot;TracerVirtual&quot; p.Anchored=true p.CanCollide=false p.CanTouch=false p.CanQuery=false p.Material=Enum.Material.Neon p.Color=Color3.fromRGB(255,208,116) p.Size=Vector3.new(.025,.025,math.min(distance,500)) p.CFrame=CFrame.lookAt((a+b)/2,b) p.Parent=workspace Debris:AddItem(p,.065)
+local warm=Color3.fromRGB(255,201,104)
+local function part(name,size,cf,color,material,alpha)
+ local p=Instance.new(&quot;Part&quot;) p.Name=name p.Size=size p.CFrame=cf p.Color=color p.Material=material
+ p.Transparency=alpha or 0 p.Anchored=true p.CanCollide=false p.CanTouch=false p.CanQuery=false p.CastShadow=false p.Parent=workspace
+ return p
+end
+local function fade(p,duration,goal)
+ Tween:Create(p,TweenInfo.new(duration),goal):Play() Debris:AddItem(p,duration+.03)
+end
+function E.Shot(a,b,normal)
+ local delta=b-a if delta.Magnitude&lt;.01 then return end
+ local forward=CFrame.lookAt(a,b)
+ local tracer=part(&quot;TracerVirtual&quot;,Vector3.new(.018,.018,math.min(delta.Magnitude,500)),CFrame.lookAt((a+b)/2,b),warm,Enum.Material.Neon,.25)
+ fade(tracer,.065,{Transparency=1})
+ local flash=part(&quot;MuzzleFlash&quot;,Vector3.new(.12,.12,.38),forward*CFrame.new(0,0,-.12),warm,Enum.Material.Neon,.12)
+ flash.Shape=Enum.PartType.Ball
+ local light=Instance.new(&quot;PointLight&quot;) light.Color=warm light.Brightness=2 light.Range=7 light.Shadows=false light.Parent=flash
+ fade(flash,.045,{Transparency=1,Size=Vector3.new(.025,.025,.1)})
+ local smoke=part(&quot;MuzzleSmoke&quot;,Vector3.new(.12,.12,.18),forward*CFrame.new(0,.04,-.28),Color3.fromRGB(163,176,184),Enum.Material.SmoothPlastic,.85)
+ smoke.Shape=Enum.PartType.Ball fade(smoke,.22,{Transparency=1,Size=Vector3.new(.4,.4,.5),CFrame=forward*CFrame.new(0,.2,-.55)})
+ -- A miss ends at range and must not produce an impact floating in the sky.
+ if typeof(normal)~=&quot;Vector3&quot; or normal.Magnitude&lt;.5 then return end
+ local surface=CFrame.lookAt(b+normal*.025,b+normal)
+ local ring=part(&quot;ImpactGlow&quot;,Vector3.new(.13,.13,.025),surface,Color3.fromRGB(255,217,151),Enum.Material.Neon,.1)
+ fade(ring,.16,{Transparency=1,Size=Vector3.new(.3,.3,.025)})
+ local dust=part(&quot;ImpactDust&quot;,Vector3.new(.16,.16,.16),surface,Color3.fromRGB(167,160,143),Enum.Material.SmoothPlastic,.6)
+ dust.Shape=Enum.PartType.Ball fade(dust,.28,{Transparency=1,Size=Vector3.new(.55,.55,.55),CFrame=surface*CFrame.new(0,.12,-.22)})
+ for i=1,3 do
+  local angle=i*2.399 local offset=Vector3.new(math.cos(angle)*.25,math.sin(angle)*.25,-.35)
+  local spark=part(&quot;ImpactSpark&quot;,Vector3.new(.025,.025,.11),surface,warm,Enum.Material.Neon)
+  fade(spark,.1+i*.018,{Transparency=1,CFrame=surface*CFrame.new(offset)})
  end
- local flash=Instance.new(&quot;Part&quot;) flash.Shape=Enum.PartType.Ball flash.Size=Vector3.new(.16,.16,.16) flash.Position=a flash.Material=Enum.Material.Neon flash.Color=Color3.fromRGB(255,214,134) flash.Anchored=true flash.CanCollide=false flash.CanTouch=false flash.CanQuery=false flash.Parent=workspace Debris:AddItem(flash,.045)
- local chip=Instance.new(&quot;Part&quot;) chip.Size=Vector3.new(.08,.08,.08) chip.Position=b chip.Color=Color3.fromRGB(145,198,214) chip.Anchored=true chip.CanCollide=false chip.CanTouch=false chip.CanQuery=false chip.Parent=workspace
- Tween:Create(chip,TweenInfo.new(.2),{Transparency=1,Size=Vector3.new(.2,.2,.2)}):Play() Debris:AddItem(chip,.22)
 end
 return E
 </ProtectedString>
@@ -710,7 +765,7 @@ function F.Build(parent)
   p.Size=Vector3.new(d.size[1],d.size[2],d.size[3])
   p.CFrame=CFrame.new(d.pos[1],d.pos[2],d.pos[3])*CFrame.Angles(math.rad(d.rot[1]),math.rad(d.rot[2]),math.rad(d.rot[3]))
   if d.shape==&quot;Tube&quot; then p.Shape=Enum.PartType.Cylinder p.Size=Vector3.new(d.size[3],d.size[1],d.size[2]) p.CFrame=p.CFrame*CFrame.Angles(0,math.pi/2,0) end
-  p.Color=Color3.fromRGB(d.color[1],d.color[2],d.color[3]) p.Material=Enum.Material.SmoothPlastic p.TopSurface=Enum.SurfaceType.Smooth p.BottomSurface=Enum.SurfaceType.Smooth
+  p.Color=Color3.fromRGB(d.color[1],d.color[2],d.color[3]) p.Material=d.name==&quot;Ponto reflex&quot; and Enum.Material.Neon or Enum.Material.SmoothPlastic p.TopSurface=Enum.SurfaceType.Smooth p.BottomSurface=Enum.SurfaceType.Smooth
   p.CanCollide=false p.CanTouch=false p.CanQuery=false p.Massless=true p.Parent=m
   if d.name==&quot;Magazine&quot; then
    magazine=p p:SetAttribute(&quot;MagazinePart&quot;,true)
@@ -722,7 +777,7 @@ function F.Build(parent)
   end
  end
  local function point(name,pos) local a=Instance.new(&quot;Attachment&quot;) a.Name=name a.CFrame=CFrame.new(pos) a.Parent=root return a end
- point(&quot;AimPoint&quot;,Vector3.new(0,.78,.65)) point(&quot;Muzzle&quot;,Vector3.new(0,.29,-3.38)) point(&quot;LeftGrip&quot;,Vector3.new(-.3,-.4,-1.0)) point(&quot;RightGripPoint&quot;,Vector3.new(.05,-.45,.1)) point(&quot;MagazinePivot&quot;,Vector3.new(0,-.46,-.65))
+ point(&quot;AimPoint&quot;,Vector3.new(0,1.04,.55)) point(&quot;Muzzle&quot;,Vector3.new(0,.29,-3.38)) point(&quot;LeftGrip&quot;,Vector3.new(-.3,-.08,-.95)) point(&quot;RightGripPoint&quot;,Vector3.new(.05,-.3,.12)) point(&quot;MagazinePivot&quot;,Vector3.new(0,-.46,-.65))
  m.Parent=parent return m
 end
 function F.Mount(tool)
@@ -739,7 +794,7 @@ return F
 					<Properties>
 						<string name="Name">WeaponGeometry</string>
 						<ProtectedString name="Source">-- Exportado da modelagem original no Blender.
-return {{[&quot;name&quot;]=&quot;Receiver&quot;,[&quot;size&quot;]={0.57,0.46,1.9},[&quot;pos&quot;]={0,0.25,-0.65},[&quot;color&quot;]={48,104,135},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Upper receiver&quot;,[&quot;size&quot;]={0.62,0.14,1.45},[&quot;pos&quot;]={0,0.55,-0.55},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Chamfer frente&quot;,[&quot;size&quot;]={0.57,0.16,0.28},[&quot;pos&quot;]={0,0.51,-1.55},[&quot;color&quot;]={48,104,135},[&quot;shape&quot;]=&quot;Wedge&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Chamfer traseiro&quot;,[&quot;size&quot;]={0.57,0.16,0.28},[&quot;pos&quot;]={0,0.51,0.28},[&quot;color&quot;]={48,104,135},[&quot;shape&quot;]=&quot;Wedge&quot;,[&quot;rot&quot;]={0,180,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Handguard&quot;,[&quot;size&quot;]={0.49,0.4,0.9},[&quot;pos&quot;]={0,0.24,-1.95},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Cano virtual&quot;,[&quot;size&quot;]={0.16,0.16,0.8},[&quot;pos&quot;]={0,0.29,-2.78},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Tube&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Emissor&quot;,[&quot;size&quot;]={0.29,0.29,0.28},[&quot;pos&quot;]={0,0.29,-3.22},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Tube&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Anel frontal&quot;,[&quot;size&quot;]={0.34,0.34,0.07},[&quot;pos&quot;]={0,0.29,-3.12},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Tube&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Trilho&quot;,[&quot;size&quot;]={0.29,0.07,1.7},[&quot;pos&quot;]={0,0.66,-0.7},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Dente do trilho&quot;,[&quot;size&quot;]={0.34,0.05,0.09},[&quot;pos&quot;]={0,0.715,-1.45},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Dente do trilho&quot;,[&quot;size&quot;]={0.34,0.05,0.09},[&quot;pos&quot;]={0,0.715,-1.2},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Dente do trilho&quot;,[&quot;size&quot;]={0.34,0.05,0.09},[&quot;pos&quot;]={0,0.715,-0.95},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Dente do trilho&quot;,[&quot;size&quot;]={0.34,0.05,0.09},[&quot;pos&quot;]={0,0.715,-0.7},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Dente do trilho&quot;,[&quot;size&quot;]={0.34,0.05,0.09},[&quot;pos&quot;]={0,0.715,-0.45},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Dente do trilho&quot;,[&quot;size&quot;]={0.34,0.05,0.09},[&quot;pos&quot;]={0,0.715,-0.2},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Dente do trilho&quot;,[&quot;size&quot;]={0.34,0.05,0.09},[&quot;pos&quot;]={0,0.715,0.05},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Painel lateral&quot;,[&quot;size&quot;]={0.045,0.3,1.1},[&quot;pos&quot;]={-0.3,0.26,-0.65},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Faixa lateral&quot;,[&quot;size&quot;]={0.05,0.055,0.7},[&quot;pos&quot;]={-0.3,0.46,-0.5},[&quot;color&quot;]={235,170,62},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Parafuso&quot;,[&quot;size&quot;]={0.06,0.06,0.025},[&quot;pos&quot;]={-0.3,0.25,-1.05},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Tube&quot;,[&quot;rot&quot;]={0,90,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Parafuso&quot;,[&quot;size&quot;]={0.06,0.06,0.025},[&quot;pos&quot;]={-0.3,0.25,-0.75},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Tube&quot;,[&quot;rot&quot;]={0,90,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Parafuso&quot;,[&quot;size&quot;]={0.06,0.06,0.025},[&quot;pos&quot;]={-0.3,0.25,-0.45},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Tube&quot;,[&quot;rot&quot;]={0,90,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Parafuso&quot;,[&quot;size&quot;]={0.06,0.06,0.025},[&quot;pos&quot;]={-0.3,0.25,-0.15},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Tube&quot;,[&quot;rot&quot;]={0,90,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Janela de ventilacao&quot;,[&quot;size&quot;]={0.025,0.12,0.11},[&quot;pos&quot;]={-0.252,0.27,-2.22},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Janela de ventilacao&quot;,[&quot;size&quot;]={0.025,0.12,0.11},[&quot;pos&quot;]={-0.252,0.27,-2.02},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Janela de ventilacao&quot;,[&quot;size&quot;]={0.025,0.12,0.11},[&quot;pos&quot;]={-0.252,0.27,-1.82},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Janela de ventilacao&quot;,[&quot;size&quot;]={0.025,0.12,0.11},[&quot;pos&quot;]={-0.252,0.27,-1.62},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Painel traseiro&quot;,[&quot;size&quot;]={0.045,0.18,0.27},[&quot;pos&quot;]={-0.3,0.3,0.1},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Painel lateral&quot;,[&quot;size&quot;]={0.045,0.3,1.1},[&quot;pos&quot;]={0.3,0.26,-0.65},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Faixa lateral&quot;,[&quot;size&quot;]={0.05,0.055,0.7},[&quot;pos&quot;]={0.3,0.46,-0.5},[&quot;color&quot;]={235,170,62},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Parafuso&quot;,[&quot;size&quot;]={0.06,0.06,0.025},[&quot;pos&quot;]={0.3,0.25,-1.05},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Tube&quot;,[&quot;rot&quot;]={0,90,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Parafuso&quot;,[&quot;size&quot;]={0.06,0.06,0.025},[&quot;pos&quot;]={0.3,0.25,-0.75},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Tube&quot;,[&quot;rot&quot;]={0,90,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Parafuso&quot;,[&quot;size&quot;]={0.06,0.06,0.025},[&quot;pos&quot;]={0.3,0.25,-0.45},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Tube&quot;,[&quot;rot&quot;]={0,90,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Parafuso&quot;,[&quot;size&quot;]={0.06,0.06,0.025},[&quot;pos&quot;]={0.3,0.25,-0.15},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Tube&quot;,[&quot;rot&quot;]={0,90,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Janela de ventilacao&quot;,[&quot;size&quot;]={0.025,0.12,0.11},[&quot;pos&quot;]={0.252,0.27,-2.22},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Janela de ventilacao&quot;,[&quot;size&quot;]={0.025,0.12,0.11},[&quot;pos&quot;]={0.252,0.27,-2.02},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Janela de ventilacao&quot;,[&quot;size&quot;]={0.025,0.12,0.11},[&quot;pos&quot;]={0.252,0.27,-1.82},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Janela de ventilacao&quot;,[&quot;size&quot;]={0.025,0.12,0.11},[&quot;pos&quot;]={0.252,0.27,-1.62},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Painel traseiro&quot;,[&quot;size&quot;]={0.045,0.18,0.27},[&quot;pos&quot;]={0.3,0.3,0.1},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Coronha&quot;,[&quot;size&quot;]={0.38,0.34,0.65},[&quot;pos&quot;]={0,0.2,0.77},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Haste da coronha&quot;,[&quot;size&quot;]={0.24,0.19,0.4},[&quot;pos&quot;]={0,0.32,0.33},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Ombreira&quot;,[&quot;size&quot;]={0.44,0.57,0.12},[&quot;pos&quot;]={0,0.13,1.16},[&quot;color&quot;]={48,55,62},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Textura ombreira&quot;,[&quot;size&quot;]={0.46,0.035,0.13},[&quot;pos&quot;]={0,-0.04,1.17},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Textura ombreira&quot;,[&quot;size&quot;]={0.46,0.035,0.13},[&quot;pos&quot;]={0,0.08,1.17},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Textura ombreira&quot;,[&quot;size&quot;]={0.46,0.035,0.13},[&quot;pos&quot;]={0,0.2,1.17},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Textura ombreira&quot;,[&quot;size&quot;]={0.46,0.035,0.13},[&quot;pos&quot;]={0,0.32,1.17},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Cabo&quot;,[&quot;size&quot;]={0.33,0.58,0.36},[&quot;pos&quot;]={0,-0.34,0.12},[&quot;color&quot;]={48,55,62},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={-10,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Relevo cabo&quot;,[&quot;size&quot;]={0.35,0.035,0.34},[&quot;pos&quot;]={0,-0.5,0.13},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Relevo cabo&quot;,[&quot;size&quot;]={0.35,0.035,0.34},[&quot;pos&quot;]={0,-0.38,0.13},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Relevo cabo&quot;,[&quot;size&quot;]={0.35,0.035,0.34},[&quot;pos&quot;]={0,-0.26,0.13},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Guarda inferior&quot;,[&quot;size&quot;]={0.34,0.055,0.43},[&quot;pos&quot;]={0,-0.25,-0.22},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Guarda frontal&quot;,[&quot;size&quot;]={0.34,0.2,0.055},[&quot;pos&quot;]={0,-0.13,-0.42},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Magazine&quot;,[&quot;size&quot;]={0.39,0.63,0.53},[&quot;pos&quot;]={0,-0.46,-0.65},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Mag&quot;},{[&quot;name&quot;]=&quot;Rib magazine&quot;,[&quot;size&quot;]={0.035,0.045,0.48},[&quot;pos&quot;]={-0.205,-0.65,-0.65},[&quot;color&quot;]={48,55,62},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Mag&quot;},{[&quot;name&quot;]=&quot;Rib magazine&quot;,[&quot;size&quot;]={0.035,0.045,0.48},[&quot;pos&quot;]={-0.205,-0.48,-0.65},[&quot;color&quot;]={48,55,62},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Mag&quot;},{[&quot;name&quot;]=&quot;Rib magazine&quot;,[&quot;size&quot;]={0.035,0.045,0.48},[&quot;pos&quot;]={-0.205,-0.31,-0.65},[&quot;color&quot;]={48,55,62},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Mag&quot;},{[&quot;name&quot;]=&quot;Rib magazine&quot;,[&quot;size&quot;]={0.035,0.045,0.48},[&quot;pos&quot;]={0.205,-0.65,-0.65},[&quot;color&quot;]={48,55,62},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Mag&quot;},{[&quot;name&quot;]=&quot;Rib magazine&quot;,[&quot;size&quot;]={0.035,0.045,0.48},[&quot;pos&quot;]={0.205,-0.48,-0.65},[&quot;color&quot;]={48,55,62},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Mag&quot;},{[&quot;name&quot;]=&quot;Rib magazine&quot;,[&quot;size&quot;]={0.035,0.045,0.48},[&quot;pos&quot;]={0.205,-0.31,-0.65},[&quot;color&quot;]={48,55,62},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Mag&quot;},{[&quot;name&quot;]=&quot;Base magazine&quot;,[&quot;size&quot;]={0.44,0.08,0.56},[&quot;pos&quot;]={0,-0.8,-0.65},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Mag&quot;},{[&quot;name&quot;]=&quot;Mira traseira&quot;,[&quot;size&quot;]={0.37,0.09,0.22},[&quot;pos&quot;]={0,0.71,0.15},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Mira lateral&quot;,[&quot;size&quot;]={0.065,0.17,0.12},[&quot;pos&quot;]={-0.13,0.79,0.15},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Mira lateral&quot;,[&quot;size&quot;]={0.065,0.17,0.12},[&quot;pos&quot;]={0.13,0.79,0.15},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Mira frontal&quot;,[&quot;size&quot;]={0.06,0.16,0.1},[&quot;pos&quot;]={0,0.79,-1.7},[&quot;color&quot;]={235,170,62},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Suporte da mira&quot;,[&quot;size&quot;]={0.18,0.25,0.24},[&quot;pos&quot;]={0,0.56,-1.7},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Moldura frontal&quot;,[&quot;size&quot;]={0.25,0.07,0.2},[&quot;pos&quot;]={0,0.7,-1.7},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;}}
+return {{[&quot;name&quot;]=&quot;Receiver&quot;,[&quot;size&quot;]={0.57,0.46,1.9},[&quot;pos&quot;]={0,0.25,-0.65},[&quot;color&quot;]={48,104,135},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Upper receiver&quot;,[&quot;size&quot;]={0.62,0.14,1.45},[&quot;pos&quot;]={0,0.55,-0.55},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Chamfer frente&quot;,[&quot;size&quot;]={0.57,0.16,0.28},[&quot;pos&quot;]={0,0.51,-1.55},[&quot;color&quot;]={48,104,135},[&quot;shape&quot;]=&quot;Wedge&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Chamfer traseiro&quot;,[&quot;size&quot;]={0.57,0.16,0.28},[&quot;pos&quot;]={0,0.51,0.28},[&quot;color&quot;]={48,104,135},[&quot;shape&quot;]=&quot;Wedge&quot;,[&quot;rot&quot;]={0,180,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Handguard&quot;,[&quot;size&quot;]={0.49,0.4,0.9},[&quot;pos&quot;]={0,0.24,-1.95},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Cano virtual&quot;,[&quot;size&quot;]={0.16,0.16,0.8},[&quot;pos&quot;]={0,0.29,-2.78},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Tube&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Emissor&quot;,[&quot;size&quot;]={0.29,0.29,0.28},[&quot;pos&quot;]={0,0.29,-3.22},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Tube&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Anel frontal&quot;,[&quot;size&quot;]={0.34,0.34,0.07},[&quot;pos&quot;]={0,0.29,-3.12},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Tube&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Trilho&quot;,[&quot;size&quot;]={0.29,0.07,1.7},[&quot;pos&quot;]={0,0.66,-0.7},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Dente do trilho&quot;,[&quot;size&quot;]={0.34,0.05,0.09},[&quot;pos&quot;]={0,0.715,-1.45},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Dente do trilho&quot;,[&quot;size&quot;]={0.34,0.05,0.09},[&quot;pos&quot;]={0,0.715,-1.2},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Dente do trilho&quot;,[&quot;size&quot;]={0.34,0.05,0.09},[&quot;pos&quot;]={0,0.715,-0.95},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Dente do trilho&quot;,[&quot;size&quot;]={0.34,0.05,0.09},[&quot;pos&quot;]={0,0.715,-0.7},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Dente do trilho&quot;,[&quot;size&quot;]={0.34,0.05,0.09},[&quot;pos&quot;]={0,0.715,-0.45},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Dente do trilho&quot;,[&quot;size&quot;]={0.34,0.05,0.09},[&quot;pos&quot;]={0,0.715,-0.2},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Dente do trilho&quot;,[&quot;size&quot;]={0.34,0.05,0.09},[&quot;pos&quot;]={0,0.715,0.05},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Painel lateral&quot;,[&quot;size&quot;]={0.045,0.3,1.1},[&quot;pos&quot;]={-0.3,0.26,-0.65},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Faixa lateral&quot;,[&quot;size&quot;]={0.05,0.055,0.7},[&quot;pos&quot;]={-0.3,0.46,-0.5},[&quot;color&quot;]={235,170,62},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Parafuso&quot;,[&quot;size&quot;]={0.06,0.06,0.025},[&quot;pos&quot;]={-0.3,0.25,-1.05},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Tube&quot;,[&quot;rot&quot;]={0,90,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Parafuso&quot;,[&quot;size&quot;]={0.06,0.06,0.025},[&quot;pos&quot;]={-0.3,0.25,-0.75},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Tube&quot;,[&quot;rot&quot;]={0,90,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Parafuso&quot;,[&quot;size&quot;]={0.06,0.06,0.025},[&quot;pos&quot;]={-0.3,0.25,-0.45},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Tube&quot;,[&quot;rot&quot;]={0,90,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Parafuso&quot;,[&quot;size&quot;]={0.06,0.06,0.025},[&quot;pos&quot;]={-0.3,0.25,-0.15},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Tube&quot;,[&quot;rot&quot;]={0,90,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Janela de ventilacao&quot;,[&quot;size&quot;]={0.025,0.12,0.11},[&quot;pos&quot;]={-0.252,0.27,-2.22},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Janela de ventilacao&quot;,[&quot;size&quot;]={0.025,0.12,0.11},[&quot;pos&quot;]={-0.252,0.27,-2.02},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Janela de ventilacao&quot;,[&quot;size&quot;]={0.025,0.12,0.11},[&quot;pos&quot;]={-0.252,0.27,-1.82},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Janela de ventilacao&quot;,[&quot;size&quot;]={0.025,0.12,0.11},[&quot;pos&quot;]={-0.252,0.27,-1.62},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Painel traseiro&quot;,[&quot;size&quot;]={0.045,0.18,0.27},[&quot;pos&quot;]={-0.3,0.3,0.1},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Painel lateral&quot;,[&quot;size&quot;]={0.045,0.3,1.1},[&quot;pos&quot;]={0.3,0.26,-0.65},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Faixa lateral&quot;,[&quot;size&quot;]={0.05,0.055,0.7},[&quot;pos&quot;]={0.3,0.46,-0.5},[&quot;color&quot;]={235,170,62},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Parafuso&quot;,[&quot;size&quot;]={0.06,0.06,0.025},[&quot;pos&quot;]={0.3,0.25,-1.05},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Tube&quot;,[&quot;rot&quot;]={0,90,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Parafuso&quot;,[&quot;size&quot;]={0.06,0.06,0.025},[&quot;pos&quot;]={0.3,0.25,-0.75},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Tube&quot;,[&quot;rot&quot;]={0,90,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Parafuso&quot;,[&quot;size&quot;]={0.06,0.06,0.025},[&quot;pos&quot;]={0.3,0.25,-0.45},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Tube&quot;,[&quot;rot&quot;]={0,90,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Parafuso&quot;,[&quot;size&quot;]={0.06,0.06,0.025},[&quot;pos&quot;]={0.3,0.25,-0.15},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Tube&quot;,[&quot;rot&quot;]={0,90,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Janela de ventilacao&quot;,[&quot;size&quot;]={0.025,0.12,0.11},[&quot;pos&quot;]={0.252,0.27,-2.22},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Janela de ventilacao&quot;,[&quot;size&quot;]={0.025,0.12,0.11},[&quot;pos&quot;]={0.252,0.27,-2.02},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Janela de ventilacao&quot;,[&quot;size&quot;]={0.025,0.12,0.11},[&quot;pos&quot;]={0.252,0.27,-1.82},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Janela de ventilacao&quot;,[&quot;size&quot;]={0.025,0.12,0.11},[&quot;pos&quot;]={0.252,0.27,-1.62},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Painel traseiro&quot;,[&quot;size&quot;]={0.045,0.18,0.27},[&quot;pos&quot;]={0.3,0.3,0.1},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Coronha&quot;,[&quot;size&quot;]={0.38,0.34,0.65},[&quot;pos&quot;]={0,0.2,0.77},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Haste da coronha&quot;,[&quot;size&quot;]={0.24,0.19,0.4},[&quot;pos&quot;]={0,0.32,0.33},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Ombreira&quot;,[&quot;size&quot;]={0.44,0.57,0.12},[&quot;pos&quot;]={0,0.13,1.16},[&quot;color&quot;]={48,55,62},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Textura ombreira&quot;,[&quot;size&quot;]={0.46,0.035,0.13},[&quot;pos&quot;]={0,-0.04,1.17},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Textura ombreira&quot;,[&quot;size&quot;]={0.46,0.035,0.13},[&quot;pos&quot;]={0,0.08,1.17},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Textura ombreira&quot;,[&quot;size&quot;]={0.46,0.035,0.13},[&quot;pos&quot;]={0,0.2,1.17},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Textura ombreira&quot;,[&quot;size&quot;]={0.46,0.035,0.13},[&quot;pos&quot;]={0,0.32,1.17},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Cabo&quot;,[&quot;size&quot;]={0.33,0.58,0.36},[&quot;pos&quot;]={0,-0.34,0.12},[&quot;color&quot;]={48,55,62},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={-10,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Relevo cabo&quot;,[&quot;size&quot;]={0.35,0.035,0.34},[&quot;pos&quot;]={0,-0.5,0.13},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Relevo cabo&quot;,[&quot;size&quot;]={0.35,0.035,0.34},[&quot;pos&quot;]={0,-0.38,0.13},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Relevo cabo&quot;,[&quot;size&quot;]={0.35,0.035,0.34},[&quot;pos&quot;]={0,-0.26,0.13},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Guarda inferior&quot;,[&quot;size&quot;]={0.34,0.055,0.43},[&quot;pos&quot;]={0,-0.25,-0.22},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Guarda frontal&quot;,[&quot;size&quot;]={0.34,0.2,0.055},[&quot;pos&quot;]={0,-0.13,-0.42},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Magazine&quot;,[&quot;size&quot;]={0.39,0.63,0.53},[&quot;pos&quot;]={0,-0.46,-0.65},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Mag&quot;},{[&quot;name&quot;]=&quot;Rib magazine&quot;,[&quot;size&quot;]={0.035,0.045,0.48},[&quot;pos&quot;]={-0.205,-0.65,-0.65},[&quot;color&quot;]={48,55,62},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Mag&quot;},{[&quot;name&quot;]=&quot;Rib magazine&quot;,[&quot;size&quot;]={0.035,0.045,0.48},[&quot;pos&quot;]={-0.205,-0.48,-0.65},[&quot;color&quot;]={48,55,62},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Mag&quot;},{[&quot;name&quot;]=&quot;Rib magazine&quot;,[&quot;size&quot;]={0.035,0.045,0.48},[&quot;pos&quot;]={-0.205,-0.31,-0.65},[&quot;color&quot;]={48,55,62},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Mag&quot;},{[&quot;name&quot;]=&quot;Rib magazine&quot;,[&quot;size&quot;]={0.035,0.045,0.48},[&quot;pos&quot;]={0.205,-0.65,-0.65},[&quot;color&quot;]={48,55,62},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Mag&quot;},{[&quot;name&quot;]=&quot;Rib magazine&quot;,[&quot;size&quot;]={0.035,0.045,0.48},[&quot;pos&quot;]={0.205,-0.48,-0.65},[&quot;color&quot;]={48,55,62},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Mag&quot;},{[&quot;name&quot;]=&quot;Rib magazine&quot;,[&quot;size&quot;]={0.035,0.045,0.48},[&quot;pos&quot;]={0.205,-0.31,-0.65},[&quot;color&quot;]={48,55,62},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Mag&quot;},{[&quot;name&quot;]=&quot;Base magazine&quot;,[&quot;size&quot;]={0.44,0.08,0.56},[&quot;pos&quot;]={0,-0.8,-0.65},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Mag&quot;},{[&quot;name&quot;]=&quot;Mira traseira&quot;,[&quot;size&quot;]={0.37,0.09,0.22},[&quot;pos&quot;]={0,0.71,0.15},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Mira lateral&quot;,[&quot;size&quot;]={0.065,0.17,0.12},[&quot;pos&quot;]={-0.13,0.79,0.15},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Mira lateral&quot;,[&quot;size&quot;]={0.065,0.17,0.12},[&quot;pos&quot;]={0.13,0.79,0.15},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Mira frontal&quot;,[&quot;size&quot;]={0.06,0.16,0.1},[&quot;pos&quot;]={0,0.79,-1.7},[&quot;color&quot;]={235,170,62},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Suporte da mira&quot;,[&quot;size&quot;]={0.18,0.25,0.24},[&quot;pos&quot;]={0,0.56,-1.7},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Moldura frontal&quot;,[&quot;size&quot;]={0.25,0.07,0.2},[&quot;pos&quot;]={0,0.7,-1.7},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Base reflex&quot;,[&quot;size&quot;]={0.46,0.09,0.5},[&quot;pos&quot;]={0,0.785,-0.25},[&quot;color&quot;]={24,30,39},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Arco reflex&quot;,[&quot;size&quot;]={0.065,0.44,0.095},[&quot;pos&quot;]={-0.235,1.04,-0.25},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Arco reflex&quot;,[&quot;size&quot;]={0.065,0.44,0.095},[&quot;pos&quot;]={0.235,1.04,-0.25},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Topo reflex&quot;,[&quot;size&quot;]={0.53,0.065,0.095},[&quot;pos&quot;]={0,1.26,-0.25},[&quot;color&quot;]={36,48,67},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Ponto reflex&quot;,[&quot;size&quot;]={0.018,0.018,0.018},[&quot;pos&quot;]={0,1.04,-0.25},[&quot;color&quot;]={235,170,62},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;},{[&quot;name&quot;]=&quot;Ajuste reflex&quot;,[&quot;size&quot;]={0.1,0.13,0.17},[&quot;pos&quot;]={0.3,0.85,-0.25},[&quot;color&quot;]={151,170,184},[&quot;shape&quot;]=&quot;Block&quot;,[&quot;rot&quot;]={0,0,0},[&quot;group&quot;]=&quot;Body&quot;}}
 </ProtectedString>
 					</Properties>
 				</Item>
@@ -920,8 +975,8 @@ return S
 								<Properties>
 									<CoordinateFrame name="CFrame">
 										<X>0</X>
-										<Y>0.779999971</Y>
-										<Z>0.649999976</Z>
+										<Y>1.03999996</Y>
+										<Z>0.550000012</Z>
 										<R00>1</R00>
 										<R01>0</R01>
 										<R02>0</R02>
@@ -958,8 +1013,8 @@ return S
 								<Properties>
 									<CoordinateFrame name="CFrame">
 										<X>-0.300000012</X>
-										<Y>-0.400000006</Y>
-										<Z>-1</Z>
+										<Y>-0.0799999982</Y>
+										<Z>-0.949999988</Z>
 										<R00>1</R00>
 										<R01>0</R01>
 										<R02>0</R02>
@@ -977,8 +1032,8 @@ return S
 								<Properties>
 									<CoordinateFrame name="CFrame">
 										<X>0.0500000007</X>
-										<Y>-0.449999988</Y>
-										<Z>0.100000001</Z>
+										<Y>-0.300000012</Y>
+										<Z>0.119999997</Z>
 										<R00>1</R00>
 										<R01>0</R01>
 										<R02>0</R02>
@@ -1015,8 +1070,8 @@ return S
 								<Properties>
 									<CoordinateFrame name="C0">
 										<X>0.15774098</X>
-										<Y>-0.0446992666</Y>
-										<Z>0.896318555</Z>
+										<Y>0.105300732</Y>
+										<Z>0.916318536</Z>
 										<R00>0.99280864</R00>
 										<R01>0.119712204</R01>
 										<R02>0</R02>
@@ -1029,15 +1084,15 @@ return S
 									</CoordinateFrame>
 									<string name="Name">Right ArmJoint</string>
 									<Ref name="Part0">ASSET6</Ref>
-									<Ref name="Part1">ASSET144</Ref>
+									<Ref name="Part1">ASSET156</Ref>
 								</Properties>
 							</Item>
 							<Item class="Motor6D" referent="ASSET14">
 								<Properties>
 									<CoordinateFrame name="C0">
 										<X>-0.40774098</X>
-										<Y>-0.0350051261</Y>
-										<Z>-0.184420064</Z>
+										<Y>0.28499487</Y>
+										<Z>-0.134420067</Z>
 										<R00>0.99280864</R00>
 										<R01>-0.119712204</R01>
 										<R02>0</R02>
@@ -1050,7 +1105,7 @@ return S
 									</CoordinateFrame>
 									<string name="Name">Left ArmJoint</string>
 									<Ref name="Part0">ASSET6</Ref>
-									<Ref name="Part1">ASSET145</Ref>
+									<Ref name="Part1">ASSET157</Ref>
 								</Properties>
 							</Item>
 						</Item>
@@ -4678,14 +4733,350 @@ return S
 								</Properties>
 							</Item>
 						</Item>
+						<Item class="Part" referent="ASSET144">
+							<Properties>
+								<token name="BottomSurface">0</token>
+								<CoordinateFrame name="CFrame">
+									<X>0</X>
+									<Y>0.785000026</Y>
+									<Z>-0.25</Z>
+									<R00>1</R00>
+									<R01>0</R01>
+									<R02>0</R02>
+									<R10>0</R10>
+									<R11>1</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="CanCollide">false</bool>
+								<bool name="CanQuery">false</bool>
+								<bool name="CanTouch">false</bool>
+								<bool name="CastShadow">false</bool>
+								<string name="CollisionGroup">FPSViewModel</string>
+								<Color3uint8 name="Color3uint8">4279770663</Color3uint8>
+								<bool name="Massless">true</bool>
+								<token name="Material">272</token>
+								<string name="Name">Base reflex</string>
+								<token name="TopSurface">0</token>
+								<float name="Transparency">0</float>
+								<Vector3 name="size">
+									<X>0.460000008</X>
+									<Y>0.0900000036</Y>
+									<Z>0.5</Z>
+								</Vector3>
+							</Properties>
+							<Item class="Weld" referent="ASSET145">
+								<Properties>
+									<CoordinateFrame name="C0">
+										<X>0</X>
+										<Y>0.785000026</Y>
+										<Z>-0.25</Z>
+										<R00>1</R00>
+										<R01>0</R01>
+										<R02>0</R02>
+										<R10>0</R10>
+										<R11>1</R11>
+										<R12>0</R12>
+										<R20>0</R20>
+										<R21>0</R21>
+										<R22>1</R22>
+									</CoordinateFrame>
+									<string name="Name">Weld</string>
+									<Ref name="Part0">ASSET6</Ref>
+									<Ref name="Part1">ASSET144</Ref>
+								</Properties>
+							</Item>
+						</Item>
+						<Item class="Part" referent="ASSET146">
+							<Properties>
+								<token name="BottomSurface">0</token>
+								<CoordinateFrame name="CFrame">
+									<X>-0.234999999</X>
+									<Y>1.03999996</Y>
+									<Z>-0.25</Z>
+									<R00>1</R00>
+									<R01>0</R01>
+									<R02>0</R02>
+									<R10>0</R10>
+									<R11>1</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="CanCollide">false</bool>
+								<bool name="CanQuery">false</bool>
+								<bool name="CanTouch">false</bool>
+								<bool name="CastShadow">false</bool>
+								<string name="CollisionGroup">FPSViewModel</string>
+								<Color3uint8 name="Color3uint8">4280561731</Color3uint8>
+								<bool name="Massless">true</bool>
+								<token name="Material">272</token>
+								<string name="Name">Arco reflex</string>
+								<token name="TopSurface">0</token>
+								<float name="Transparency">0</float>
+								<Vector3 name="size">
+									<X>0.0649999976</X>
+									<Y>0.439999998</Y>
+									<Z>0.0949999988</Z>
+								</Vector3>
+							</Properties>
+							<Item class="Weld" referent="ASSET147">
+								<Properties>
+									<CoordinateFrame name="C0">
+										<X>-0.234999999</X>
+										<Y>1.03999996</Y>
+										<Z>-0.25</Z>
+										<R00>1</R00>
+										<R01>0</R01>
+										<R02>0</R02>
+										<R10>0</R10>
+										<R11>1</R11>
+										<R12>0</R12>
+										<R20>0</R20>
+										<R21>0</R21>
+										<R22>1</R22>
+									</CoordinateFrame>
+									<string name="Name">Weld</string>
+									<Ref name="Part0">ASSET6</Ref>
+									<Ref name="Part1">ASSET146</Ref>
+								</Properties>
+							</Item>
+						</Item>
+						<Item class="Part" referent="ASSET148">
+							<Properties>
+								<token name="BottomSurface">0</token>
+								<CoordinateFrame name="CFrame">
+									<X>0.234999999</X>
+									<Y>1.03999996</Y>
+									<Z>-0.25</Z>
+									<R00>1</R00>
+									<R01>0</R01>
+									<R02>0</R02>
+									<R10>0</R10>
+									<R11>1</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="CanCollide">false</bool>
+								<bool name="CanQuery">false</bool>
+								<bool name="CanTouch">false</bool>
+								<bool name="CastShadow">false</bool>
+								<string name="CollisionGroup">FPSViewModel</string>
+								<Color3uint8 name="Color3uint8">4280561731</Color3uint8>
+								<bool name="Massless">true</bool>
+								<token name="Material">272</token>
+								<string name="Name">Arco reflex</string>
+								<token name="TopSurface">0</token>
+								<float name="Transparency">0</float>
+								<Vector3 name="size">
+									<X>0.0649999976</X>
+									<Y>0.439999998</Y>
+									<Z>0.0949999988</Z>
+								</Vector3>
+							</Properties>
+							<Item class="Weld" referent="ASSET149">
+								<Properties>
+									<CoordinateFrame name="C0">
+										<X>0.234999999</X>
+										<Y>1.03999996</Y>
+										<Z>-0.25</Z>
+										<R00>1</R00>
+										<R01>0</R01>
+										<R02>0</R02>
+										<R10>0</R10>
+										<R11>1</R11>
+										<R12>0</R12>
+										<R20>0</R20>
+										<R21>0</R21>
+										<R22>1</R22>
+									</CoordinateFrame>
+									<string name="Name">Weld</string>
+									<Ref name="Part0">ASSET6</Ref>
+									<Ref name="Part1">ASSET148</Ref>
+								</Properties>
+							</Item>
+						</Item>
+						<Item class="Part" referent="ASSET150">
+							<Properties>
+								<token name="BottomSurface">0</token>
+								<CoordinateFrame name="CFrame">
+									<X>0</X>
+									<Y>1.25999999</Y>
+									<Z>-0.25</Z>
+									<R00>1</R00>
+									<R01>0</R01>
+									<R02>0</R02>
+									<R10>0</R10>
+									<R11>1</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="CanCollide">false</bool>
+								<bool name="CanQuery">false</bool>
+								<bool name="CanTouch">false</bool>
+								<bool name="CastShadow">false</bool>
+								<string name="CollisionGroup">FPSViewModel</string>
+								<Color3uint8 name="Color3uint8">4280561731</Color3uint8>
+								<bool name="Massless">true</bool>
+								<token name="Material">272</token>
+								<string name="Name">Topo reflex</string>
+								<token name="TopSurface">0</token>
+								<float name="Transparency">0</float>
+								<Vector3 name="size">
+									<X>0.529999971</X>
+									<Y>0.0649999976</Y>
+									<Z>0.0949999988</Z>
+								</Vector3>
+							</Properties>
+							<Item class="Weld" referent="ASSET151">
+								<Properties>
+									<CoordinateFrame name="C0">
+										<X>0</X>
+										<Y>1.25999999</Y>
+										<Z>-0.25</Z>
+										<R00>1</R00>
+										<R01>0</R01>
+										<R02>0</R02>
+										<R10>0</R10>
+										<R11>1</R11>
+										<R12>0</R12>
+										<R20>0</R20>
+										<R21>0</R21>
+										<R22>1</R22>
+									</CoordinateFrame>
+									<string name="Name">Weld</string>
+									<Ref name="Part0">ASSET6</Ref>
+									<Ref name="Part1">ASSET150</Ref>
+								</Properties>
+							</Item>
+						</Item>
+						<Item class="Part" referent="ASSET152">
+							<Properties>
+								<token name="BottomSurface">0</token>
+								<CoordinateFrame name="CFrame">
+									<X>0</X>
+									<Y>1.03999996</Y>
+									<Z>-0.25</Z>
+									<R00>1</R00>
+									<R01>0</R01>
+									<R02>0</R02>
+									<R10>0</R10>
+									<R11>1</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="CanCollide">false</bool>
+								<bool name="CanQuery">false</bool>
+								<bool name="CanTouch">false</bool>
+								<bool name="CastShadow">false</bool>
+								<string name="CollisionGroup">FPSViewModel</string>
+								<Color3uint8 name="Color3uint8">4293634622</Color3uint8>
+								<bool name="Massless">true</bool>
+								<token name="Material">288</token>
+								<string name="Name">Ponto reflex</string>
+								<token name="TopSurface">0</token>
+								<float name="Transparency">0</float>
+								<Vector3 name="size">
+									<X>0.0179999992</X>
+									<Y>0.0179999992</Y>
+									<Z>0.0179999992</Z>
+								</Vector3>
+							</Properties>
+							<Item class="Weld" referent="ASSET153">
+								<Properties>
+									<CoordinateFrame name="C0">
+										<X>0</X>
+										<Y>1.03999996</Y>
+										<Z>-0.25</Z>
+										<R00>1</R00>
+										<R01>0</R01>
+										<R02>0</R02>
+										<R10>0</R10>
+										<R11>1</R11>
+										<R12>0</R12>
+										<R20>0</R20>
+										<R21>0</R21>
+										<R22>1</R22>
+									</CoordinateFrame>
+									<string name="Name">Weld</string>
+									<Ref name="Part0">ASSET6</Ref>
+									<Ref name="Part1">ASSET152</Ref>
+								</Properties>
+							</Item>
+						</Item>
+						<Item class="Part" referent="ASSET154">
+							<Properties>
+								<token name="BottomSurface">0</token>
+								<CoordinateFrame name="CFrame">
+									<X>0.300000012</X>
+									<Y>0.850000024</Y>
+									<Z>-0.25</Z>
+									<R00>1</R00>
+									<R01>0</R01>
+									<R02>0</R02>
+									<R10>0</R10>
+									<R11>1</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="CanCollide">false</bool>
+								<bool name="CanQuery">false</bool>
+								<bool name="CanTouch">false</bool>
+								<bool name="CastShadow">false</bool>
+								<string name="CollisionGroup">FPSViewModel</string>
+								<Color3uint8 name="Color3uint8">4288129720</Color3uint8>
+								<bool name="Massless">true</bool>
+								<token name="Material">272</token>
+								<string name="Name">Ajuste reflex</string>
+								<token name="TopSurface">0</token>
+								<float name="Transparency">0</float>
+								<Vector3 name="size">
+									<X>0.100000001</X>
+									<Y>0.129999995</Y>
+									<Z>0.170000002</Z>
+								</Vector3>
+							</Properties>
+							<Item class="Weld" referent="ASSET155">
+								<Properties>
+									<CoordinateFrame name="C0">
+										<X>0.300000012</X>
+										<Y>0.850000024</Y>
+										<Z>-0.25</Z>
+										<R00>1</R00>
+										<R01>0</R01>
+										<R02>0</R02>
+										<R10>0</R10>
+										<R11>1</R11>
+										<R12>0</R12>
+										<R20>0</R20>
+										<R21>0</R21>
+										<R22>1</R22>
+									</CoordinateFrame>
+									<string name="Name">Weld</string>
+									<Ref name="Part0">ASSET6</Ref>
+									<Ref name="Part1">ASSET154</Ref>
+								</Properties>
+							</Item>
+						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET144">
+					<Item class="Part" referent="ASSET156">
 						<Properties>
 							<bool name="Anchored">false</bool>
 							<CoordinateFrame name="CFrame">
 								<X>0.15774098</X>
-								<Y>-0.0446992666</Y>
-								<Z>0.896318555</Z>
+								<Y>0.105300732</Y>
+								<Z>0.916318536</Z>
 								<R00>0.99280864</R00>
 								<R01>0.119712204</R01>
 								<R02>0</R02>
@@ -4714,13 +5105,13 @@ return S
 							</Vector3>
 						</Properties>
 					</Item>
-					<Item class="Part" referent="ASSET145">
+					<Item class="Part" referent="ASSET157">
 						<Properties>
 							<bool name="Anchored">false</bool>
 							<CoordinateFrame name="CFrame">
 								<X>-0.40774098</X>
-								<Y>-0.0350051261</Y>
-								<Z>-0.184420064</Z>
+								<Y>0.28499487</Y>
+								<Z>-0.134420067</Z>
 								<R00>0.99280864</R00>
 								<R01>-0.119712204</R01>
 								<R02>0</R02>
@@ -4749,7 +5140,7 @@ return S
 							</Vector3>
 						</Properties>
 					</Item>
-					<Item class="Part" referent="ASSET146">
+					<Item class="Part" referent="ASSET158">
 						<Properties>
 							<bool name="CanCollide">false</bool>
 							<bool name="CanQuery">false</bool>
@@ -4765,15 +5156,15 @@ return S
 								<Z>1</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET147">
+						<Item class="Weld" referent="ASSET159">
 							<Properties>
 								<string name="Name">Weld</string>
 								<Ref name="Part0">ASSET3</Ref>
-								<Ref name="Part1">ASSET146</Ref>
+								<Ref name="Part1">ASSET158</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET148">
+					<Item class="Part" referent="ASSET160">
 						<Properties>
 							<bool name="CanCollide">false</bool>
 							<bool name="CanQuery">false</bool>
@@ -4789,15 +5180,15 @@ return S
 								<Z>0.100000001</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET149">
+						<Item class="Weld" referent="ASSET161">
 							<Properties>
 								<string name="Name">Weld</string>
 								<Ref name="Part0">ASSET3</Ref>
-								<Ref name="Part1">ASSET148</Ref>
+								<Ref name="Part1">ASSET160</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Humanoid" referent="ASSET150">
+					<Item class="Humanoid" referent="ASSET162">
 						<Properties>
 							<bool name="AutoRotate">false</bool>
 							<token name="DisplayDistanceType">0</token>
@@ -4807,19 +5198,19 @@ return S
 							<bool name="RequiresNeck">false</bool>
 							<token name="RigType">0</token>
 						</Properties>
-						<Item class="Animator" referent="ASSET151">
+						<Item class="Animator" referent="ASSET163">
 							<Properties>
 								<string name="Name">Animator</string>
 							</Properties>
 						</Item>
 					</Item>
 				</Item>
-				<Item class="Model" referent="ASSET152">
+				<Item class="Model" referent="ASSET164">
 					<Properties>
 						<string name="Name">RifleModel</string>
-						<Ref name="PrimaryPart">ASSET153</Ref>
+						<Ref name="PrimaryPart">ASSET165</Ref>
 					</Properties>
-					<Item class="Part" referent="ASSET153">
+					<Item class="Part" referent="ASSET165">
 						<Properties>
 							<CoordinateFrame name="CFrame">
 								<X>0</X>
@@ -4848,7 +5239,7 @@ return S
 								<Z>0.25</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Motor6D" referent="ASSET154">
+						<Item class="Motor6D" referent="ASSET166">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -4865,16 +5256,16 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">MagazineMotor</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET262</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET274</Ref>
 							</Properties>
 						</Item>
-						<Item class="Attachment" referent="ASSET155">
+						<Item class="Attachment" referent="ASSET167">
 							<Properties>
 								<CoordinateFrame name="CFrame">
 									<X>0</X>
-									<Y>0.779999971</Y>
-									<Z>0.649999976</Z>
+									<Y>1.03999996</Y>
+									<Z>0.550000012</Z>
 									<R00>1</R00>
 									<R01>0</R01>
 									<R02>0</R02>
@@ -4888,7 +5279,7 @@ return S
 								<string name="Name">AimPoint</string>
 							</Properties>
 						</Item>
-						<Item class="Attachment" referent="ASSET156">
+						<Item class="Attachment" referent="ASSET168">
 							<Properties>
 								<CoordinateFrame name="CFrame">
 									<X>0</X>
@@ -4907,12 +5298,12 @@ return S
 								<string name="Name">Muzzle</string>
 							</Properties>
 						</Item>
-						<Item class="Attachment" referent="ASSET157">
+						<Item class="Attachment" referent="ASSET169">
 							<Properties>
 								<CoordinateFrame name="CFrame">
 									<X>-0.300000012</X>
-									<Y>-0.400000006</Y>
-									<Z>-1</Z>
+									<Y>-0.0799999982</Y>
+									<Z>-0.949999988</Z>
 									<R00>1</R00>
 									<R01>0</R01>
 									<R02>0</R02>
@@ -4926,12 +5317,12 @@ return S
 								<string name="Name">LeftGrip</string>
 							</Properties>
 						</Item>
-						<Item class="Attachment" referent="ASSET158">
+						<Item class="Attachment" referent="ASSET170">
 							<Properties>
 								<CoordinateFrame name="CFrame">
 									<X>0.0500000007</X>
-									<Y>-0.449999988</Y>
-									<Z>0.100000001</Z>
+									<Y>-0.300000012</Y>
+									<Z>0.119999997</Z>
 									<R00>1</R00>
 									<R01>0</R01>
 									<R02>0</R02>
@@ -4945,7 +5336,7 @@ return S
 								<string name="Name">RightGripPoint</string>
 							</Properties>
 						</Item>
-						<Item class="Attachment" referent="ASSET159">
+						<Item class="Attachment" referent="ASSET171">
 							<Properties>
 								<CoordinateFrame name="CFrame">
 									<X>0</X>
@@ -4965,7 +5356,7 @@ return S
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET160">
+					<Item class="Part" referent="ASSET172">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -4997,7 +5388,7 @@ return S
 								<Z>1.89999998</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET161">
+						<Item class="Weld" referent="ASSET173">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5014,12 +5405,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET160</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET172</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET162">
+					<Item class="Part" referent="ASSET174">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5051,7 +5442,7 @@ return S
 								<Z>1.45000005</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET163">
+						<Item class="Weld" referent="ASSET175">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5068,12 +5459,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET162</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET174</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="WedgePart" referent="ASSET164">
+					<Item class="WedgePart" referent="ASSET176">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5104,7 +5495,7 @@ return S
 								<Z>0.280000001</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET165">
+						<Item class="Weld" referent="ASSET177">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5121,12 +5512,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET164</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET176</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="WedgePart" referent="ASSET166">
+					<Item class="WedgePart" referent="ASSET178">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5157,7 +5548,7 @@ return S
 								<Z>0.280000001</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET167">
+						<Item class="Weld" referent="ASSET179">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5174,12 +5565,12 @@ return S
 									<R22>-1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET166</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET178</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET168">
+					<Item class="Part" referent="ASSET180">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5211,7 +5602,7 @@ return S
 								<Z>0.899999976</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET169">
+						<Item class="Weld" referent="ASSET181">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5228,12 +5619,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET168</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET180</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET170">
+					<Item class="Part" referent="ASSET182">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5266,7 +5657,7 @@ return S
 								<Z>0.159999996</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET171">
+						<Item class="Weld" referent="ASSET183">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5283,12 +5674,12 @@ return S
 									<R22>6.12323426e-017</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET170</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET182</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET172">
+					<Item class="Part" referent="ASSET184">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5321,7 +5712,7 @@ return S
 								<Z>0.289999992</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET173">
+						<Item class="Weld" referent="ASSET185">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5338,12 +5729,12 @@ return S
 									<R22>6.12323426e-017</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET172</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET184</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET174">
+					<Item class="Part" referent="ASSET186">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5376,7 +5767,7 @@ return S
 								<Z>0.340000004</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET175">
+						<Item class="Weld" referent="ASSET187">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5393,12 +5784,12 @@ return S
 									<R22>6.12323426e-017</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET174</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET186</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET176">
+					<Item class="Part" referent="ASSET188">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5430,7 +5821,7 @@ return S
 								<Z>1.70000005</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET177">
+						<Item class="Weld" referent="ASSET189">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5447,12 +5838,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET176</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET188</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET178">
+					<Item class="Part" referent="ASSET190">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5484,7 +5875,7 @@ return S
 								<Z>0.0900000036</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET179">
+						<Item class="Weld" referent="ASSET191">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5501,12 +5892,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET178</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET190</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET180">
+					<Item class="Part" referent="ASSET192">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5538,7 +5929,7 @@ return S
 								<Z>0.0900000036</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET181">
+						<Item class="Weld" referent="ASSET193">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5555,12 +5946,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET180</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET192</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET182">
+					<Item class="Part" referent="ASSET194">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5592,7 +5983,7 @@ return S
 								<Z>0.0900000036</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET183">
+						<Item class="Weld" referent="ASSET195">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5609,12 +6000,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET182</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET194</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET184">
+					<Item class="Part" referent="ASSET196">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5646,7 +6037,7 @@ return S
 								<Z>0.0900000036</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET185">
+						<Item class="Weld" referent="ASSET197">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5663,12 +6054,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET184</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET196</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET186">
+					<Item class="Part" referent="ASSET198">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5700,7 +6091,7 @@ return S
 								<Z>0.0900000036</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET187">
+						<Item class="Weld" referent="ASSET199">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5717,12 +6108,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET186</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET198</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET188">
+					<Item class="Part" referent="ASSET200">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5754,7 +6145,7 @@ return S
 								<Z>0.0900000036</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET189">
+						<Item class="Weld" referent="ASSET201">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5771,12 +6162,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET188</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET200</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET190">
+					<Item class="Part" referent="ASSET202">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5808,7 +6199,7 @@ return S
 								<Z>0.0900000036</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET191">
+						<Item class="Weld" referent="ASSET203">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5825,12 +6216,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET190</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET202</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET192">
+					<Item class="Part" referent="ASSET204">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5862,7 +6253,7 @@ return S
 								<Z>1.10000002</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET193">
+						<Item class="Weld" referent="ASSET205">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>-0.300000012</X>
@@ -5879,12 +6270,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET192</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET204</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET194">
+					<Item class="Part" referent="ASSET206">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5916,7 +6307,7 @@ return S
 								<Z>0.699999988</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET195">
+						<Item class="Weld" referent="ASSET207">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>-0.300000012</X>
@@ -5933,12 +6324,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET194</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET206</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET196">
+					<Item class="Part" referent="ASSET208">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5971,7 +6362,7 @@ return S
 								<Z>0.0599999987</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET197">
+						<Item class="Weld" referent="ASSET209">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>-0.300000012</X>
@@ -5988,12 +6379,12 @@ return S
 									<R22>-1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET196</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET208</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET198">
+					<Item class="Part" referent="ASSET210">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6026,7 +6417,7 @@ return S
 								<Z>0.0599999987</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET199">
+						<Item class="Weld" referent="ASSET211">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>-0.300000012</X>
@@ -6043,333 +6434,7 @@ return S
 									<R22>-1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET198</Ref>
-							</Properties>
-						</Item>
-					</Item>
-					<Item class="Part" referent="ASSET200">
-						<Properties>
-							<token name="BottomSurface">0</token>
-							<CoordinateFrame name="CFrame">
-								<X>-0.300000012</X>
-								<Y>0.25</Y>
-								<Z>-0.449999988</Z>
-								<R00>-1</R00>
-								<R01>0</R01>
-								<R02>1.22464685e-016</R02>
-								<R10>0</R10>
-								<R11>1</R11>
-								<R12>0</R12>
-								<R20>-1.22464685e-016</R20>
-								<R21>0</R21>
-								<R22>-1</R22>
-							</CoordinateFrame>
-							<bool name="CanCollide">false</bool>
-							<bool name="CanQuery">false</bool>
-							<bool name="CanTouch">false</bool>
-							<Color3uint8 name="Color3uint8">4288129720</Color3uint8>
-							<bool name="Massless">true</bool>
-							<token name="Material">272</token>
-							<string name="Name">Parafuso</string>
-							<token name="TopSurface">0</token>
-							<float name="Transparency">0</float>
-							<token name="shape">2</token>
-							<Vector3 name="size">
-								<X>0.0250000004</X>
-								<Y>0.0599999987</Y>
-								<Z>0.0599999987</Z>
-							</Vector3>
-						</Properties>
-						<Item class="Weld" referent="ASSET201">
-							<Properties>
-								<CoordinateFrame name="C0">
-									<X>-0.300000012</X>
-									<Y>0.25</Y>
-									<Z>-0.449999988</Z>
-									<R00>-1</R00>
-									<R01>0</R01>
-									<R02>1.22464685e-016</R02>
-									<R10>0</R10>
-									<R11>1</R11>
-									<R12>0</R12>
-									<R20>-1.22464685e-016</R20>
-									<R21>0</R21>
-									<R22>-1</R22>
-								</CoordinateFrame>
-								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET200</Ref>
-							</Properties>
-						</Item>
-					</Item>
-					<Item class="Part" referent="ASSET202">
-						<Properties>
-							<token name="BottomSurface">0</token>
-							<CoordinateFrame name="CFrame">
-								<X>-0.300000012</X>
-								<Y>0.25</Y>
-								<Z>-0.150000006</Z>
-								<R00>-1</R00>
-								<R01>0</R01>
-								<R02>1.22464685e-016</R02>
-								<R10>0</R10>
-								<R11>1</R11>
-								<R12>0</R12>
-								<R20>-1.22464685e-016</R20>
-								<R21>0</R21>
-								<R22>-1</R22>
-							</CoordinateFrame>
-							<bool name="CanCollide">false</bool>
-							<bool name="CanQuery">false</bool>
-							<bool name="CanTouch">false</bool>
-							<Color3uint8 name="Color3uint8">4288129720</Color3uint8>
-							<bool name="Massless">true</bool>
-							<token name="Material">272</token>
-							<string name="Name">Parafuso</string>
-							<token name="TopSurface">0</token>
-							<float name="Transparency">0</float>
-							<token name="shape">2</token>
-							<Vector3 name="size">
-								<X>0.0250000004</X>
-								<Y>0.0599999987</Y>
-								<Z>0.0599999987</Z>
-							</Vector3>
-						</Properties>
-						<Item class="Weld" referent="ASSET203">
-							<Properties>
-								<CoordinateFrame name="C0">
-									<X>-0.300000012</X>
-									<Y>0.25</Y>
-									<Z>-0.150000006</Z>
-									<R00>-1</R00>
-									<R01>0</R01>
-									<R02>1.22464685e-016</R02>
-									<R10>0</R10>
-									<R11>1</R11>
-									<R12>0</R12>
-									<R20>-1.22464685e-016</R20>
-									<R21>0</R21>
-									<R22>-1</R22>
-								</CoordinateFrame>
-								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET202</Ref>
-							</Properties>
-						</Item>
-					</Item>
-					<Item class="Part" referent="ASSET204">
-						<Properties>
-							<token name="BottomSurface">0</token>
-							<CoordinateFrame name="CFrame">
-								<X>-0.252000004</X>
-								<Y>0.270000011</Y>
-								<Z>-2.22000003</Z>
-								<R00>1</R00>
-								<R01>0</R01>
-								<R02>0</R02>
-								<R10>0</R10>
-								<R11>1</R11>
-								<R12>0</R12>
-								<R20>0</R20>
-								<R21>0</R21>
-								<R22>1</R22>
-							</CoordinateFrame>
-							<bool name="CanCollide">false</bool>
-							<bool name="CanQuery">false</bool>
-							<bool name="CanTouch">false</bool>
-							<Color3uint8 name="Color3uint8">4279770663</Color3uint8>
-							<bool name="Massless">true</bool>
-							<token name="Material">272</token>
-							<string name="Name">Janela de ventilacao</string>
-							<token name="TopSurface">0</token>
-							<float name="Transparency">0</float>
-							<Vector3 name="size">
-								<X>0.0250000004</X>
-								<Y>0.119999997</Y>
-								<Z>0.109999999</Z>
-							</Vector3>
-						</Properties>
-						<Item class="Weld" referent="ASSET205">
-							<Properties>
-								<CoordinateFrame name="C0">
-									<X>-0.252000004</X>
-									<Y>0.270000011</Y>
-									<Z>-2.22000003</Z>
-									<R00>1</R00>
-									<R01>0</R01>
-									<R02>0</R02>
-									<R10>0</R10>
-									<R11>1</R11>
-									<R12>0</R12>
-									<R20>0</R20>
-									<R21>0</R21>
-									<R22>1</R22>
-								</CoordinateFrame>
-								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET204</Ref>
-							</Properties>
-						</Item>
-					</Item>
-					<Item class="Part" referent="ASSET206">
-						<Properties>
-							<token name="BottomSurface">0</token>
-							<CoordinateFrame name="CFrame">
-								<X>-0.252000004</X>
-								<Y>0.270000011</Y>
-								<Z>-2.01999998</Z>
-								<R00>1</R00>
-								<R01>0</R01>
-								<R02>0</R02>
-								<R10>0</R10>
-								<R11>1</R11>
-								<R12>0</R12>
-								<R20>0</R20>
-								<R21>0</R21>
-								<R22>1</R22>
-							</CoordinateFrame>
-							<bool name="CanCollide">false</bool>
-							<bool name="CanQuery">false</bool>
-							<bool name="CanTouch">false</bool>
-							<Color3uint8 name="Color3uint8">4279770663</Color3uint8>
-							<bool name="Massless">true</bool>
-							<token name="Material">272</token>
-							<string name="Name">Janela de ventilacao</string>
-							<token name="TopSurface">0</token>
-							<float name="Transparency">0</float>
-							<Vector3 name="size">
-								<X>0.0250000004</X>
-								<Y>0.119999997</Y>
-								<Z>0.109999999</Z>
-							</Vector3>
-						</Properties>
-						<Item class="Weld" referent="ASSET207">
-							<Properties>
-								<CoordinateFrame name="C0">
-									<X>-0.252000004</X>
-									<Y>0.270000011</Y>
-									<Z>-2.01999998</Z>
-									<R00>1</R00>
-									<R01>0</R01>
-									<R02>0</R02>
-									<R10>0</R10>
-									<R11>1</R11>
-									<R12>0</R12>
-									<R20>0</R20>
-									<R21>0</R21>
-									<R22>1</R22>
-								</CoordinateFrame>
-								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET206</Ref>
-							</Properties>
-						</Item>
-					</Item>
-					<Item class="Part" referent="ASSET208">
-						<Properties>
-							<token name="BottomSurface">0</token>
-							<CoordinateFrame name="CFrame">
-								<X>-0.252000004</X>
-								<Y>0.270000011</Y>
-								<Z>-1.82000005</Z>
-								<R00>1</R00>
-								<R01>0</R01>
-								<R02>0</R02>
-								<R10>0</R10>
-								<R11>1</R11>
-								<R12>0</R12>
-								<R20>0</R20>
-								<R21>0</R21>
-								<R22>1</R22>
-							</CoordinateFrame>
-							<bool name="CanCollide">false</bool>
-							<bool name="CanQuery">false</bool>
-							<bool name="CanTouch">false</bool>
-							<Color3uint8 name="Color3uint8">4279770663</Color3uint8>
-							<bool name="Massless">true</bool>
-							<token name="Material">272</token>
-							<string name="Name">Janela de ventilacao</string>
-							<token name="TopSurface">0</token>
-							<float name="Transparency">0</float>
-							<Vector3 name="size">
-								<X>0.0250000004</X>
-								<Y>0.119999997</Y>
-								<Z>0.109999999</Z>
-							</Vector3>
-						</Properties>
-						<Item class="Weld" referent="ASSET209">
-							<Properties>
-								<CoordinateFrame name="C0">
-									<X>-0.252000004</X>
-									<Y>0.270000011</Y>
-									<Z>-1.82000005</Z>
-									<R00>1</R00>
-									<R01>0</R01>
-									<R02>0</R02>
-									<R10>0</R10>
-									<R11>1</R11>
-									<R12>0</R12>
-									<R20>0</R20>
-									<R21>0</R21>
-									<R22>1</R22>
-								</CoordinateFrame>
-								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET208</Ref>
-							</Properties>
-						</Item>
-					</Item>
-					<Item class="Part" referent="ASSET210">
-						<Properties>
-							<token name="BottomSurface">0</token>
-							<CoordinateFrame name="CFrame">
-								<X>-0.252000004</X>
-								<Y>0.270000011</Y>
-								<Z>-1.62</Z>
-								<R00>1</R00>
-								<R01>0</R01>
-								<R02>0</R02>
-								<R10>0</R10>
-								<R11>1</R11>
-								<R12>0</R12>
-								<R20>0</R20>
-								<R21>0</R21>
-								<R22>1</R22>
-							</CoordinateFrame>
-							<bool name="CanCollide">false</bool>
-							<bool name="CanQuery">false</bool>
-							<bool name="CanTouch">false</bool>
-							<Color3uint8 name="Color3uint8">4279770663</Color3uint8>
-							<bool name="Massless">true</bool>
-							<token name="Material">272</token>
-							<string name="Name">Janela de ventilacao</string>
-							<token name="TopSurface">0</token>
-							<float name="Transparency">0</float>
-							<Vector3 name="size">
-								<X>0.0250000004</X>
-								<Y>0.119999997</Y>
-								<Z>0.109999999</Z>
-							</Vector3>
-						</Properties>
-						<Item class="Weld" referent="ASSET211">
-							<Properties>
-								<CoordinateFrame name="C0">
-									<X>-0.252000004</X>
-									<Y>0.270000011</Y>
-									<Z>-1.62</Z>
-									<R00>1</R00>
-									<R01>0</R01>
-									<R02>0</R02>
-									<R10>0</R10>
-									<R11>1</R11>
-									<R12>0</R12>
-									<R20>0</R20>
-									<R21>0</R21>
-									<R22>1</R22>
-								</CoordinateFrame>
-								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
+								<Ref name="Part0">ASSET165</Ref>
 								<Ref name="Part1">ASSET210</Ref>
 							</Properties>
 						</Item>
@@ -6379,6 +6444,332 @@ return S
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
 								<X>-0.300000012</X>
+								<Y>0.25</Y>
+								<Z>-0.449999988</Z>
+								<R00>-1</R00>
+								<R01>0</R01>
+								<R02>1.22464685e-016</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>-1.22464685e-016</R20>
+								<R21>0</R21>
+								<R22>-1</R22>
+							</CoordinateFrame>
+							<bool name="CanCollide">false</bool>
+							<bool name="CanQuery">false</bool>
+							<bool name="CanTouch">false</bool>
+							<Color3uint8 name="Color3uint8">4288129720</Color3uint8>
+							<bool name="Massless">true</bool>
+							<token name="Material">272</token>
+							<string name="Name">Parafuso</string>
+							<token name="TopSurface">0</token>
+							<float name="Transparency">0</float>
+							<token name="shape">2</token>
+							<Vector3 name="size">
+								<X>0.0250000004</X>
+								<Y>0.0599999987</Y>
+								<Z>0.0599999987</Z>
+							</Vector3>
+						</Properties>
+						<Item class="Weld" referent="ASSET213">
+							<Properties>
+								<CoordinateFrame name="C0">
+									<X>-0.300000012</X>
+									<Y>0.25</Y>
+									<Z>-0.449999988</Z>
+									<R00>-1</R00>
+									<R01>0</R01>
+									<R02>1.22464685e-016</R02>
+									<R10>0</R10>
+									<R11>1</R11>
+									<R12>0</R12>
+									<R20>-1.22464685e-016</R20>
+									<R21>0</R21>
+									<R22>-1</R22>
+								</CoordinateFrame>
+								<string name="Name">Weld</string>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET212</Ref>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Part" referent="ASSET214">
+						<Properties>
+							<token name="BottomSurface">0</token>
+							<CoordinateFrame name="CFrame">
+								<X>-0.300000012</X>
+								<Y>0.25</Y>
+								<Z>-0.150000006</Z>
+								<R00>-1</R00>
+								<R01>0</R01>
+								<R02>1.22464685e-016</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>-1.22464685e-016</R20>
+								<R21>0</R21>
+								<R22>-1</R22>
+							</CoordinateFrame>
+							<bool name="CanCollide">false</bool>
+							<bool name="CanQuery">false</bool>
+							<bool name="CanTouch">false</bool>
+							<Color3uint8 name="Color3uint8">4288129720</Color3uint8>
+							<bool name="Massless">true</bool>
+							<token name="Material">272</token>
+							<string name="Name">Parafuso</string>
+							<token name="TopSurface">0</token>
+							<float name="Transparency">0</float>
+							<token name="shape">2</token>
+							<Vector3 name="size">
+								<X>0.0250000004</X>
+								<Y>0.0599999987</Y>
+								<Z>0.0599999987</Z>
+							</Vector3>
+						</Properties>
+						<Item class="Weld" referent="ASSET215">
+							<Properties>
+								<CoordinateFrame name="C0">
+									<X>-0.300000012</X>
+									<Y>0.25</Y>
+									<Z>-0.150000006</Z>
+									<R00>-1</R00>
+									<R01>0</R01>
+									<R02>1.22464685e-016</R02>
+									<R10>0</R10>
+									<R11>1</R11>
+									<R12>0</R12>
+									<R20>-1.22464685e-016</R20>
+									<R21>0</R21>
+									<R22>-1</R22>
+								</CoordinateFrame>
+								<string name="Name">Weld</string>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET214</Ref>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Part" referent="ASSET216">
+						<Properties>
+							<token name="BottomSurface">0</token>
+							<CoordinateFrame name="CFrame">
+								<X>-0.252000004</X>
+								<Y>0.270000011</Y>
+								<Z>-2.22000003</Z>
+								<R00>1</R00>
+								<R01>0</R01>
+								<R02>0</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>0</R20>
+								<R21>0</R21>
+								<R22>1</R22>
+							</CoordinateFrame>
+							<bool name="CanCollide">false</bool>
+							<bool name="CanQuery">false</bool>
+							<bool name="CanTouch">false</bool>
+							<Color3uint8 name="Color3uint8">4279770663</Color3uint8>
+							<bool name="Massless">true</bool>
+							<token name="Material">272</token>
+							<string name="Name">Janela de ventilacao</string>
+							<token name="TopSurface">0</token>
+							<float name="Transparency">0</float>
+							<Vector3 name="size">
+								<X>0.0250000004</X>
+								<Y>0.119999997</Y>
+								<Z>0.109999999</Z>
+							</Vector3>
+						</Properties>
+						<Item class="Weld" referent="ASSET217">
+							<Properties>
+								<CoordinateFrame name="C0">
+									<X>-0.252000004</X>
+									<Y>0.270000011</Y>
+									<Z>-2.22000003</Z>
+									<R00>1</R00>
+									<R01>0</R01>
+									<R02>0</R02>
+									<R10>0</R10>
+									<R11>1</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<string name="Name">Weld</string>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET216</Ref>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Part" referent="ASSET218">
+						<Properties>
+							<token name="BottomSurface">0</token>
+							<CoordinateFrame name="CFrame">
+								<X>-0.252000004</X>
+								<Y>0.270000011</Y>
+								<Z>-2.01999998</Z>
+								<R00>1</R00>
+								<R01>0</R01>
+								<R02>0</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>0</R20>
+								<R21>0</R21>
+								<R22>1</R22>
+							</CoordinateFrame>
+							<bool name="CanCollide">false</bool>
+							<bool name="CanQuery">false</bool>
+							<bool name="CanTouch">false</bool>
+							<Color3uint8 name="Color3uint8">4279770663</Color3uint8>
+							<bool name="Massless">true</bool>
+							<token name="Material">272</token>
+							<string name="Name">Janela de ventilacao</string>
+							<token name="TopSurface">0</token>
+							<float name="Transparency">0</float>
+							<Vector3 name="size">
+								<X>0.0250000004</X>
+								<Y>0.119999997</Y>
+								<Z>0.109999999</Z>
+							</Vector3>
+						</Properties>
+						<Item class="Weld" referent="ASSET219">
+							<Properties>
+								<CoordinateFrame name="C0">
+									<X>-0.252000004</X>
+									<Y>0.270000011</Y>
+									<Z>-2.01999998</Z>
+									<R00>1</R00>
+									<R01>0</R01>
+									<R02>0</R02>
+									<R10>0</R10>
+									<R11>1</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<string name="Name">Weld</string>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET218</Ref>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Part" referent="ASSET220">
+						<Properties>
+							<token name="BottomSurface">0</token>
+							<CoordinateFrame name="CFrame">
+								<X>-0.252000004</X>
+								<Y>0.270000011</Y>
+								<Z>-1.82000005</Z>
+								<R00>1</R00>
+								<R01>0</R01>
+								<R02>0</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>0</R20>
+								<R21>0</R21>
+								<R22>1</R22>
+							</CoordinateFrame>
+							<bool name="CanCollide">false</bool>
+							<bool name="CanQuery">false</bool>
+							<bool name="CanTouch">false</bool>
+							<Color3uint8 name="Color3uint8">4279770663</Color3uint8>
+							<bool name="Massless">true</bool>
+							<token name="Material">272</token>
+							<string name="Name">Janela de ventilacao</string>
+							<token name="TopSurface">0</token>
+							<float name="Transparency">0</float>
+							<Vector3 name="size">
+								<X>0.0250000004</X>
+								<Y>0.119999997</Y>
+								<Z>0.109999999</Z>
+							</Vector3>
+						</Properties>
+						<Item class="Weld" referent="ASSET221">
+							<Properties>
+								<CoordinateFrame name="C0">
+									<X>-0.252000004</X>
+									<Y>0.270000011</Y>
+									<Z>-1.82000005</Z>
+									<R00>1</R00>
+									<R01>0</R01>
+									<R02>0</R02>
+									<R10>0</R10>
+									<R11>1</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<string name="Name">Weld</string>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET220</Ref>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Part" referent="ASSET222">
+						<Properties>
+							<token name="BottomSurface">0</token>
+							<CoordinateFrame name="CFrame">
+								<X>-0.252000004</X>
+								<Y>0.270000011</Y>
+								<Z>-1.62</Z>
+								<R00>1</R00>
+								<R01>0</R01>
+								<R02>0</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>0</R20>
+								<R21>0</R21>
+								<R22>1</R22>
+							</CoordinateFrame>
+							<bool name="CanCollide">false</bool>
+							<bool name="CanQuery">false</bool>
+							<bool name="CanTouch">false</bool>
+							<Color3uint8 name="Color3uint8">4279770663</Color3uint8>
+							<bool name="Massless">true</bool>
+							<token name="Material">272</token>
+							<string name="Name">Janela de ventilacao</string>
+							<token name="TopSurface">0</token>
+							<float name="Transparency">0</float>
+							<Vector3 name="size">
+								<X>0.0250000004</X>
+								<Y>0.119999997</Y>
+								<Z>0.109999999</Z>
+							</Vector3>
+						</Properties>
+						<Item class="Weld" referent="ASSET223">
+							<Properties>
+								<CoordinateFrame name="C0">
+									<X>-0.252000004</X>
+									<Y>0.270000011</Y>
+									<Z>-1.62</Z>
+									<R00>1</R00>
+									<R01>0</R01>
+									<R02>0</R02>
+									<R10>0</R10>
+									<R11>1</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<string name="Name">Weld</string>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET222</Ref>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Part" referent="ASSET224">
+						<Properties>
+							<token name="BottomSurface">0</token>
+							<CoordinateFrame name="CFrame">
+								<X>-0.300000012</X>
 								<Y>0.300000012</Y>
 								<Z>0.100000001</Z>
 								<R00>1</R00>
@@ -6406,7 +6797,7 @@ return S
 								<Z>0.270000011</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET213">
+						<Item class="Weld" referent="ASSET225">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>-0.300000012</X>
@@ -6423,12 +6814,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET212</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET224</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET214">
+					<Item class="Part" referent="ASSET226">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6460,7 +6851,7 @@ return S
 								<Z>1.10000002</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET215">
+						<Item class="Weld" referent="ASSET227">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.300000012</X>
@@ -6477,12 +6868,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET214</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET226</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET216">
+					<Item class="Part" referent="ASSET228">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6514,7 +6905,7 @@ return S
 								<Z>0.699999988</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET217">
+						<Item class="Weld" referent="ASSET229">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.300000012</X>
@@ -6531,12 +6922,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET216</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET228</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET218">
+					<Item class="Part" referent="ASSET230">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6569,7 +6960,7 @@ return S
 								<Z>0.0599999987</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET219">
+						<Item class="Weld" referent="ASSET231">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.300000012</X>
@@ -6586,12 +6977,12 @@ return S
 									<R22>-1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET218</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET230</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET220">
+					<Item class="Part" referent="ASSET232">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6624,7 +7015,7 @@ return S
 								<Z>0.0599999987</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET221">
+						<Item class="Weld" referent="ASSET233">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.300000012</X>
@@ -6641,12 +7032,12 @@ return S
 									<R22>-1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET220</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET232</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET222">
+					<Item class="Part" referent="ASSET234">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6679,7 +7070,7 @@ return S
 								<Z>0.0599999987</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET223">
+						<Item class="Weld" referent="ASSET235">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.300000012</X>
@@ -6696,12 +7087,12 @@ return S
 									<R22>-1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET222</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET234</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET224">
+					<Item class="Part" referent="ASSET236">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6734,7 +7125,7 @@ return S
 								<Z>0.0599999987</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET225">
+						<Item class="Weld" referent="ASSET237">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.300000012</X>
@@ -6751,12 +7142,12 @@ return S
 									<R22>-1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET224</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET236</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET226">
+					<Item class="Part" referent="ASSET238">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6788,7 +7179,7 @@ return S
 								<Z>0.109999999</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET227">
+						<Item class="Weld" referent="ASSET239">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.252000004</X>
@@ -6805,12 +7196,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET226</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET238</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET228">
+					<Item class="Part" referent="ASSET240">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6842,7 +7233,7 @@ return S
 								<Z>0.109999999</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET229">
+						<Item class="Weld" referent="ASSET241">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.252000004</X>
@@ -6859,12 +7250,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET228</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET240</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET230">
+					<Item class="Part" referent="ASSET242">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6896,7 +7287,7 @@ return S
 								<Z>0.109999999</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET231">
+						<Item class="Weld" referent="ASSET243">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.252000004</X>
@@ -6913,12 +7304,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET230</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET242</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET232">
+					<Item class="Part" referent="ASSET244">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6950,7 +7341,7 @@ return S
 								<Z>0.109999999</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET233">
+						<Item class="Weld" referent="ASSET245">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.252000004</X>
@@ -6967,12 +7358,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET232</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET244</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET234">
+					<Item class="Part" referent="ASSET246">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7004,7 +7395,7 @@ return S
 								<Z>0.270000011</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET235">
+						<Item class="Weld" referent="ASSET247">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.300000012</X>
@@ -7021,12 +7412,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET234</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET246</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET236">
+					<Item class="Part" referent="ASSET248">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7058,7 +7449,7 @@ return S
 								<Z>0.649999976</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET237">
+						<Item class="Weld" referent="ASSET249">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -7075,12 +7466,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET236</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET248</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET238">
+					<Item class="Part" referent="ASSET250">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7112,7 +7503,7 @@ return S
 								<Z>0.400000006</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET239">
+						<Item class="Weld" referent="ASSET251">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -7129,12 +7520,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET238</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET250</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET240">
+					<Item class="Part" referent="ASSET252">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7166,7 +7557,7 @@ return S
 								<Z>0.119999997</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET241">
+						<Item class="Weld" referent="ASSET253">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -7183,12 +7574,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET240</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET252</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET242">
+					<Item class="Part" referent="ASSET254">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7220,7 +7611,7 @@ return S
 								<Z>0.129999995</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET243">
+						<Item class="Weld" referent="ASSET255">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -7237,12 +7628,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET242</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET254</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET244">
+					<Item class="Part" referent="ASSET256">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7274,7 +7665,7 @@ return S
 								<Z>0.129999995</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET245">
+						<Item class="Weld" referent="ASSET257">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -7291,12 +7682,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET244</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET256</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET246">
+					<Item class="Part" referent="ASSET258">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7328,7 +7719,7 @@ return S
 								<Z>0.129999995</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET247">
+						<Item class="Weld" referent="ASSET259">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -7345,12 +7736,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET246</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET258</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET248">
+					<Item class="Part" referent="ASSET260">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7382,7 +7773,7 @@ return S
 								<Z>0.129999995</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET249">
+						<Item class="Weld" referent="ASSET261">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -7399,12 +7790,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET248</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET260</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET250">
+					<Item class="Part" referent="ASSET262">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7436,7 +7827,7 @@ return S
 								<Z>0.360000014</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET251">
+						<Item class="Weld" referent="ASSET263">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -7453,12 +7844,12 @@ return S
 									<R22>0.98480773</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET250</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET262</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET252">
+					<Item class="Part" referent="ASSET264">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7490,7 +7881,7 @@ return S
 								<Z>0.340000004</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET253">
+						<Item class="Weld" referent="ASSET265">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -7507,12 +7898,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET252</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET264</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET254">
+					<Item class="Part" referent="ASSET266">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7544,7 +7935,7 @@ return S
 								<Z>0.340000004</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET255">
+						<Item class="Weld" referent="ASSET267">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -7561,12 +7952,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET254</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET266</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET256">
+					<Item class="Part" referent="ASSET268">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7598,7 +7989,7 @@ return S
 								<Z>0.340000004</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET257">
+						<Item class="Weld" referent="ASSET269">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -7615,12 +8006,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET256</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET268</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET258">
+					<Item class="Part" referent="ASSET270">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7652,7 +8043,7 @@ return S
 								<Z>0.430000007</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET259">
+						<Item class="Weld" referent="ASSET271">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -7669,12 +8060,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET258</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET270</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET260">
+					<Item class="Part" referent="ASSET272">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7706,7 +8097,7 @@ return S
 								<Z>0.0549999997</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET261">
+						<Item class="Weld" referent="ASSET273">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -7723,12 +8114,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET260</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET272</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET262">
+					<Item class="Part" referent="ASSET274">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7761,331 +8152,331 @@ return S
 							</Vector3>
 						</Properties>
 					</Item>
-					<Item class="Part" referent="ASSET263">
-						<Properties>
-							<token name="BottomSurface">0</token>
-							<CoordinateFrame name="CFrame">
-								<X>-0.204999998</X>
-								<Y>-0.649999976</Y>
-								<Z>-0.649999976</Z>
-								<R00>1</R00>
-								<R01>0</R01>
-								<R02>0</R02>
-								<R10>0</R10>
-								<R11>1</R11>
-								<R12>0</R12>
-								<R20>0</R20>
-								<R21>0</R21>
-								<R22>1</R22>
-							</CoordinateFrame>
-							<bool name="CanCollide">false</bool>
-							<bool name="CanQuery">false</bool>
-							<bool name="CanTouch">false</bool>
-							<Color3uint8 name="Color3uint8">4281349950</Color3uint8>
-							<bool name="Massless">true</bool>
-							<token name="Material">272</token>
-							<string name="Name">Rib magazine</string>
-							<token name="TopSurface">0</token>
-							<float name="Transparency">0</float>
-							<Vector3 name="size">
-								<X>0.0350000001</X>
-								<Y>0.0450000018</Y>
-								<Z>0.479999989</Z>
-							</Vector3>
-						</Properties>
-						<Item class="Weld" referent="ASSET264">
-							<Properties>
-								<CoordinateFrame name="C0">
-									<X>-0.204999998</X>
-									<Y>-0.189999998</Y>
-									<Z>0</Z>
-									<R00>1</R00>
-									<R01>0</R01>
-									<R02>0</R02>
-									<R10>0</R10>
-									<R11>1</R11>
-									<R12>0</R12>
-									<R20>0</R20>
-									<R21>0</R21>
-									<R22>1</R22>
-								</CoordinateFrame>
-								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET262</Ref>
-								<Ref name="Part1">ASSET263</Ref>
-							</Properties>
-						</Item>
-					</Item>
-					<Item class="Part" referent="ASSET265">
-						<Properties>
-							<token name="BottomSurface">0</token>
-							<CoordinateFrame name="CFrame">
-								<X>-0.204999998</X>
-								<Y>-0.479999989</Y>
-								<Z>-0.649999976</Z>
-								<R00>1</R00>
-								<R01>0</R01>
-								<R02>0</R02>
-								<R10>0</R10>
-								<R11>1</R11>
-								<R12>0</R12>
-								<R20>0</R20>
-								<R21>0</R21>
-								<R22>1</R22>
-							</CoordinateFrame>
-							<bool name="CanCollide">false</bool>
-							<bool name="CanQuery">false</bool>
-							<bool name="CanTouch">false</bool>
-							<Color3uint8 name="Color3uint8">4281349950</Color3uint8>
-							<bool name="Massless">true</bool>
-							<token name="Material">272</token>
-							<string name="Name">Rib magazine</string>
-							<token name="TopSurface">0</token>
-							<float name="Transparency">0</float>
-							<Vector3 name="size">
-								<X>0.0350000001</X>
-								<Y>0.0450000018</Y>
-								<Z>0.479999989</Z>
-							</Vector3>
-						</Properties>
-						<Item class="Weld" referent="ASSET266">
-							<Properties>
-								<CoordinateFrame name="C0">
-									<X>-0.204999998</X>
-									<Y>-0.0199999996</Y>
-									<Z>0</Z>
-									<R00>1</R00>
-									<R01>0</R01>
-									<R02>0</R02>
-									<R10>0</R10>
-									<R11>1</R11>
-									<R12>0</R12>
-									<R20>0</R20>
-									<R21>0</R21>
-									<R22>1</R22>
-								</CoordinateFrame>
-								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET262</Ref>
-								<Ref name="Part1">ASSET265</Ref>
-							</Properties>
-						</Item>
-					</Item>
-					<Item class="Part" referent="ASSET267">
-						<Properties>
-							<token name="BottomSurface">0</token>
-							<CoordinateFrame name="CFrame">
-								<X>-0.204999998</X>
-								<Y>-0.310000002</Y>
-								<Z>-0.649999976</Z>
-								<R00>1</R00>
-								<R01>0</R01>
-								<R02>0</R02>
-								<R10>0</R10>
-								<R11>1</R11>
-								<R12>0</R12>
-								<R20>0</R20>
-								<R21>0</R21>
-								<R22>1</R22>
-							</CoordinateFrame>
-							<bool name="CanCollide">false</bool>
-							<bool name="CanQuery">false</bool>
-							<bool name="CanTouch">false</bool>
-							<Color3uint8 name="Color3uint8">4281349950</Color3uint8>
-							<bool name="Massless">true</bool>
-							<token name="Material">272</token>
-							<string name="Name">Rib magazine</string>
-							<token name="TopSurface">0</token>
-							<float name="Transparency">0</float>
-							<Vector3 name="size">
-								<X>0.0350000001</X>
-								<Y>0.0450000018</Y>
-								<Z>0.479999989</Z>
-							</Vector3>
-						</Properties>
-						<Item class="Weld" referent="ASSET268">
-							<Properties>
-								<CoordinateFrame name="C0">
-									<X>-0.204999998</X>
-									<Y>0.150000006</Y>
-									<Z>0</Z>
-									<R00>1</R00>
-									<R01>0</R01>
-									<R02>0</R02>
-									<R10>0</R10>
-									<R11>1</R11>
-									<R12>0</R12>
-									<R20>0</R20>
-									<R21>0</R21>
-									<R22>1</R22>
-								</CoordinateFrame>
-								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET262</Ref>
-								<Ref name="Part1">ASSET267</Ref>
-							</Properties>
-						</Item>
-					</Item>
-					<Item class="Part" referent="ASSET269">
-						<Properties>
-							<token name="BottomSurface">0</token>
-							<CoordinateFrame name="CFrame">
-								<X>0.204999998</X>
-								<Y>-0.649999976</Y>
-								<Z>-0.649999976</Z>
-								<R00>1</R00>
-								<R01>0</R01>
-								<R02>0</R02>
-								<R10>0</R10>
-								<R11>1</R11>
-								<R12>0</R12>
-								<R20>0</R20>
-								<R21>0</R21>
-								<R22>1</R22>
-							</CoordinateFrame>
-							<bool name="CanCollide">false</bool>
-							<bool name="CanQuery">false</bool>
-							<bool name="CanTouch">false</bool>
-							<Color3uint8 name="Color3uint8">4281349950</Color3uint8>
-							<bool name="Massless">true</bool>
-							<token name="Material">272</token>
-							<string name="Name">Rib magazine</string>
-							<token name="TopSurface">0</token>
-							<float name="Transparency">0</float>
-							<Vector3 name="size">
-								<X>0.0350000001</X>
-								<Y>0.0450000018</Y>
-								<Z>0.479999989</Z>
-							</Vector3>
-						</Properties>
-						<Item class="Weld" referent="ASSET270">
-							<Properties>
-								<CoordinateFrame name="C0">
-									<X>0.204999998</X>
-									<Y>-0.189999998</Y>
-									<Z>0</Z>
-									<R00>1</R00>
-									<R01>0</R01>
-									<R02>0</R02>
-									<R10>0</R10>
-									<R11>1</R11>
-									<R12>0</R12>
-									<R20>0</R20>
-									<R21>0</R21>
-									<R22>1</R22>
-								</CoordinateFrame>
-								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET262</Ref>
-								<Ref name="Part1">ASSET269</Ref>
-							</Properties>
-						</Item>
-					</Item>
-					<Item class="Part" referent="ASSET271">
-						<Properties>
-							<token name="BottomSurface">0</token>
-							<CoordinateFrame name="CFrame">
-								<X>0.204999998</X>
-								<Y>-0.479999989</Y>
-								<Z>-0.649999976</Z>
-								<R00>1</R00>
-								<R01>0</R01>
-								<R02>0</R02>
-								<R10>0</R10>
-								<R11>1</R11>
-								<R12>0</R12>
-								<R20>0</R20>
-								<R21>0</R21>
-								<R22>1</R22>
-							</CoordinateFrame>
-							<bool name="CanCollide">false</bool>
-							<bool name="CanQuery">false</bool>
-							<bool name="CanTouch">false</bool>
-							<Color3uint8 name="Color3uint8">4281349950</Color3uint8>
-							<bool name="Massless">true</bool>
-							<token name="Material">272</token>
-							<string name="Name">Rib magazine</string>
-							<token name="TopSurface">0</token>
-							<float name="Transparency">0</float>
-							<Vector3 name="size">
-								<X>0.0350000001</X>
-								<Y>0.0450000018</Y>
-								<Z>0.479999989</Z>
-							</Vector3>
-						</Properties>
-						<Item class="Weld" referent="ASSET272">
-							<Properties>
-								<CoordinateFrame name="C0">
-									<X>0.204999998</X>
-									<Y>-0.0199999996</Y>
-									<Z>0</Z>
-									<R00>1</R00>
-									<R01>0</R01>
-									<R02>0</R02>
-									<R10>0</R10>
-									<R11>1</R11>
-									<R12>0</R12>
-									<R20>0</R20>
-									<R21>0</R21>
-									<R22>1</R22>
-								</CoordinateFrame>
-								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET262</Ref>
-								<Ref name="Part1">ASSET271</Ref>
-							</Properties>
-						</Item>
-					</Item>
-					<Item class="Part" referent="ASSET273">
-						<Properties>
-							<token name="BottomSurface">0</token>
-							<CoordinateFrame name="CFrame">
-								<X>0.204999998</X>
-								<Y>-0.310000002</Y>
-								<Z>-0.649999976</Z>
-								<R00>1</R00>
-								<R01>0</R01>
-								<R02>0</R02>
-								<R10>0</R10>
-								<R11>1</R11>
-								<R12>0</R12>
-								<R20>0</R20>
-								<R21>0</R21>
-								<R22>1</R22>
-							</CoordinateFrame>
-							<bool name="CanCollide">false</bool>
-							<bool name="CanQuery">false</bool>
-							<bool name="CanTouch">false</bool>
-							<Color3uint8 name="Color3uint8">4281349950</Color3uint8>
-							<bool name="Massless">true</bool>
-							<token name="Material">272</token>
-							<string name="Name">Rib magazine</string>
-							<token name="TopSurface">0</token>
-							<float name="Transparency">0</float>
-							<Vector3 name="size">
-								<X>0.0350000001</X>
-								<Y>0.0450000018</Y>
-								<Z>0.479999989</Z>
-							</Vector3>
-						</Properties>
-						<Item class="Weld" referent="ASSET274">
-							<Properties>
-								<CoordinateFrame name="C0">
-									<X>0.204999998</X>
-									<Y>0.150000006</Y>
-									<Z>0</Z>
-									<R00>1</R00>
-									<R01>0</R01>
-									<R02>0</R02>
-									<R10>0</R10>
-									<R11>1</R11>
-									<R12>0</R12>
-									<R20>0</R20>
-									<R21>0</R21>
-									<R22>1</R22>
-								</CoordinateFrame>
-								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET262</Ref>
-								<Ref name="Part1">ASSET273</Ref>
-							</Properties>
-						</Item>
-					</Item>
 					<Item class="Part" referent="ASSET275">
+						<Properties>
+							<token name="BottomSurface">0</token>
+							<CoordinateFrame name="CFrame">
+								<X>-0.204999998</X>
+								<Y>-0.649999976</Y>
+								<Z>-0.649999976</Z>
+								<R00>1</R00>
+								<R01>0</R01>
+								<R02>0</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>0</R20>
+								<R21>0</R21>
+								<R22>1</R22>
+							</CoordinateFrame>
+							<bool name="CanCollide">false</bool>
+							<bool name="CanQuery">false</bool>
+							<bool name="CanTouch">false</bool>
+							<Color3uint8 name="Color3uint8">4281349950</Color3uint8>
+							<bool name="Massless">true</bool>
+							<token name="Material">272</token>
+							<string name="Name">Rib magazine</string>
+							<token name="TopSurface">0</token>
+							<float name="Transparency">0</float>
+							<Vector3 name="size">
+								<X>0.0350000001</X>
+								<Y>0.0450000018</Y>
+								<Z>0.479999989</Z>
+							</Vector3>
+						</Properties>
+						<Item class="Weld" referent="ASSET276">
+							<Properties>
+								<CoordinateFrame name="C0">
+									<X>-0.204999998</X>
+									<Y>-0.189999998</Y>
+									<Z>0</Z>
+									<R00>1</R00>
+									<R01>0</R01>
+									<R02>0</R02>
+									<R10>0</R10>
+									<R11>1</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<string name="Name">Weld</string>
+								<Ref name="Part0">ASSET274</Ref>
+								<Ref name="Part1">ASSET275</Ref>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Part" referent="ASSET277">
+						<Properties>
+							<token name="BottomSurface">0</token>
+							<CoordinateFrame name="CFrame">
+								<X>-0.204999998</X>
+								<Y>-0.479999989</Y>
+								<Z>-0.649999976</Z>
+								<R00>1</R00>
+								<R01>0</R01>
+								<R02>0</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>0</R20>
+								<R21>0</R21>
+								<R22>1</R22>
+							</CoordinateFrame>
+							<bool name="CanCollide">false</bool>
+							<bool name="CanQuery">false</bool>
+							<bool name="CanTouch">false</bool>
+							<Color3uint8 name="Color3uint8">4281349950</Color3uint8>
+							<bool name="Massless">true</bool>
+							<token name="Material">272</token>
+							<string name="Name">Rib magazine</string>
+							<token name="TopSurface">0</token>
+							<float name="Transparency">0</float>
+							<Vector3 name="size">
+								<X>0.0350000001</X>
+								<Y>0.0450000018</Y>
+								<Z>0.479999989</Z>
+							</Vector3>
+						</Properties>
+						<Item class="Weld" referent="ASSET278">
+							<Properties>
+								<CoordinateFrame name="C0">
+									<X>-0.204999998</X>
+									<Y>-0.0199999996</Y>
+									<Z>0</Z>
+									<R00>1</R00>
+									<R01>0</R01>
+									<R02>0</R02>
+									<R10>0</R10>
+									<R11>1</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<string name="Name">Weld</string>
+								<Ref name="Part0">ASSET274</Ref>
+								<Ref name="Part1">ASSET277</Ref>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Part" referent="ASSET279">
+						<Properties>
+							<token name="BottomSurface">0</token>
+							<CoordinateFrame name="CFrame">
+								<X>-0.204999998</X>
+								<Y>-0.310000002</Y>
+								<Z>-0.649999976</Z>
+								<R00>1</R00>
+								<R01>0</R01>
+								<R02>0</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>0</R20>
+								<R21>0</R21>
+								<R22>1</R22>
+							</CoordinateFrame>
+							<bool name="CanCollide">false</bool>
+							<bool name="CanQuery">false</bool>
+							<bool name="CanTouch">false</bool>
+							<Color3uint8 name="Color3uint8">4281349950</Color3uint8>
+							<bool name="Massless">true</bool>
+							<token name="Material">272</token>
+							<string name="Name">Rib magazine</string>
+							<token name="TopSurface">0</token>
+							<float name="Transparency">0</float>
+							<Vector3 name="size">
+								<X>0.0350000001</X>
+								<Y>0.0450000018</Y>
+								<Z>0.479999989</Z>
+							</Vector3>
+						</Properties>
+						<Item class="Weld" referent="ASSET280">
+							<Properties>
+								<CoordinateFrame name="C0">
+									<X>-0.204999998</X>
+									<Y>0.150000006</Y>
+									<Z>0</Z>
+									<R00>1</R00>
+									<R01>0</R01>
+									<R02>0</R02>
+									<R10>0</R10>
+									<R11>1</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<string name="Name">Weld</string>
+								<Ref name="Part0">ASSET274</Ref>
+								<Ref name="Part1">ASSET279</Ref>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Part" referent="ASSET281">
+						<Properties>
+							<token name="BottomSurface">0</token>
+							<CoordinateFrame name="CFrame">
+								<X>0.204999998</X>
+								<Y>-0.649999976</Y>
+								<Z>-0.649999976</Z>
+								<R00>1</R00>
+								<R01>0</R01>
+								<R02>0</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>0</R20>
+								<R21>0</R21>
+								<R22>1</R22>
+							</CoordinateFrame>
+							<bool name="CanCollide">false</bool>
+							<bool name="CanQuery">false</bool>
+							<bool name="CanTouch">false</bool>
+							<Color3uint8 name="Color3uint8">4281349950</Color3uint8>
+							<bool name="Massless">true</bool>
+							<token name="Material">272</token>
+							<string name="Name">Rib magazine</string>
+							<token name="TopSurface">0</token>
+							<float name="Transparency">0</float>
+							<Vector3 name="size">
+								<X>0.0350000001</X>
+								<Y>0.0450000018</Y>
+								<Z>0.479999989</Z>
+							</Vector3>
+						</Properties>
+						<Item class="Weld" referent="ASSET282">
+							<Properties>
+								<CoordinateFrame name="C0">
+									<X>0.204999998</X>
+									<Y>-0.189999998</Y>
+									<Z>0</Z>
+									<R00>1</R00>
+									<R01>0</R01>
+									<R02>0</R02>
+									<R10>0</R10>
+									<R11>1</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<string name="Name">Weld</string>
+								<Ref name="Part0">ASSET274</Ref>
+								<Ref name="Part1">ASSET281</Ref>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Part" referent="ASSET283">
+						<Properties>
+							<token name="BottomSurface">0</token>
+							<CoordinateFrame name="CFrame">
+								<X>0.204999998</X>
+								<Y>-0.479999989</Y>
+								<Z>-0.649999976</Z>
+								<R00>1</R00>
+								<R01>0</R01>
+								<R02>0</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>0</R20>
+								<R21>0</R21>
+								<R22>1</R22>
+							</CoordinateFrame>
+							<bool name="CanCollide">false</bool>
+							<bool name="CanQuery">false</bool>
+							<bool name="CanTouch">false</bool>
+							<Color3uint8 name="Color3uint8">4281349950</Color3uint8>
+							<bool name="Massless">true</bool>
+							<token name="Material">272</token>
+							<string name="Name">Rib magazine</string>
+							<token name="TopSurface">0</token>
+							<float name="Transparency">0</float>
+							<Vector3 name="size">
+								<X>0.0350000001</X>
+								<Y>0.0450000018</Y>
+								<Z>0.479999989</Z>
+							</Vector3>
+						</Properties>
+						<Item class="Weld" referent="ASSET284">
+							<Properties>
+								<CoordinateFrame name="C0">
+									<X>0.204999998</X>
+									<Y>-0.0199999996</Y>
+									<Z>0</Z>
+									<R00>1</R00>
+									<R01>0</R01>
+									<R02>0</R02>
+									<R10>0</R10>
+									<R11>1</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<string name="Name">Weld</string>
+								<Ref name="Part0">ASSET274</Ref>
+								<Ref name="Part1">ASSET283</Ref>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Part" referent="ASSET285">
+						<Properties>
+							<token name="BottomSurface">0</token>
+							<CoordinateFrame name="CFrame">
+								<X>0.204999998</X>
+								<Y>-0.310000002</Y>
+								<Z>-0.649999976</Z>
+								<R00>1</R00>
+								<R01>0</R01>
+								<R02>0</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>0</R20>
+								<R21>0</R21>
+								<R22>1</R22>
+							</CoordinateFrame>
+							<bool name="CanCollide">false</bool>
+							<bool name="CanQuery">false</bool>
+							<bool name="CanTouch">false</bool>
+							<Color3uint8 name="Color3uint8">4281349950</Color3uint8>
+							<bool name="Massless">true</bool>
+							<token name="Material">272</token>
+							<string name="Name">Rib magazine</string>
+							<token name="TopSurface">0</token>
+							<float name="Transparency">0</float>
+							<Vector3 name="size">
+								<X>0.0350000001</X>
+								<Y>0.0450000018</Y>
+								<Z>0.479999989</Z>
+							</Vector3>
+						</Properties>
+						<Item class="Weld" referent="ASSET286">
+							<Properties>
+								<CoordinateFrame name="C0">
+									<X>0.204999998</X>
+									<Y>0.150000006</Y>
+									<Z>0</Z>
+									<R00>1</R00>
+									<R01>0</R01>
+									<R02>0</R02>
+									<R10>0</R10>
+									<R11>1</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<string name="Name">Weld</string>
+								<Ref name="Part0">ASSET274</Ref>
+								<Ref name="Part1">ASSET285</Ref>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Part" referent="ASSET287">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8117,7 +8508,7 @@ return S
 								<Z>0.560000002</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET276">
+						<Item class="Weld" referent="ASSET288">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -8134,12 +8525,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET262</Ref>
-								<Ref name="Part1">ASSET275</Ref>
+								<Ref name="Part0">ASSET274</Ref>
+								<Ref name="Part1">ASSET287</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET277">
+					<Item class="Part" referent="ASSET289">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8171,7 +8562,7 @@ return S
 								<Z>0.219999999</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET278">
+						<Item class="Weld" referent="ASSET290">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -8188,12 +8579,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET277</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET289</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET279">
+					<Item class="Part" referent="ASSET291">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8225,7 +8616,7 @@ return S
 								<Z>0.119999997</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET280">
+						<Item class="Weld" referent="ASSET292">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>-0.129999995</X>
@@ -8242,12 +8633,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET279</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET291</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET281">
+					<Item class="Part" referent="ASSET293">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8279,7 +8670,7 @@ return S
 								<Z>0.119999997</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET282">
+						<Item class="Weld" referent="ASSET294">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.129999995</X>
@@ -8296,12 +8687,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET281</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET293</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET283">
+					<Item class="Part" referent="ASSET295">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8333,7 +8724,7 @@ return S
 								<Z>0.100000001</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET284">
+						<Item class="Weld" referent="ASSET296">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -8350,12 +8741,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET283</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET295</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET285">
+					<Item class="Part" referent="ASSET297">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8387,7 +8778,7 @@ return S
 								<Z>0.239999995</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET286">
+						<Item class="Weld" referent="ASSET298">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -8404,12 +8795,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET285</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET297</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET287">
+					<Item class="Part" referent="ASSET299">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8441,7 +8832,7 @@ return S
 								<Z>0.200000003</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET288">
+						<Item class="Weld" referent="ASSET300">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -8458,17 +8849,341 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET153</Ref>
-								<Ref name="Part1">ASSET287</Ref>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET299</Ref>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Part" referent="ASSET301">
+						<Properties>
+							<token name="BottomSurface">0</token>
+							<CoordinateFrame name="CFrame">
+								<X>0</X>
+								<Y>0.785000026</Y>
+								<Z>-0.25</Z>
+								<R00>1</R00>
+								<R01>0</R01>
+								<R02>0</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>0</R20>
+								<R21>0</R21>
+								<R22>1</R22>
+							</CoordinateFrame>
+							<bool name="CanCollide">false</bool>
+							<bool name="CanQuery">false</bool>
+							<bool name="CanTouch">false</bool>
+							<Color3uint8 name="Color3uint8">4279770663</Color3uint8>
+							<bool name="Massless">true</bool>
+							<token name="Material">272</token>
+							<string name="Name">Base reflex</string>
+							<token name="TopSurface">0</token>
+							<float name="Transparency">0</float>
+							<Vector3 name="size">
+								<X>0.460000008</X>
+								<Y>0.0900000036</Y>
+								<Z>0.5</Z>
+							</Vector3>
+						</Properties>
+						<Item class="Weld" referent="ASSET302">
+							<Properties>
+								<CoordinateFrame name="C0">
+									<X>0</X>
+									<Y>0.785000026</Y>
+									<Z>-0.25</Z>
+									<R00>1</R00>
+									<R01>0</R01>
+									<R02>0</R02>
+									<R10>0</R10>
+									<R11>1</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<string name="Name">Weld</string>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET301</Ref>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Part" referent="ASSET303">
+						<Properties>
+							<token name="BottomSurface">0</token>
+							<CoordinateFrame name="CFrame">
+								<X>-0.234999999</X>
+								<Y>1.03999996</Y>
+								<Z>-0.25</Z>
+								<R00>1</R00>
+								<R01>0</R01>
+								<R02>0</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>0</R20>
+								<R21>0</R21>
+								<R22>1</R22>
+							</CoordinateFrame>
+							<bool name="CanCollide">false</bool>
+							<bool name="CanQuery">false</bool>
+							<bool name="CanTouch">false</bool>
+							<Color3uint8 name="Color3uint8">4280561731</Color3uint8>
+							<bool name="Massless">true</bool>
+							<token name="Material">272</token>
+							<string name="Name">Arco reflex</string>
+							<token name="TopSurface">0</token>
+							<float name="Transparency">0</float>
+							<Vector3 name="size">
+								<X>0.0649999976</X>
+								<Y>0.439999998</Y>
+								<Z>0.0949999988</Z>
+							</Vector3>
+						</Properties>
+						<Item class="Weld" referent="ASSET304">
+							<Properties>
+								<CoordinateFrame name="C0">
+									<X>-0.234999999</X>
+									<Y>1.03999996</Y>
+									<Z>-0.25</Z>
+									<R00>1</R00>
+									<R01>0</R01>
+									<R02>0</R02>
+									<R10>0</R10>
+									<R11>1</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<string name="Name">Weld</string>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET303</Ref>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Part" referent="ASSET305">
+						<Properties>
+							<token name="BottomSurface">0</token>
+							<CoordinateFrame name="CFrame">
+								<X>0.234999999</X>
+								<Y>1.03999996</Y>
+								<Z>-0.25</Z>
+								<R00>1</R00>
+								<R01>0</R01>
+								<R02>0</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>0</R20>
+								<R21>0</R21>
+								<R22>1</R22>
+							</CoordinateFrame>
+							<bool name="CanCollide">false</bool>
+							<bool name="CanQuery">false</bool>
+							<bool name="CanTouch">false</bool>
+							<Color3uint8 name="Color3uint8">4280561731</Color3uint8>
+							<bool name="Massless">true</bool>
+							<token name="Material">272</token>
+							<string name="Name">Arco reflex</string>
+							<token name="TopSurface">0</token>
+							<float name="Transparency">0</float>
+							<Vector3 name="size">
+								<X>0.0649999976</X>
+								<Y>0.439999998</Y>
+								<Z>0.0949999988</Z>
+							</Vector3>
+						</Properties>
+						<Item class="Weld" referent="ASSET306">
+							<Properties>
+								<CoordinateFrame name="C0">
+									<X>0.234999999</X>
+									<Y>1.03999996</Y>
+									<Z>-0.25</Z>
+									<R00>1</R00>
+									<R01>0</R01>
+									<R02>0</R02>
+									<R10>0</R10>
+									<R11>1</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<string name="Name">Weld</string>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET305</Ref>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Part" referent="ASSET307">
+						<Properties>
+							<token name="BottomSurface">0</token>
+							<CoordinateFrame name="CFrame">
+								<X>0</X>
+								<Y>1.25999999</Y>
+								<Z>-0.25</Z>
+								<R00>1</R00>
+								<R01>0</R01>
+								<R02>0</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>0</R20>
+								<R21>0</R21>
+								<R22>1</R22>
+							</CoordinateFrame>
+							<bool name="CanCollide">false</bool>
+							<bool name="CanQuery">false</bool>
+							<bool name="CanTouch">false</bool>
+							<Color3uint8 name="Color3uint8">4280561731</Color3uint8>
+							<bool name="Massless">true</bool>
+							<token name="Material">272</token>
+							<string name="Name">Topo reflex</string>
+							<token name="TopSurface">0</token>
+							<float name="Transparency">0</float>
+							<Vector3 name="size">
+								<X>0.529999971</X>
+								<Y>0.0649999976</Y>
+								<Z>0.0949999988</Z>
+							</Vector3>
+						</Properties>
+						<Item class="Weld" referent="ASSET308">
+							<Properties>
+								<CoordinateFrame name="C0">
+									<X>0</X>
+									<Y>1.25999999</Y>
+									<Z>-0.25</Z>
+									<R00>1</R00>
+									<R01>0</R01>
+									<R02>0</R02>
+									<R10>0</R10>
+									<R11>1</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<string name="Name">Weld</string>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET307</Ref>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Part" referent="ASSET309">
+						<Properties>
+							<token name="BottomSurface">0</token>
+							<CoordinateFrame name="CFrame">
+								<X>0</X>
+								<Y>1.03999996</Y>
+								<Z>-0.25</Z>
+								<R00>1</R00>
+								<R01>0</R01>
+								<R02>0</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>0</R20>
+								<R21>0</R21>
+								<R22>1</R22>
+							</CoordinateFrame>
+							<bool name="CanCollide">false</bool>
+							<bool name="CanQuery">false</bool>
+							<bool name="CanTouch">false</bool>
+							<Color3uint8 name="Color3uint8">4293634622</Color3uint8>
+							<bool name="Massless">true</bool>
+							<token name="Material">288</token>
+							<string name="Name">Ponto reflex</string>
+							<token name="TopSurface">0</token>
+							<float name="Transparency">0</float>
+							<Vector3 name="size">
+								<X>0.0179999992</X>
+								<Y>0.0179999992</Y>
+								<Z>0.0179999992</Z>
+							</Vector3>
+						</Properties>
+						<Item class="Weld" referent="ASSET310">
+							<Properties>
+								<CoordinateFrame name="C0">
+									<X>0</X>
+									<Y>1.03999996</Y>
+									<Z>-0.25</Z>
+									<R00>1</R00>
+									<R01>0</R01>
+									<R02>0</R02>
+									<R10>0</R10>
+									<R11>1</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<string name="Name">Weld</string>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET309</Ref>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Part" referent="ASSET311">
+						<Properties>
+							<token name="BottomSurface">0</token>
+							<CoordinateFrame name="CFrame">
+								<X>0.300000012</X>
+								<Y>0.850000024</Y>
+								<Z>-0.25</Z>
+								<R00>1</R00>
+								<R01>0</R01>
+								<R02>0</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>0</R20>
+								<R21>0</R21>
+								<R22>1</R22>
+							</CoordinateFrame>
+							<bool name="CanCollide">false</bool>
+							<bool name="CanQuery">false</bool>
+							<bool name="CanTouch">false</bool>
+							<Color3uint8 name="Color3uint8">4288129720</Color3uint8>
+							<bool name="Massless">true</bool>
+							<token name="Material">272</token>
+							<string name="Name">Ajuste reflex</string>
+							<token name="TopSurface">0</token>
+							<float name="Transparency">0</float>
+							<Vector3 name="size">
+								<X>0.100000001</X>
+								<Y>0.129999995</Y>
+								<Z>0.170000002</Z>
+							</Vector3>
+						</Properties>
+						<Item class="Weld" referent="ASSET312">
+							<Properties>
+								<CoordinateFrame name="C0">
+									<X>0.300000012</X>
+									<Y>0.850000024</Y>
+									<Z>-0.25</Z>
+									<R00>1</R00>
+									<R01>0</R01>
+									<R02>0</R02>
+									<R10>0</R10>
+									<R11>1</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<string name="Name">Weld</string>
+								<Ref name="Part0">ASSET165</Ref>
+								<Ref name="Part1">ASSET311</Ref>
 							</Properties>
 						</Item>
 					</Item>
 				</Item>
-				<Item class="Folder" referent="FPS320">
+				<Item class="Folder" referent="FPS344">
 					<Properties>
 						<string name="Name">Animations</string>
 					</Properties>
-					<Item class="StringValue" referent="FPS321">
+					<Item class="StringValue" referent="FPS345">
 						<Properties>
 							<string name="Name">Procedural</string>
 							<string name="Value">Timelines em Modules.AnimationController; tiro e recoil em Modules.Recoil. Sem IDs externos.</string>
@@ -8478,7 +9193,7 @@ return S
 			</Item>
 		</Item>
 	</Item>
-	<Item class="StarterPlayer" referent="FPS322">
+	<Item class="StarterPlayer" referent="FPS346">
 		<Properties>
 			<float name="CharacterJumpPower">50</float>
 			<bool name="CharacterUseJumpPower">true</bool>
@@ -8486,11 +9201,11 @@ return S
 			<bool name="EnableMouseLockOption">false</bool>
 			<string name="Name">StarterPlayer</string>
 		</Properties>
-		<Item class="StarterPlayerScripts" referent="FPS323">
+		<Item class="StarterPlayerScripts" referent="FPS347">
 			<Properties>
 				<string name="Name">StarterPlayerScripts</string>
 			</Properties>
-			<Item class="LocalScript" referent="FPS324">
+			<Item class="LocalScript" referent="FPS348">
 				<Properties>
 					<bool name="Disabled">false</bool>
 					<string name="Name">FPSObserver</string>
@@ -8503,18 +9218,18 @@ require(modules:WaitForChild(&quot;ThirdPersonController&quot;)).init(false)
 			</Item>
 		</Item>
 	</Item>
-	<Item class="StarterPack" referent="FPS325">
+	<Item class="StarterPack" referent="FPS349">
 		<Properties>
 			<string name="Name">StarterPack</string>
 		</Properties>
-		<Item class="Tool" referent="FPS326">
+		<Item class="Tool" referent="FPS350">
 			<Properties>
 				<bool name="CanBeDropped">false</bool>
 				<string name="Name">Rifle</string>
 				<bool name="RequiresHandle">true</bool>
 				<string name="ToolTip">Vetor-30 &#183; R recarga &#183; H inspecao &#183; Shift corrida</string>
 			</Properties>
-			<Item class="Part" referent="FPS327">
+			<Item class="Part" referent="FPS351">
 				<Properties>
 					<bool name="Anchored">false</bool>
 					<token name="BottomSurface">0</token>
@@ -8546,7 +9261,7 @@ require(modules:WaitForChild(&quot;ThirdPersonController&quot;)).init(false)
 					</Vector3>
 				</Properties>
 			</Item>
-			<Item class="LocalScript" referent="FPS328">
+			<Item class="LocalScript" referent="FPS352">
 				<Properties>
 					<bool name="Disabled">false</bool>
 					<string name="Name">Controller</string>
@@ -8557,11 +9272,11 @@ require(system.Modules.ClientController).attach(script.Parent)
 			</Item>
 		</Item>
 	</Item>
-	<Item class="ServerScriptService" referent="FPS329">
+	<Item class="ServerScriptService" referent="FPS353">
 		<Properties>
 			<string name="Name">ServerScriptService</string>
 		</Properties>
-		<Item class="Script" referent="FPS330">
+		<Item class="Script" referent="FPS354">
 			<Properties>
 				<bool name="Disabled">false</bool>
 				<string name="Name">Demo</string>
@@ -8588,7 +9303,7 @@ Players.PlayerAdded:Connect(start) local first=Players:GetPlayers()[1] if first 
 </ProtectedString>
 			</Properties>
 		</Item>
-		<Item class="Script" referent="FPS331">
+		<Item class="Script" referent="FPS355">
 			<Properties>
 				<bool name="Disabled">false</bool>
 				<string name="Name">GunServer</string>
@@ -8644,7 +9359,7 @@ Remotes.Fire.OnServerEvent:Connect(function(p,life,seq,origin,direction)
   end
  end
  p.Character:SetAttribute(&quot;FPSLastShotAt&quot;,now())
- Remotes.WeaponFX:FireAllClients(p.UserId,start,target)
+ Remotes.WeaponFX:FireAllClients(p.UserId,start,target,hit and hit.Normal or nil)
  snapshot(p,s)
 end)
 Remotes.Reload.OnServerEvent:Connect(function(p,life)
@@ -8688,7 +9403,7 @@ local function character(p,char)
   local function removeDefault() local arm=char:FindFirstChild(&quot;Right Arm&quot;) local old=arm and arm:FindFirstChild(&quot;RightGrip&quot;) if old then old:Destroy() end end
   removeDefault() task.defer(removeDefault)
   local previous=tool.Handle:FindFirstChild(&quot;WorldGrip&quot;) if previous then previous:Destroy() end
-  local joint=Instance.new(&quot;Motor6D&quot;) joint.Name=&quot;WorldGrip&quot; joint.Part0=torso joint.Part1=tool.Handle joint.C0=CFrame.new(0,-.05,-.4) joint.Parent=tool.Handle
+  local joint=Instance.new(&quot;Motor6D&quot;) joint.Name=&quot;WorldGrip&quot; joint.Part0=torso joint.Part1=tool.Handle joint.C0=CFrame.new(.3,-.1,-.85) joint.Parent=tool.Handle
   Logic.Equip(s,true,now()) snapshot(p,s)
  end)
  connect(tool.Unequipped,function() if states[p]==s then cancel() end end)
@@ -8704,7 +9419,7 @@ for _,p in ipairs(Players:GetPlayers()) do added(p) end
 </ProtectedString>
 			</Properties>
 		</Item>
-		<Item class="Script" referent="FPS332">
+		<Item class="Script" referent="FPS356">
 			<Properties>
 				<bool name="Disabled">false</bool>
 				<string name="Name">R6Characters</string>
@@ -8746,7 +9461,7 @@ for _,p in ipairs(Players:GetPlayers()) do add(p) end
 </ProtectedString>
 			</Properties>
 		</Item>
-		<Item class="Script" referent="FPS333">
+		<Item class="Script" referent="FPS357">
 			<Properties>
 				<bool name="Disabled">false</bool>
 				<string name="Name">ReplicateAnimations</string>
@@ -8757,11 +9472,11 @@ require(system:WaitForChild(&quot;Modules&quot;):WaitForChild(&quot;ThirdPersonC
 			</Properties>
 		</Item>
 	</Item>
-	<Item class="StarterGui" referent="FPS334">
+	<Item class="StarterGui" referent="FPS358">
 		<Properties>
 			<string name="Name">StarterGui</string>
 		</Properties>
-		<Item class="ScreenGui" referent="FPS335">
+		<Item class="ScreenGui" referent="FPS359">
 			<Properties>
 				<bool name="Enabled">false</bool>
 				<string name="Name">GunHUD</string>
@@ -8769,7 +9484,7 @@ require(system:WaitForChild(&quot;Modules&quot;):WaitForChild(&quot;ThirdPersonC
 			</Properties>
 		</Item>
 	</Item>
-	<Item class="Lighting" referent="FPS336">
+	<Item class="Lighting" referent="FPS360">
 		<Properties>
 			<Color3 name="Ambient">
 				<R>0.5</R>
@@ -8781,7 +9496,7 @@ require(system:WaitForChild(&quot;Modules&quot;):WaitForChild(&quot;ThirdPersonC
 			<string name="Name">Lighting</string>
 		</Properties>
 	</Item>
-	<Item class="SoundService" referent="FPS337">
+	<Item class="SoundService" referent="FPS361">
 		<Properties>
 			<string name="Name">SoundService</string>
 		</Properties>

@@ -101,3 +101,16 @@ pelo servidor a 30 Hz. Todos recebem as poses sem depender do Transform
 local de outro jogador. O viewmodel em primeira pessoa continua privado.
 O disparo aceito pelo servidor inicia o recoil visivel aos demais.
 Teste de regressao simulado aprovado; validar com dois clientes no Studio.
+
+PEGADA, MIRA E VFX - REVISAO
+Resolvida disputa entre caminhada e pose dos bracos: palmas presas aos
+pontos reais do cabo e apoio, acompanhando arma e recarga no servidor.
+Arma reposicionada a frente do peito; ADS em terceira pessoa menos alto.
+Mira reflex aberta modelada no Blender, ponto luminoso alinhado a camera.
+HUD centralizado no viewport, reticulo dinamico e menor sensibilidade ADS.
+Flash com luz curta, fumaca, tracer com fade, faiscas e poeira de impacto.
+Tiros que nao atingem superficie nao criam impacto no ar. VFX sem colisao.
+Preview_Pegada_R6.png e uma pre-visualizacao tecnica no Blender usando
+as matrizes do teste; o jogo mantem a skin da conta. Nao e foto do Studio.
+Contato das maos validado em idle, ADS, corrida, recarga e inspecao com
+matematica simulada. Validar aparencia/replicacao com dois clientes Studio.

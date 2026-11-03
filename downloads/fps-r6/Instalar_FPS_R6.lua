@@ -85,14 +85,14 @@ function Controller:Cleanup()
  if active==self then
   Run:UnbindFromRenderStep("VetorFPSPre") Run:UnbindFromRenderStep("VetorFPSPost")
   local camera=workspace.CurrentCamera if camera then camera.CFrame=camera.CFrame*self.lastKick:Inverse() camera.FieldOfView=self.oldFOV or C.FOV end self.lastKick=CFrame.new()
-  Players.LocalPlayer.CameraMode=self.oldMode or Enum.CameraMode.Classic Input.MouseIconEnabled=self.oldIcon~=false Input.MouseBehavior=self.oldMouse or Enum.MouseBehavior.Default
+  Players.LocalPlayer.CameraMode=self.oldMode or Enum.CameraMode.Classic Input.MouseDeltaSensitivity=self.oldSensitivity or 1 Input.MouseIconEnabled=self.oldIcon~=false Input.MouseBehavior=self.oldMouse or Enum.MouseBehavior.Default
   self.hud:SetVisible(false) active=nil
  end
 end
 function Controller:Equip()
  if active then active:Cleanup() end self:Cleanup() active=self
  self.token+=1 self.equipped=true self.at=now() self.lastFire=-1e5 self.pending={} self.sentAim=false self.sentRun=false
- local camera=workspace.CurrentCamera self.oldFOV=camera.FieldOfView self.oldMode=Players.LocalPlayer.CameraMode self.oldMouse=Input.MouseBehavior self.oldIcon=Input.MouseIconEnabled
+ local camera=workspace.CurrentCamera self.oldFOV=camera.FieldOfView self.oldMode=Players.LocalPlayer.CameraMode self.oldMouse=Input.MouseBehavior self.oldIcon=Input.MouseIconEnabled self.oldSensitivity=Input.MouseDeltaSensitivity or 1
  Players.LocalPlayer.CameraMode=Enum.CameraMode.LockFirstPerson Input.MouseIconEnabled=false
  self.vm=View.new(camera) self.hud:SetVisible(true)
  local char=Players.LocalPlayer.Character self.character=char
@@ -131,7 +131,8 @@ function Controller:Shoot()
  R.Fire:FireServer(self.life,self.seq,camera.CFrame.Position,direction)
  local params=RaycastParams.new() params.FilterType=Enum.RaycastFilterType.Exclude params.FilterDescendantsInstances={self.character,self.vm.model} params.IgnoreWater=true
  local hit=workspace:Raycast(camera.CFrame.Position,direction*C.Range,params)
- local muzzle=self.vm.gun.Handle.Muzzle.WorldPosition Effects.Shot(muzzle,hit and hit.Position or camera.CFrame.Position+direction*C.Range)
+ local muzzle=self.vm.gun.Handle.Muzzle.WorldPosition Effects.Shot(muzzle,hit and hit.Position or camera.CFrame.Position+direction*C.Range,hit and hit.Normal or nil)
+ self.hud:Pulse()
 end
 function Controller:Step(dt)
  if active~=self or not self.vm then return end
@@ -160,7 +161,8 @@ function Controller:Step(dt)
  local camera=workspace.CurrentCamera local kick,alpha=self.vm:Step(dt,camera,{state=state,time=math.max(0,phase),speed=speed,running=running,aim=aim},Input:GetMouseDelta())
  camera.CFrame=camera.CFrame*kick self.lastKick=kick self.vm.root.CFrame=camera.CFrame
  camera.FieldOfView=self.oldFOV+(C.ADSFOV-self.oldFOV)*alpha
- self.hud:Tick(alpha) self.hud:Update(self:Ammo(),self.reserve,state,self.reloading and math.clamp(phase/C.ReloadTime,0,1) or 0,phase)
+ Input.MouseDeltaSensitivity=self.oldSensitivity*(1-.42*alpha)
+ self.hud:Tick(alpha,dt,speed,running) self.hud:Update(self:Ammo(),self.reserve,state,self.reloading and math.clamp(phase/C.ReloadTime,0,1) or 0,phase)
 end
 function Controller.attach(tool)
  local self=setmetatable({tool=tool,token=0,connections={},hidden={},pending={},life=0,revision=0,seq=0,ack=0,ammo=C.Magazine,reserve=C.Reserve,reloading=false,reloadEnd=0,inspectEnd=0,readyAt=0,equipped=false,lastKick=CFrame.new()},Controller)
@@ -198,7 +200,7 @@ do local x=node(mods,'ModuleScript',"HUD") x.Source=[=[local Players=game:GetSer
 local C=require(script.Parent.WeaponConfig)
 local H={} H.__index=H
 function H.new(actions)
- local pg=Players.LocalPlayer:WaitForChild("PlayerGui") local gui=pg:FindFirstChild("GunHUD") or Instance.new("ScreenGui") gui.Name="GunHUD" gui.ResetOnSpawn=false gui.DisplayOrder=20 gui.IgnoreGuiInset=false gui.Enabled=false gui.Parent=pg
+ local pg=Players.LocalPlayer:WaitForChild("PlayerGui") local gui=pg:FindFirstChild("GunHUD") or Instance.new("ScreenGui") gui.Name="GunHUD" gui.ResetOnSpawn=false gui.DisplayOrder=20 gui.IgnoreGuiInset=true gui.Enabled=false gui.Parent=pg
  local old=gui:FindFirstChild("Root") if old then old:Destroy() end
  local root=Instance.new("Frame") root.Name="Root" root.Size=UDim2.fromScale(1,1) root.BackgroundTransparency=1 root.Parent=gui
  local function label(text,size,pos,fs)
@@ -211,6 +213,7 @@ function H.new(actions)
  local hint=label("R  recarregar    H  inspecionar    Shift  correr",UDim2.new(.9,0,0,22),UDim2.new(.05,0,1,-30),11) hint.TextColor3=Color3.fromRGB(151,168,187) hint.Visible=not Input.TouchEnabled
  local cross={}
  for _,v in ipairs({{-7,0,4,1},{4,0,4,1},{0,-7,1,4},{0,4,1,4}}) do local f=Instance.new("Frame") f.Size=UDim2.fromOffset(v[3],v[4]) f.Position=UDim2.new(.5,v[1],.5,v[2]) f.BackgroundColor3=Color3.fromRGB(225,240,248) f.BorderSizePixel=0 f.Parent=root table.insert(cross,f) end
+ local dot=Instance.new("Frame") dot.Name="CenterDot" dot.Size=UDim2.fromOffset(2,2) dot.Position=UDim2.new(.5,-1,.5,-1) dot.BorderSizePixel=0 dot.BackgroundColor3=Color3.fromRGB(255,207,109) dot.Parent=root
  local hit=label("×",UDim2.fromOffset(42,42),UDim2.new(.5,-21,.5,-21),32) hit.Visible=false
  local track=Instance.new("Frame") track.Size=UDim2.fromOffset(130,2) track.Position=UDim2.new(.5,-65,.6,26) track.BackgroundColor3=Color3.fromRGB(36,53,71) track.BorderSizePixel=0 track.Visible=false track.Parent=root
  local fill=Instance.new("Frame") fill.Size=UDim2.fromScale(0,1) fill.BackgroundColor3=Color3.fromRGB(76,197,214) fill.BorderSizePixel=0 fill.Parent=track
@@ -229,7 +232,7 @@ function H.new(actions)
  button("RELOAD",UDim2.new(1,-84,.5,90),actions.reload)
  button("CORRER",UDim2.new(0,20,.5,90),actions.run)
  button("INSPECT",UDim2.new(0,20,.5,30),actions.inspect)
- return setmetatable({gui=gui,root=root,ammo=ammo,status=status,debugLabel=debugLabel,hit=hit,cross=cross,track=track,fill=fill,connections=connections},H)
+ return setmetatable({gui=gui,root=root,ammo=ammo,status=status,debugLabel=debugLabel,hit=hit,cross=cross,dot=dot,bloom=0,track=track,fill=fill,connections=connections},H)
 end
 function H:SetVisible(v) self.gui.Enabled=v end
 function H:Update(ammo,reserve,state,progress,phase)
@@ -242,7 +245,17 @@ end
 function H:Hit(critical)
  self.hitAt=os.clock()+.15 self.hit.Visible=true self.hit.TextColor3=critical and Color3.fromRGB(255,192,91) or Color3.fromRGB(235,242,248)
 end
-function H:Tick(aim) if (self.hitAt or 0)<os.clock() then self.hit.Visible=false end for _,f in ipairs(self.cross) do f.Visible=aim<.9 end end
+function H:Pulse() self.bloom=math.min((self.bloom or 0)+3,13) end
+function H:Tick(aim,dt,speed,running)
+ dt=dt or 1/60 self.bloom=(self.bloom or 0)*math.exp(-dt*13)
+ local gap=5+math.clamp((speed or 0)/16,0,1)*4+self.bloom+(running and 6 or 0)
+ local offsets={{-gap-4,-.5},{gap,-.5},{-.5,-gap-4},{-.5,gap}}
+ for i,f in ipairs(self.cross) do
+  f.Position=UDim2.new(.5,offsets[i][1],.5,offsets[i][2]) f.BackgroundTransparency=aim f.Visible=aim<.98
+ end
+ self.dot.BackgroundTransparency=aim self.dot.Visible=aim<.98
+ local left=(self.hitAt or 0)-os.clock() self.hit.Visible=left>0 self.hit.TextTransparency=1-math.clamp(left/.15,0,1)
+end
 function H:Destroy() for _,c in ipairs(self.connections) do c:Disconnect() end if self.root.Parent then self.root:Destroy() end end
 return H
 ]=] end
@@ -288,16 +301,33 @@ end
 local function arm(joint,torso,target,dt)
  if not joint or not joint.Parent then return end
  local base=bases[joint] or joint.C0
- local shoulder=(torso.CFrame*base).Position local delta=target-shoulder if delta.Magnitude<.05 then return end
+ local part=joint.Part1 if not part then return end
+ local half=part.Size.Y*.5
+ -- Solve the palm at the actual bottom of the R6 arm, not its centre.
+ local rest=torso.CFrame*base*joint.C1:Inverse()
+ local shoulder=(rest*CFrame.new(0,half,0)).Position
+ local delta=target-shoulder if delta.Magnitude<.05 then return end
  local rotation=CFrame.lookAt(Vector3.zero,delta.Unit)*CFrame.Angles(math.pi/2,0,0)
- local desired=CFrame.new(target-delta.Unit)*rotation.Rotation
+ local desired=CFrame.new(target-delta.Unit*half)*rotation.Rotation
  local transform=base:Inverse()*torso.CFrame:ToObjectSpace(desired)*joint.C1
- apply(joint,transform,1-math.exp(-dt*18))
+ -- Weapon motion is already smoothed. A second arm lerp breaks palm contact.
+ apply(joint,transform,1)
 end
 function T.init(serverMode)
  if not serverMode then
-  RS:WaitForChild("FPSSystem"):WaitForChild("Remotes"):WaitForChild("WeaponFX").OnClientEvent:Connect(function(id,a,b)
-   if id~=Players.LocalPlayer.UserId then Effects.Shot(a,b) end
+  -- Animator.Transform is client-local; neutralize its tool/idle arm offsets
+  -- after animation evaluation, preserving the replicated server C0 pose.
+  Run.PreSimulation:Connect(function()
+   for _,player in ipairs(Players:GetPlayers()) do
+    local char=player.Character local torso=char and char:FindFirstChild("Torso") local tool=char and char:FindFirstChild("Rifle")
+    if torso and tool and tool:FindFirstChild("Handle") and tool.Handle:FindFirstChild("WorldGrip") then
+     for _,name in ipairs({"Right Shoulder","Left Shoulder","Neck"}) do local joint=torso:FindFirstChild(name) if joint then joint.Transform=CFrame.new() end end
+     tool.Handle.WorldGrip.Transform=CFrame.new() local mag=tool.Handle:FindFirstChild("MagazineMotor") if mag then mag.Transform=CFrame.new() end
+    end
+   end
+  end)
+  RS:WaitForChild("FPSSystem"):WaitForChild("Remotes"):WaitForChild("WeaponFX").OnClientEvent:Connect(function(id,a,b,normal)
+   if id~=Players.LocalPlayer.UserId then Effects.Shot(a,b,normal) end
   end)
   return
  end
@@ -320,7 +350,7 @@ function T.init(serverMode)
    r.phase+=dt*(7.5+3.5*r.runWeight)*math.clamp(speed/C.WalkSpeed,0,1.5)
    local stride=math.sin(r.phase)*(.5+.4*r.runWeight)*r.moveWeight
    local jump=r.h.FloorMaterial==Enum.Material.Air and not r.root.Anchored
-   for name,j in pairs(r.j) do if j.Parent then
+   for name,j in pairs(r.j) do if j.Parent and not (held and (name=="Right Shoulder" or name=="Left Shoulder")) then
     local target=CFrame.new()
     if name=="Right Hip" then target=CFrame.Angles(jump and -.25 or stride,0,0) elseif name=="Left Hip" then target=CFrame.Angles(jump and .25 or -stride,0,0)
     elseif name=="Right Shoulder" then target=CFrame.Angles(-stride,0,.04) elseif name=="Left Shoulder" then target=CFrame.Angles(stride,0,-.04)
@@ -334,7 +364,7 @@ function T.init(serverMode)
     local phase=state=="Reloading" and now-(reloadEnd-C.ReloadTime) or state=="Inspecting" and now-(inspectEnd-C.InspectTime) or age
     local pose,left,mag=Anim.Sample(state,math.max(0,phase))
     if state=="Running" then pose=CFrame.new(.1,-.2,.1)*CFrame.Angles(-.25,.15,.15) end
-    if tool:GetAttribute("Aiming") then pose=CFrame.new(0,.65,.05)*pose end
+    if tool:GetAttribute("Aiming") then pose=CFrame.new(-.08,.18,-.12)*pose end
     local since=now-(r.char:GetAttribute("FPSLastShotAt") or -1e5) if since>=0 and since<.15 then pose=pose*CFrame.new(0,0,.08*math.exp(-since*25))*CFrame.Angles(.035*math.exp(-since*25),0,0) end
     r.pose=r.pose:Lerp(CFrame.Angles(tool:GetAttribute("AimPitch") or 0,0,0)*pose,alpha) r.magPose=r.magPose:Lerp(mag,alpha) if r.grip~=grip then r.grip=grip r.gripBase=grip.C0 end
     grip.Transform=CFrame.new() grip.C0=r.gripBase*r.pose
@@ -440,16 +470,41 @@ return table.freeze({
  Sounds={}, -- Silencioso ate configurar audios proprios/licenciados.
 })
 ]=] end
-do local x=node(mods,'ModuleScript',"WeaponEffects") x.Source=[=[local Debris=game:GetService("Debris") local Tween=game:GetService("TweenService")
+do local x=node(mods,'ModuleScript',"WeaponEffects") x.Source=[=[-- Local, short-lived effects. No physical forces or external texture assets.
+local Debris=game:GetService("Debris") local Tween=game:GetService("TweenService")
 local E={}
-function E.Shot(a,b)
- local distance=(b-a).Magnitude
- if distance>.01 then
-  local p=Instance.new("Part") p.Name="TracerVirtual" p.Anchored=true p.CanCollide=false p.CanTouch=false p.CanQuery=false p.Material=Enum.Material.Neon p.Color=Color3.fromRGB(255,208,116) p.Size=Vector3.new(.025,.025,math.min(distance,500)) p.CFrame=CFrame.lookAt((a+b)/2,b) p.Parent=workspace Debris:AddItem(p,.065)
+local warm=Color3.fromRGB(255,201,104)
+local function part(name,size,cf,color,material,alpha)
+ local p=Instance.new("Part") p.Name=name p.Size=size p.CFrame=cf p.Color=color p.Material=material
+ p.Transparency=alpha or 0 p.Anchored=true p.CanCollide=false p.CanTouch=false p.CanQuery=false p.CastShadow=false p.Parent=workspace
+ return p
+end
+local function fade(p,duration,goal)
+ Tween:Create(p,TweenInfo.new(duration),goal):Play() Debris:AddItem(p,duration+.03)
+end
+function E.Shot(a,b,normal)
+ local delta=b-a if delta.Magnitude<.01 then return end
+ local forward=CFrame.lookAt(a,b)
+ local tracer=part("TracerVirtual",Vector3.new(.018,.018,math.min(delta.Magnitude,500)),CFrame.lookAt((a+b)/2,b),warm,Enum.Material.Neon,.25)
+ fade(tracer,.065,{Transparency=1})
+ local flash=part("MuzzleFlash",Vector3.new(.12,.12,.38),forward*CFrame.new(0,0,-.12),warm,Enum.Material.Neon,.12)
+ flash.Shape=Enum.PartType.Ball
+ local light=Instance.new("PointLight") light.Color=warm light.Brightness=2 light.Range=7 light.Shadows=false light.Parent=flash
+ fade(flash,.045,{Transparency=1,Size=Vector3.new(.025,.025,.1)})
+ local smoke=part("MuzzleSmoke",Vector3.new(.12,.12,.18),forward*CFrame.new(0,.04,-.28),Color3.fromRGB(163,176,184),Enum.Material.SmoothPlastic,.85)
+ smoke.Shape=Enum.PartType.Ball fade(smoke,.22,{Transparency=1,Size=Vector3.new(.4,.4,.5),CFrame=forward*CFrame.new(0,.2,-.55)})
+ -- A miss ends at range and must not produce an impact floating in the sky.
+ if typeof(normal)~="Vector3" or normal.Magnitude<.5 then return end
+ local surface=CFrame.lookAt(b+normal*.025,b+normal)
+ local ring=part("ImpactGlow",Vector3.new(.13,.13,.025),surface,Color3.fromRGB(255,217,151),Enum.Material.Neon,.1)
+ fade(ring,.16,{Transparency=1,Size=Vector3.new(.3,.3,.025)})
+ local dust=part("ImpactDust",Vector3.new(.16,.16,.16),surface,Color3.fromRGB(167,160,143),Enum.Material.SmoothPlastic,.6)
+ dust.Shape=Enum.PartType.Ball fade(dust,.28,{Transparency=1,Size=Vector3.new(.55,.55,.55),CFrame=surface*CFrame.new(0,.12,-.22)})
+ for i=1,3 do
+  local angle=i*2.399 local offset=Vector3.new(math.cos(angle)*.25,math.sin(angle)*.25,-.35)
+  local spark=part("ImpactSpark",Vector3.new(.025,.025,.11),surface,warm,Enum.Material.Neon)
+  fade(spark,.1+i*.018,{Transparency=1,CFrame=surface*CFrame.new(offset)})
  end
- local flash=Instance.new("Part") flash.Shape=Enum.PartType.Ball flash.Size=Vector3.new(.16,.16,.16) flash.Position=a flash.Material=Enum.Material.Neon flash.Color=Color3.fromRGB(255,214,134) flash.Anchored=true flash.CanCollide=false flash.CanTouch=false flash.CanQuery=false flash.Parent=workspace Debris:AddItem(flash,.045)
- local chip=Instance.new("Part") chip.Size=Vector3.new(.08,.08,.08) chip.Position=b chip.Color=Color3.fromRGB(145,198,214) chip.Anchored=true chip.CanCollide=false chip.CanTouch=false chip.CanQuery=false chip.Parent=workspace
- Tween:Create(chip,TweenInfo.new(.2),{Transparency=1,Size=Vector3.new(.2,.2,.2)}):Play() Debris:AddItem(chip,.22)
 end
 return E
 ]=] end
@@ -465,7 +520,7 @@ function F.Build(parent)
   p.Size=Vector3.new(d.size[1],d.size[2],d.size[3])
   p.CFrame=CFrame.new(d.pos[1],d.pos[2],d.pos[3])*CFrame.Angles(math.rad(d.rot[1]),math.rad(d.rot[2]),math.rad(d.rot[3]))
   if d.shape=="Tube" then p.Shape=Enum.PartType.Cylinder p.Size=Vector3.new(d.size[3],d.size[1],d.size[2]) p.CFrame=p.CFrame*CFrame.Angles(0,math.pi/2,0) end
-  p.Color=Color3.fromRGB(d.color[1],d.color[2],d.color[3]) p.Material=Enum.Material.SmoothPlastic p.TopSurface=Enum.SurfaceType.Smooth p.BottomSurface=Enum.SurfaceType.Smooth
+  p.Color=Color3.fromRGB(d.color[1],d.color[2],d.color[3]) p.Material=d.name=="Ponto reflex" and Enum.Material.Neon or Enum.Material.SmoothPlastic p.TopSurface=Enum.SurfaceType.Smooth p.BottomSurface=Enum.SurfaceType.Smooth
   p.CanCollide=false p.CanTouch=false p.CanQuery=false p.Massless=true p.Parent=m
   if d.name=="Magazine" then
    magazine=p p:SetAttribute("MagazinePart",true)
@@ -477,7 +532,7 @@ function F.Build(parent)
   end
  end
  local function point(name,pos) local a=Instance.new("Attachment") a.Name=name a.CFrame=CFrame.new(pos) a.Parent=root return a end
- point("AimPoint",Vector3.new(0,.78,.65)) point("Muzzle",Vector3.new(0,.29,-3.38)) point("LeftGrip",Vector3.new(-.3,-.4,-1.0)) point("RightGripPoint",Vector3.new(.05,-.45,.1)) point("MagazinePivot",Vector3.new(0,-.46,-.65))
+ point("AimPoint",Vector3.new(0,1.04,.55)) point("Muzzle",Vector3.new(0,.29,-3.38)) point("LeftGrip",Vector3.new(-.3,-.08,-.95)) point("RightGripPoint",Vector3.new(.05,-.3,.12)) point("MagazinePivot",Vector3.new(0,-.46,-.65))
  m.Parent=parent return m
 end
 function F.Mount(tool)
@@ -489,7 +544,7 @@ end
 return F
 ]=] end
 do local x=node(mods,'ModuleScript',"WeaponGeometry") x.Source=[=[-- Exportado da modelagem original no Blender.
-return {{["name"]="Receiver",["size"]={0.57,0.46,1.9},["pos"]={0,0.25,-0.65},["color"]={48,104,135},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Upper receiver",["size"]={0.62,0.14,1.45},["pos"]={0,0.55,-0.55},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Chamfer frente",["size"]={0.57,0.16,0.28},["pos"]={0,0.51,-1.55},["color"]={48,104,135},["shape"]="Wedge",["rot"]={0,0,0},["group"]="Body"},{["name"]="Chamfer traseiro",["size"]={0.57,0.16,0.28},["pos"]={0,0.51,0.28},["color"]={48,104,135},["shape"]="Wedge",["rot"]={0,180,0},["group"]="Body"},{["name"]="Handguard",["size"]={0.49,0.4,0.9},["pos"]={0,0.24,-1.95},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Cano virtual",["size"]={0.16,0.16,0.8},["pos"]={0,0.29,-2.78},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,0,0},["group"]="Body"},{["name"]="Emissor",["size"]={0.29,0.29,0.28},["pos"]={0,0.29,-3.22},["color"]={24,30,39},["shape"]="Tube",["rot"]={0,0,0},["group"]="Body"},{["name"]="Anel frontal",["size"]={0.34,0.34,0.07},["pos"]={0,0.29,-3.12},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,0,0},["group"]="Body"},{["name"]="Trilho",["size"]={0.29,0.07,1.7},["pos"]={0,0.66,-0.7},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Dente do trilho",["size"]={0.34,0.05,0.09},["pos"]={0,0.715,-1.45},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Dente do trilho",["size"]={0.34,0.05,0.09},["pos"]={0,0.715,-1.2},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Dente do trilho",["size"]={0.34,0.05,0.09},["pos"]={0,0.715,-0.95},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Dente do trilho",["size"]={0.34,0.05,0.09},["pos"]={0,0.715,-0.7},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Dente do trilho",["size"]={0.34,0.05,0.09},["pos"]={0,0.715,-0.45},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Dente do trilho",["size"]={0.34,0.05,0.09},["pos"]={0,0.715,-0.2},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Dente do trilho",["size"]={0.34,0.05,0.09},["pos"]={0,0.715,0.05},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Painel lateral",["size"]={0.045,0.3,1.1},["pos"]={-0.3,0.26,-0.65},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Faixa lateral",["size"]={0.05,0.055,0.7},["pos"]={-0.3,0.46,-0.5},["color"]={235,170,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Parafuso",["size"]={0.06,0.06,0.025},["pos"]={-0.3,0.25,-1.05},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,90,0},["group"]="Body"},{["name"]="Parafuso",["size"]={0.06,0.06,0.025},["pos"]={-0.3,0.25,-0.75},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,90,0},["group"]="Body"},{["name"]="Parafuso",["size"]={0.06,0.06,0.025},["pos"]={-0.3,0.25,-0.45},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,90,0},["group"]="Body"},{["name"]="Parafuso",["size"]={0.06,0.06,0.025},["pos"]={-0.3,0.25,-0.15},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,90,0},["group"]="Body"},{["name"]="Janela de ventilacao",["size"]={0.025,0.12,0.11},["pos"]={-0.252,0.27,-2.22},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Janela de ventilacao",["size"]={0.025,0.12,0.11},["pos"]={-0.252,0.27,-2.02},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Janela de ventilacao",["size"]={0.025,0.12,0.11},["pos"]={-0.252,0.27,-1.82},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Janela de ventilacao",["size"]={0.025,0.12,0.11},["pos"]={-0.252,0.27,-1.62},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Painel traseiro",["size"]={0.045,0.18,0.27},["pos"]={-0.3,0.3,0.1},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Painel lateral",["size"]={0.045,0.3,1.1},["pos"]={0.3,0.26,-0.65},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Faixa lateral",["size"]={0.05,0.055,0.7},["pos"]={0.3,0.46,-0.5},["color"]={235,170,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Parafuso",["size"]={0.06,0.06,0.025},["pos"]={0.3,0.25,-1.05},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,90,0},["group"]="Body"},{["name"]="Parafuso",["size"]={0.06,0.06,0.025},["pos"]={0.3,0.25,-0.75},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,90,0},["group"]="Body"},{["name"]="Parafuso",["size"]={0.06,0.06,0.025},["pos"]={0.3,0.25,-0.45},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,90,0},["group"]="Body"},{["name"]="Parafuso",["size"]={0.06,0.06,0.025},["pos"]={0.3,0.25,-0.15},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,90,0},["group"]="Body"},{["name"]="Janela de ventilacao",["size"]={0.025,0.12,0.11},["pos"]={0.252,0.27,-2.22},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Janela de ventilacao",["size"]={0.025,0.12,0.11},["pos"]={0.252,0.27,-2.02},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Janela de ventilacao",["size"]={0.025,0.12,0.11},["pos"]={0.252,0.27,-1.82},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Janela de ventilacao",["size"]={0.025,0.12,0.11},["pos"]={0.252,0.27,-1.62},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Painel traseiro",["size"]={0.045,0.18,0.27},["pos"]={0.3,0.3,0.1},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Coronha",["size"]={0.38,0.34,0.65},["pos"]={0,0.2,0.77},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Haste da coronha",["size"]={0.24,0.19,0.4},["pos"]={0,0.32,0.33},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Ombreira",["size"]={0.44,0.57,0.12},["pos"]={0,0.13,1.16},["color"]={48,55,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Textura ombreira",["size"]={0.46,0.035,0.13},["pos"]={0,-0.04,1.17},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Textura ombreira",["size"]={0.46,0.035,0.13},["pos"]={0,0.08,1.17},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Textura ombreira",["size"]={0.46,0.035,0.13},["pos"]={0,0.2,1.17},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Textura ombreira",["size"]={0.46,0.035,0.13},["pos"]={0,0.32,1.17},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Cabo",["size"]={0.33,0.58,0.36},["pos"]={0,-0.34,0.12},["color"]={48,55,62},["shape"]="Block",["rot"]={-10,0,0},["group"]="Body"},{["name"]="Relevo cabo",["size"]={0.35,0.035,0.34},["pos"]={0,-0.5,0.13},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Relevo cabo",["size"]={0.35,0.035,0.34},["pos"]={0,-0.38,0.13},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Relevo cabo",["size"]={0.35,0.035,0.34},["pos"]={0,-0.26,0.13},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Guarda inferior",["size"]={0.34,0.055,0.43},["pos"]={0,-0.25,-0.22},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Guarda frontal",["size"]={0.34,0.2,0.055},["pos"]={0,-0.13,-0.42},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Magazine",["size"]={0.39,0.63,0.53},["pos"]={0,-0.46,-0.65},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Mag"},{["name"]="Rib magazine",["size"]={0.035,0.045,0.48},["pos"]={-0.205,-0.65,-0.65},["color"]={48,55,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Mag"},{["name"]="Rib magazine",["size"]={0.035,0.045,0.48},["pos"]={-0.205,-0.48,-0.65},["color"]={48,55,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Mag"},{["name"]="Rib magazine",["size"]={0.035,0.045,0.48},["pos"]={-0.205,-0.31,-0.65},["color"]={48,55,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Mag"},{["name"]="Rib magazine",["size"]={0.035,0.045,0.48},["pos"]={0.205,-0.65,-0.65},["color"]={48,55,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Mag"},{["name"]="Rib magazine",["size"]={0.035,0.045,0.48},["pos"]={0.205,-0.48,-0.65},["color"]={48,55,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Mag"},{["name"]="Rib magazine",["size"]={0.035,0.045,0.48},["pos"]={0.205,-0.31,-0.65},["color"]={48,55,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Mag"},{["name"]="Base magazine",["size"]={0.44,0.08,0.56},["pos"]={0,-0.8,-0.65},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Mag"},{["name"]="Mira traseira",["size"]={0.37,0.09,0.22},["pos"]={0,0.71,0.15},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Mira lateral",["size"]={0.065,0.17,0.12},["pos"]={-0.13,0.79,0.15},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Mira lateral",["size"]={0.065,0.17,0.12},["pos"]={0.13,0.79,0.15},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Mira frontal",["size"]={0.06,0.16,0.1},["pos"]={0,0.79,-1.7},["color"]={235,170,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Suporte da mira",["size"]={0.18,0.25,0.24},["pos"]={0,0.56,-1.7},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Moldura frontal",["size"]={0.25,0.07,0.2},["pos"]={0,0.7,-1.7},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"}}
+return {{["name"]="Receiver",["size"]={0.57,0.46,1.9},["pos"]={0,0.25,-0.65},["color"]={48,104,135},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Upper receiver",["size"]={0.62,0.14,1.45},["pos"]={0,0.55,-0.55},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Chamfer frente",["size"]={0.57,0.16,0.28},["pos"]={0,0.51,-1.55},["color"]={48,104,135},["shape"]="Wedge",["rot"]={0,0,0},["group"]="Body"},{["name"]="Chamfer traseiro",["size"]={0.57,0.16,0.28},["pos"]={0,0.51,0.28},["color"]={48,104,135},["shape"]="Wedge",["rot"]={0,180,0},["group"]="Body"},{["name"]="Handguard",["size"]={0.49,0.4,0.9},["pos"]={0,0.24,-1.95},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Cano virtual",["size"]={0.16,0.16,0.8},["pos"]={0,0.29,-2.78},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,0,0},["group"]="Body"},{["name"]="Emissor",["size"]={0.29,0.29,0.28},["pos"]={0,0.29,-3.22},["color"]={24,30,39},["shape"]="Tube",["rot"]={0,0,0},["group"]="Body"},{["name"]="Anel frontal",["size"]={0.34,0.34,0.07},["pos"]={0,0.29,-3.12},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,0,0},["group"]="Body"},{["name"]="Trilho",["size"]={0.29,0.07,1.7},["pos"]={0,0.66,-0.7},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Dente do trilho",["size"]={0.34,0.05,0.09},["pos"]={0,0.715,-1.45},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Dente do trilho",["size"]={0.34,0.05,0.09},["pos"]={0,0.715,-1.2},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Dente do trilho",["size"]={0.34,0.05,0.09},["pos"]={0,0.715,-0.95},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Dente do trilho",["size"]={0.34,0.05,0.09},["pos"]={0,0.715,-0.7},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Dente do trilho",["size"]={0.34,0.05,0.09},["pos"]={0,0.715,-0.45},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Dente do trilho",["size"]={0.34,0.05,0.09},["pos"]={0,0.715,-0.2},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Dente do trilho",["size"]={0.34,0.05,0.09},["pos"]={0,0.715,0.05},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Painel lateral",["size"]={0.045,0.3,1.1},["pos"]={-0.3,0.26,-0.65},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Faixa lateral",["size"]={0.05,0.055,0.7},["pos"]={-0.3,0.46,-0.5},["color"]={235,170,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Parafuso",["size"]={0.06,0.06,0.025},["pos"]={-0.3,0.25,-1.05},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,90,0},["group"]="Body"},{["name"]="Parafuso",["size"]={0.06,0.06,0.025},["pos"]={-0.3,0.25,-0.75},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,90,0},["group"]="Body"},{["name"]="Parafuso",["size"]={0.06,0.06,0.025},["pos"]={-0.3,0.25,-0.45},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,90,0},["group"]="Body"},{["name"]="Parafuso",["size"]={0.06,0.06,0.025},["pos"]={-0.3,0.25,-0.15},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,90,0},["group"]="Body"},{["name"]="Janela de ventilacao",["size"]={0.025,0.12,0.11},["pos"]={-0.252,0.27,-2.22},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Janela de ventilacao",["size"]={0.025,0.12,0.11},["pos"]={-0.252,0.27,-2.02},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Janela de ventilacao",["size"]={0.025,0.12,0.11},["pos"]={-0.252,0.27,-1.82},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Janela de ventilacao",["size"]={0.025,0.12,0.11},["pos"]={-0.252,0.27,-1.62},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Painel traseiro",["size"]={0.045,0.18,0.27},["pos"]={-0.3,0.3,0.1},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Painel lateral",["size"]={0.045,0.3,1.1},["pos"]={0.3,0.26,-0.65},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Faixa lateral",["size"]={0.05,0.055,0.7},["pos"]={0.3,0.46,-0.5},["color"]={235,170,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Parafuso",["size"]={0.06,0.06,0.025},["pos"]={0.3,0.25,-1.05},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,90,0},["group"]="Body"},{["name"]="Parafuso",["size"]={0.06,0.06,0.025},["pos"]={0.3,0.25,-0.75},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,90,0},["group"]="Body"},{["name"]="Parafuso",["size"]={0.06,0.06,0.025},["pos"]={0.3,0.25,-0.45},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,90,0},["group"]="Body"},{["name"]="Parafuso",["size"]={0.06,0.06,0.025},["pos"]={0.3,0.25,-0.15},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,90,0},["group"]="Body"},{["name"]="Janela de ventilacao",["size"]={0.025,0.12,0.11},["pos"]={0.252,0.27,-2.22},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Janela de ventilacao",["size"]={0.025,0.12,0.11},["pos"]={0.252,0.27,-2.02},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Janela de ventilacao",["size"]={0.025,0.12,0.11},["pos"]={0.252,0.27,-1.82},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Janela de ventilacao",["size"]={0.025,0.12,0.11},["pos"]={0.252,0.27,-1.62},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Painel traseiro",["size"]={0.045,0.18,0.27},["pos"]={0.3,0.3,0.1},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Coronha",["size"]={0.38,0.34,0.65},["pos"]={0,0.2,0.77},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Haste da coronha",["size"]={0.24,0.19,0.4},["pos"]={0,0.32,0.33},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Ombreira",["size"]={0.44,0.57,0.12},["pos"]={0,0.13,1.16},["color"]={48,55,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Textura ombreira",["size"]={0.46,0.035,0.13},["pos"]={0,-0.04,1.17},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Textura ombreira",["size"]={0.46,0.035,0.13},["pos"]={0,0.08,1.17},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Textura ombreira",["size"]={0.46,0.035,0.13},["pos"]={0,0.2,1.17},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Textura ombreira",["size"]={0.46,0.035,0.13},["pos"]={0,0.32,1.17},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Cabo",["size"]={0.33,0.58,0.36},["pos"]={0,-0.34,0.12},["color"]={48,55,62},["shape"]="Block",["rot"]={-10,0,0},["group"]="Body"},{["name"]="Relevo cabo",["size"]={0.35,0.035,0.34},["pos"]={0,-0.5,0.13},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Relevo cabo",["size"]={0.35,0.035,0.34},["pos"]={0,-0.38,0.13},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Relevo cabo",["size"]={0.35,0.035,0.34},["pos"]={0,-0.26,0.13},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Guarda inferior",["size"]={0.34,0.055,0.43},["pos"]={0,-0.25,-0.22},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Guarda frontal",["size"]={0.34,0.2,0.055},["pos"]={0,-0.13,-0.42},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Magazine",["size"]={0.39,0.63,0.53},["pos"]={0,-0.46,-0.65},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Mag"},{["name"]="Rib magazine",["size"]={0.035,0.045,0.48},["pos"]={-0.205,-0.65,-0.65},["color"]={48,55,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Mag"},{["name"]="Rib magazine",["size"]={0.035,0.045,0.48},["pos"]={-0.205,-0.48,-0.65},["color"]={48,55,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Mag"},{["name"]="Rib magazine",["size"]={0.035,0.045,0.48},["pos"]={-0.205,-0.31,-0.65},["color"]={48,55,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Mag"},{["name"]="Rib magazine",["size"]={0.035,0.045,0.48},["pos"]={0.205,-0.65,-0.65},["color"]={48,55,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Mag"},{["name"]="Rib magazine",["size"]={0.035,0.045,0.48},["pos"]={0.205,-0.48,-0.65},["color"]={48,55,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Mag"},{["name"]="Rib magazine",["size"]={0.035,0.045,0.48},["pos"]={0.205,-0.31,-0.65},["color"]={48,55,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Mag"},{["name"]="Base magazine",["size"]={0.44,0.08,0.56},["pos"]={0,-0.8,-0.65},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Mag"},{["name"]="Mira traseira",["size"]={0.37,0.09,0.22},["pos"]={0,0.71,0.15},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Mira lateral",["size"]={0.065,0.17,0.12},["pos"]={-0.13,0.79,0.15},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Mira lateral",["size"]={0.065,0.17,0.12},["pos"]={0.13,0.79,0.15},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Mira frontal",["size"]={0.06,0.16,0.1},["pos"]={0,0.79,-1.7},["color"]={235,170,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Suporte da mira",["size"]={0.18,0.25,0.24},["pos"]={0,0.56,-1.7},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Moldura frontal",["size"]={0.25,0.07,0.2},["pos"]={0,0.7,-1.7},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Base reflex",["size"]={0.46,0.09,0.5},["pos"]={0,0.785,-0.25},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Arco reflex",["size"]={0.065,0.44,0.095},["pos"]={-0.235,1.04,-0.25},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Arco reflex",["size"]={0.065,0.44,0.095},["pos"]={0.235,1.04,-0.25},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Topo reflex",["size"]={0.53,0.065,0.095},["pos"]={0,1.26,-0.25},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Ponto reflex",["size"]={0.018,0.018,0.018},["pos"]={0,1.04,-0.25},["color"]={235,170,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Ajuste reflex",["size"]={0.1,0.13,0.17},["pos"]={0.3,0.85,-0.25},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"}}
 ]=] end
 do local x=node(mods,'ModuleScript',"WeaponState") x.Source=[=[local C=require(script.Parent.WeaponConfig)
 local S={}
@@ -579,7 +634,7 @@ Remotes.Fire.OnServerEvent:Connect(function(p,life,seq,origin,direction)
   end
  end
  p.Character:SetAttribute("FPSLastShotAt",now())
- Remotes.WeaponFX:FireAllClients(p.UserId,start,target)
+ Remotes.WeaponFX:FireAllClients(p.UserId,start,target,hit and hit.Normal or nil)
  snapshot(p,s)
 end)
 Remotes.Reload.OnServerEvent:Connect(function(p,life)
@@ -623,7 +678,7 @@ local function character(p,char)
   local function removeDefault() local arm=char:FindFirstChild("Right Arm") local old=arm and arm:FindFirstChild("RightGrip") if old then old:Destroy() end end
   removeDefault() task.defer(removeDefault)
   local previous=tool.Handle:FindFirstChild("WorldGrip") if previous then previous:Destroy() end
-  local joint=Instance.new("Motor6D") joint.Name="WorldGrip" joint.Part0=torso joint.Part1=tool.Handle joint.C0=CFrame.new(0,-.05,-.4) joint.Parent=tool.Handle
+  local joint=Instance.new("Motor6D") joint.Name="WorldGrip" joint.Part0=torso joint.Part1=tool.Handle joint.C0=CFrame.new(.3,-.1,-.85) joint.Parent=tool.Handle
   Logic.Equip(s,true,now()) snapshot(p,s)
  end)
  connect(tool.Unequipped,function() if states[p]==s then cancel() end end)
