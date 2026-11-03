@@ -11,6 +11,7 @@ Testes executados com Luau 0.698 e APIs Roblox simuladas. Nao substituem testes 
 - RUNNER_OK: checkpoints sequenciais sem Touched, chegada unica, tres vidas, invulnerabilidade, ajudante e dash validado
 - COSMETICS_OK: saldo, compra unica, reequipar gratuito e IDs invalidos
 - PASSES_OK: posse validada; id desconhecido, cancelamento e falha de API nao concedem beneficios
+- DATA_OK: falha transitoria permite nova tentativa; sessao estrangeira bloqueia sobrescrita
 - Nomes de classes e enums comparados ao API Dump Roblox: OK.
 - 33 scripts extraidos do arquivo final e compilados: OK.
 - XML lido e regravado pelo rbxmk 0.9.1, preservando os scripts: OK.
