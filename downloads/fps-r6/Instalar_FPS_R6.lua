@@ -268,37 +268,52 @@ return S
 do local x=node(mods,'ModuleScript',"ThirdPersonController") x.Source=[=[local Players=game:GetService("Players") local Run=game:GetService("RunService") local RS=game:GetService("ReplicatedStorage")
 local CS=game:GetService("CollectionService")
 local C=require(script.Parent.WeaponConfig) local Anim=require(script.Parent.AnimationController) local Effects=require(script.Parent.WeaponEffects)
-local T={} local rigs={} local shotAt={}
+local T={} local rigs={} local bases={} local poses={}
+local function unbind(p)
+ local r=rigs[p] if r then for _,j in pairs(r.j) do bases[j]=nil poses[j]=nil end end rigs[p]=nil
+end
+local function apply(j,target,alpha)
+ local base=bases[j] if not base then base=j.C0 bases[j]=base poses[j]=CFrame.new() end
+ poses[j]=poses[j]:Lerp(target,alpha) j.Transform=CFrame.new() j.C0=base*poses[j]
+end
 local function bind(p,char)
- local torso=char:WaitForChild("Torso",8) local h=char:FindFirstChildOfClass("Humanoid") local root=char:FindFirstChild("HumanoidRootPart") if not torso or not h or not root then return end
+ if rigs[p] and rigs[p].char==char then return end
+ local torso=char:WaitForChild("Torso",8) local h=char:WaitForChild("Humanoid",10) local root=char:WaitForChild("HumanoidRootPart",10) if not torso or not h or not root then return end
  if p:IsA("Player") and p.Character~=char then return end
- local j={} for _,v in ipairs(char:GetDescendants()) do if v:IsA("Motor6D") and v.Name~="WorldGrip" and v.Name~="MagazineMotor" then j[v.Name]=v end end
+ for _,name in ipairs({"Right Shoulder","Left Shoulder","Right Hip","Left Hip","Neck"}) do if not torso:WaitForChild(name,10) then return end end
+ unbind(p)
+ local j={} for _,v in ipairs(char:GetDescendants()) do if v:IsA("Motor6D") and v.Name~="WorldGrip" and v.Name~="MagazineMotor" then j[v.Name]=v bases[v]=v.C0 poses[v]=CFrame.new() end end
  rigs[p]={char=char,torso=torso,h=h,root=root,j=j,pose=CFrame.new(),magPose=CFrame.new(),phase=0,moveWeight=0,runWeight=0,magAlpha=0}
 end
 local function arm(joint,torso,target,dt)
  if not joint or not joint.Parent then return end
- local shoulder=(torso.CFrame*joint.C0).Position local delta=target-shoulder if delta.Magnitude<.05 then return end
+ local base=bases[joint] or joint.C0
+ local shoulder=(torso.CFrame*base).Position local delta=target-shoulder if delta.Magnitude<.05 then return end
  local rotation=CFrame.lookAt(Vector3.zero,delta.Unit)*CFrame.Angles(math.pi/2,0,0)
  local desired=CFrame.new(target-delta.Unit)*rotation.Rotation
- local transform=joint.C0:Inverse()*torso.CFrame:ToObjectSpace(desired)*joint.C1
- joint.Transform=joint.Transform:Lerp(transform,1-math.exp(-dt*18))
+ local transform=base:Inverse()*torso.CFrame:ToObjectSpace(desired)*joint.C1
+ apply(joint,transform,1-math.exp(-dt*18))
 end
-function T.init()
+function T.init(serverMode)
+ if not serverMode then
+  RS:WaitForChild("FPSSystem"):WaitForChild("Remotes"):WaitForChild("WeaponFX").OnClientEvent:Connect(function(id,a,b)
+   if id~=Players.LocalPlayer.UserId then Effects.Shot(a,b) end
+  end)
+  return
+ end
  local function add(p) p.CharacterAdded:Connect(function(char) task.spawn(bind,p,char) end) if p.Character then task.spawn(bind,p,p.Character) end end
- Players.PlayerAdded:Connect(add) Players.PlayerRemoving:Connect(function(p) rigs[p]=nil shotAt[p]=nil end) for _,p in ipairs(Players:GetPlayers()) do add(p) end
+ Players.PlayerAdded:Connect(add) Players.PlayerRemoving:Connect(unbind) for _,p in ipairs(Players:GetPlayers()) do add(p) end
  for _,bot in ipairs(CS:GetTagged("FPSDemoBot")) do task.spawn(bind,bot,bot) end
  CS:GetInstanceAddedSignal("FPSDemoBot"):Connect(function(bot) task.spawn(bind,bot,bot) end)
- CS:GetInstanceRemovedSignal("FPSDemoBot"):Connect(function(bot) rigs[bot]=nil end)
- RS.FPSSystem.Remotes.WeaponFX.OnClientEvent:Connect(function(id,a,b)
-  local p=Players:GetPlayerByUserId(id) if p then shotAt[p]=workspace:GetServerTimeNow() end
-  if id~=Players.LocalPlayer.UserId then Effects.Shot(a,b) end
- end)
- Run.PreSimulation:Connect(function(dt)
+ CS:GetInstanceRemovedSignal("FPSDemoBot"):Connect(function(bot) unbind(bot) end)
+ local accumulated=0
+ Run.Heartbeat:Connect(function(dt)
+  accumulated+=dt if accumulated<1/30 then return end dt=accumulated accumulated=0
   local now=workspace:GetServerTimeNow() local alpha=1-math.exp(-dt*16)
   for p,r in pairs(rigs) do
-   if not r.char.Parent then rigs[p]=nil continue end
+   if not r.char.Parent then unbind(p) continue end
    local speed=Vector3.new(r.root.AssemblyLinearVelocity.X,0,r.root.AssemblyLinearVelocity.Z).Magnitude
-   if p==Players.LocalPlayer and r.h.MoveDirection.Magnitude<.05 then speed=0 end
+   if speed<1 or r.root.Anchored then speed=0 end
    local held=r.char:FindFirstChild("Rifle") local sprint=held and held:GetAttribute("Running")==true
    r.moveWeight+=(math.clamp(speed/C.WalkSpeed,0,1)-r.moveWeight)*alpha
    r.runWeight+=((sprint and 1 or 0)-r.runWeight)*alpha
@@ -310,21 +325,22 @@ function T.init()
     if name=="Right Hip" then target=CFrame.Angles(jump and -.25 or stride,0,0) elseif name=="Left Hip" then target=CFrame.Angles(jump and .25 or -stride,0,0)
     elseif name=="Right Shoulder" then target=CFrame.Angles(-stride,0,.04) elseif name=="Left Shoulder" then target=CFrame.Angles(stride,0,-.04)
     elseif name=="RootJoint" then target=CFrame.new(0,math.sin(now*2)*.012,0)*CFrame.Angles(-.12*r.runWeight*r.moveWeight,0,0) end
-    local basis=j.C0.Rotation j.Transform=j.Transform:Lerp(basis:Inverse()*target*basis,alpha)
+    local basis=bases[j].Rotation apply(j,basis:Inverse()*target*basis,alpha)
    end end
    local tool=r.char:FindFirstChild("Rifle") local handle=tool and tool:FindFirstChild("Handle") local grip=handle and handle:FindFirstChild("WorldGrip")
    if handle and grip then
     local age=now-(tool:GetAttribute("EquippedAt") or now) local reloadEnd=tool:GetAttribute("ReloadEnd") or 0 local inspectEnd=tool:GetAttribute("InspectEnd") or 0 local running=tool:GetAttribute("Running")
-    local state=Anim.State(true,age,reloadEnd>now,inspectEnd>now,running,tool:GetAttribute("Aiming"),now-(shotAt[p] or -1e5)<.12)
+    local state=Anim.State(true,age,reloadEnd>now,inspectEnd>now,running,tool:GetAttribute("Aiming"),now-(r.char:GetAttribute("FPSLastShotAt") or -1e5)<.12)
     local phase=state=="Reloading" and now-(reloadEnd-C.ReloadTime) or state=="Inspecting" and now-(inspectEnd-C.InspectTime) or age
     local pose,left,mag=Anim.Sample(state,math.max(0,phase))
     if state=="Running" then pose=CFrame.new(.1,-.2,.1)*CFrame.Angles(-.25,.15,.15) end
     if tool:GetAttribute("Aiming") then pose=CFrame.new(0,.65,.05)*pose end
-    local since=now-(shotAt[p] or -1e5) if since>=0 and since<.15 then pose=pose*CFrame.new(0,0,.08*math.exp(-since*25))*CFrame.Angles(.035*math.exp(-since*25),0,0) end
-    r.pose=r.pose:Lerp(CFrame.Angles(tool:GetAttribute("AimPitch") or 0,0,0)*pose,alpha) r.magPose=r.magPose:Lerp(mag,alpha) grip.Transform=r.pose
+    local since=now-(r.char:GetAttribute("FPSLastShotAt") or -1e5) if since>=0 and since<.15 then pose=pose*CFrame.new(0,0,.08*math.exp(-since*25))*CFrame.Angles(.035*math.exp(-since*25),0,0) end
+    r.pose=r.pose:Lerp(CFrame.Angles(tool:GetAttribute("AimPitch") or 0,0,0)*pose,alpha) r.magPose=r.magPose:Lerp(mag,alpha) if r.grip~=grip then r.grip=grip r.gripBase=grip.C0 end
+    grip.Transform=CFrame.new() grip.C0=r.gripBase*r.pose
     local neck=r.j.Neck
-    if neck and neck.Parent then local basis=neck.C0.Rotation local target=CFrame.Angles((tool:GetAttribute("AimPitch") or 0)*.4,0,0) neck.Transform=neck.Transform:Lerp(basis:Inverse()*target*basis,alpha) end
-    local gunCF=r.torso.CFrame*grip.C0*r.pose
+    if neck and neck.Parent then local basis=bases[neck].Rotation local target=CFrame.Angles((tool:GetAttribute("AimPitch") or 0)*.4,0,0) apply(neck,basis:Inverse()*target*basis,alpha) end
+    local gunCF=r.torso.CFrame*grip.C0
     local right=handle:FindFirstChild("RightGripPoint") local support=handle:FindFirstChild("LeftGrip")
     if right then arm(r.j["Right Shoulder"],r.torso,(gunCF*right.CFrame).Position,dt) end
     if support then
@@ -332,7 +348,7 @@ function T.init()
      if state=="Reloading" then target=support.CFrame:Lerp(handle.MagazinePivot.CFrame*r.magPose*CFrame.new(-.25,0,0),Anim.ReloadHandWeight(phase)) end
      arm(r.j["Left Shoulder"],r.torso,(gunCF*target).Position,dt)
     end
-    local magazine=handle:FindFirstChild("MagazineMotor") if magazine then magazine.Transform=r.magPose end
+    local magazine=handle:FindFirstChild("MagazineMotor") if magazine then if r.magazine~=magazine then r.magazine=magazine r.magBase=magazine.C0 end magazine.Transform=CFrame.new() magazine.C0=r.magBase*r.magPose end
     local targetAlpha=state=="Reloading" and Anim.MagazineAlpha(phase) or 0 r.magAlpha+=(targetAlpha-r.magAlpha)*alpha
     for _,part in ipairs(tool:GetDescendants()) do if part:IsA("BasePart") and part:GetAttribute("MagazinePart") then part.Transparency=r.magAlpha end end
    end
@@ -507,7 +523,9 @@ do local x=node(rifle,'LocalScript','Controller') x.Source=[=[local system=game:
 require(system.Modules.ClientController).attach(script.Parent)
 ]=] end
 do local x=node(SP,'LocalScript','FPSObserver') x.Source=[=[local system=game:GetService("ReplicatedStorage"):WaitForChild("FPSSystem")
-require(system.Modules.ThirdPersonController).init()
+local modules=system:WaitForChild("Modules")
+system:WaitForChild("Remotes"):WaitForChild("WeaponFX")
+require(modules:WaitForChild("ThirdPersonController")).init(false)
 ]=] end
 do local x=Instance.new('Script') x.Name="GunServer" x.Source=[=[local Players=game:GetService("Players")
 local RS=game:GetService("ReplicatedStorage")
@@ -548,7 +566,7 @@ Remotes.Fire.OnServerEvent:Connect(function(p,life,seq,origin,direction)
  local ok,reason=Logic.Fire(s,seq,now()) if not ok then snapshot(p,s,reason) return end
  local dir=direction.Unit local hit=workspace:Raycast(head.Position,dir*C.Range,params) local target=hit and hit.Position or head.Position+dir*C.Range
  local muzzle=s.tool.Handle:FindFirstChild("Muzzle") local joint=s.tool.Handle:FindFirstChild("WorldGrip") local torso=p.Character:FindFirstChild("Torso")
- local gunCF=torso and joint and torso.CFrame*joint.C0*CFrame.Angles(s.pitch,0,0)*CFrame.new(0,s.aiming and .65 or 0,s.aiming and .05 or 0)
+ local gunCF=torso and joint and torso.CFrame*joint.C0
  local start=gunCF and muzzle and (gunCF*muzzle.CFrame).Position or head.Position
  if (start-head.Position).Magnitude>6 or workspace:Raycast(head.Position,start-head.Position,params) then start=head.Position end
  if hit then
@@ -560,6 +578,7 @@ Remotes.Fire.OnServerEvent:Connect(function(p,life,seq,origin,direction)
    if humanoid.Health<before then Remotes.Hit:FireClient(p,critical) end
   end
  end
+ p.Character:SetAttribute("FPSLastShotAt",now())
  Remotes.WeaponFX:FireAllClients(p.UserId,start,target)
  snapshot(p,s)
 end)
@@ -653,6 +672,10 @@ local function add(p) if bound[p] then return end bound[p]=true task.spawn(spawn
 Players.PlayerAdded:Connect(add)
 Players.PlayerRemoving:Connect(function(p) spawning[p]=nil bound[p]=nil Avatar.Clear(p.UserId) end)
 for _,p in ipairs(Players:GetPlayers()) do add(p) end
+]=] x.Parent=SS end
+do local x=Instance.new('Script') x.Name="ReplicateAnimations" x.Source=[=[-- C0 e propriedades visuais atualizados no servidor replicam a todos os clientes.
+local system=game:GetService("ReplicatedStorage"):WaitForChild("FPSSystem")
+require(system:WaitForChild("Modules"):WaitForChild("ThirdPersonController")).init(true)
 ]=] x.Parent=SS end
 require(mods.WeaponFactory).Build(assets)
 local vm=require(mods.ViewModelController).new(workspace.CurrentCamera) vm.model.Parent=assets

@@ -1,0 +1,103 @@
+VETOR-30 — SISTEMA FPS R6 SEPARADO
+
+ABRIR
+Abra FPS_R6_Vetor.rbxlx no Roblox Studio e pressione Play.
+Pressione 1 para equipar Rifle. Ha tres alvos de teste que reaparecem.
+Para multiplayer: inicie servidor local com 2 clientes.
+
+CONTROLES
+Clique esquerdo: automatico. Direito: ADS. R: recarga. H: inspecao.
+Shift + movimento: corrida. 1: equipar/desequipar. Mobile: botoes na tela.
+Entradas param durante chat, perda de foco, morte e troca da ferramenta.
+
+INCLUIDO
+Arma e dois bracos R6 originais, motores de ombro/arma/carregador, nove acoes
+procedurais (equip, idle, tiro, reload, inspect, walk, run, ADS e unequip),
+recoil com spring, sway, bob, mira alinhada por inversa do AimPoint, HUD,
+feedback de acerto/critico, tracos visuais e poses para terceiros.
+O carregador visual se move e desaparece/reaparece durante a recarga.
+Municao inicial 30/90, dano de jogo 20, critico 1,5x, intervalo 0,11s,
+recarga 1,65s, raycast 500 studs. Ajustes em WeaponConfig e AnimationController.
+Para inspecionar estado/tempo no HUD: edite WeaponConfig.DebugHUD=true.
+
+SERVIDOR
+Autoridade de municao, cadencia, recarga e dano. Valida personagem/ferramenta,
+vida, token de respawn, sequencia, origem, direcao, linha de visao e equipes.
+Nao aceita dano ou alvo escolhido pelo cliente. Propria pessoa e aliados nao
+recebem dano. Shield de spawn protege personagens por 3s.
+ACKs corrigem municao prevista inclusive quando origem do tiro e rejeitada.
+Recargas pendentes sao invalidadas ao morrer/desequipar. Conexoes do inventario
+sao substituidas no respawn para evitar armas perdidas ou duplicadas.
+
+ESCOPO
+Projeto separado do Construtor vs Corredores. Sem economia, mapas completos,
+matchmaking ou copia de assets de RIVALS. O chao, parede e alvos sao somente
+uma bancada de teste. Interface, modelos e animacoes sao originais.
+Audio NAO foi fornecido/configurado: os efeitos sao silenciosos.
+Sem IDs externos de animacao, som, mesh ou textura.
+
+INSTALAR EM OUTRA EXPERIENCIA
+Opcao recomendada: usar o .rbxlx separado.
+Alternativa: abra Instalar_FPS_R6.lua em um editor, copie o conteudo para a
+Command Bar do Studio FORA do Play. Ele aborta se encontrar nomes existentes.
+USE_CUSTOM_R6=true instala o gerador R6 proprio; use false apenas quando seu
+projeto ja cria avatares R6. Nao instale junto com outro sistema de personagens
+sem revisar essa opcao. O instalador nao cria mapas nem alvos de teste.
+Hierarquia: ReplicatedStorage/FPSSystem, StarterPack/Rifle,
+ServerScriptService/GunServer/R6Characters, StarterPlayerScripts/FPSObserver.
+HUD e criado pelo modulo HUD em PlayerGui/GunHUD.
+
+VALIDACAO E LIMITES
+18 scripts e instalador compilados com Luau 0.698. XML lido e regravado pelo
+rbxmk, mantendo fontes e referencias. Testes executados com APIs simuladas:
+municao/cadencia, parcial, cancelamento, spring 30/60/144, prioridades,
+viewmodel unico, ACK, reload, ADS, retorno da camera, foco/chat, morte,
+origens invalidas, paredes, equipes, respawn, token antigo e spam.
+NAO foi executado no Roblox Studio. Fisica, renderizacao, latencia de rede,
+mobile real e alinhamento visual final ainda precisam de teste no motor.
+Nao foi medido FPS em hardware real; nao ha promessa de desempenho fixo.
+
+ANTES DE PUBLICAR
+Teste equip/unequip rapido, segurando tiro, municao 0, recarga parcial,
+tiro durante reload, ADS andando, inspect interrompido, reset/respawn,
+dois clientes, equipes e dispositivos moveis. Confira Output.
+A pasta Testes contem testes para Luau CLI, nao scripts para colocar no jogo.
+
+VERSAO APARENCIA / MODELO / ANIMACAO
+O personagem agora usa HumanoidDescription da conta, convertido para R6.
+Foram removidos o rosto desenhado e as cores fixas azul/verde do noob.
+Os bracos do viewmodel copiam cor, forma e camisa do personagem.
+Bots de treino usam a aparencia da primeira conta a entrar, com nomes BOT.
+Roupas em camadas e partes exclusivamente R15 podem ser omitidas na conversao
+para R6 pelo Roblox. Falhas da API usam uma aparencia neutra temporaria.
+Em clientes locais do Studio com IDs negativos, usa-se o criador quando
+possivel; confirme a aparencia com uma conta real na experiencia publicada.
+A arma foi remodelada no Blender com 65 componentes: formas chanfradas,
+trilho, ventilacao, parafusos, empunhadura e magazine detalhado.
+A geometria e exportada em pecas nativas: nenhum mesh ID externo e exigido.
+Equip e reload receberam novas curvas. A mao segue o magazine.
+Cada observador anima os personagens a partir dos estados replicados pelo
+servidor. As juntas padrao R6 sao respeitadas; bots tambem recebem idle.
+Testes simulados de aparencia, roupa, cache, recuperacao e animacao de um
+segundo observador passaram. Ainda NAO testado no motor Roblox Studio.
+O .blend e o render estao no ZIP; o render nao e uma captura do jogo.
+
+CORRECAO DE MOVIMENTO / CORRIDA
+O Humanoid visual nao avalia estados de fisica. Todas as pecas do viewmodel
+sao sem colisao, sem toque e ficam num grupo isolado do mundo/personagens.
+Equipar nao envia comando para andar nem aplica velocidade ao avatar.
+Shift esquerdo ou direito + movimento ativa corrida (22 studs/s).
+A leitura de Shift nao depende do Shift Lock; a opcao Shift Lock foi removida
+do projeto separado. Corrida pausa durante mira, tiro, equip e recarga.
+Soltar Shift restaura caminhada a 16. No mobile use o botao CORRER.
+Walk/run recebem cadencia e amplitude diferentes, com transicao suave.
+Sem comando de movimento, a animacao local de andar para mesmo se houver
+velocidade residual de fisica. As poses continuam visiveis aos observadores.
+Regressoes verificadas com APIs simuladas; confirme a fisica no Studio.
+
+ANIMACOES PARA TODOS
+Corpo, arma, recarga, inspecao, mira e corrida usam juntas C0 atualizadas
+pelo servidor a 30 Hz. Todos recebem as poses sem depender do Transform
+local de outro jogador. O viewmodel em primeira pessoa continua privado.
+O disparo aceito pelo servidor inicia o recoil visivel aos demais.
+Teste de regressao simulado aprovado; validar com dois clientes no Studio.
