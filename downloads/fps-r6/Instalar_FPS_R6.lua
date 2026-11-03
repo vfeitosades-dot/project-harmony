@@ -49,13 +49,15 @@ local function worldIdle(time)
  return CFrame.new()
 end
 function A.WorldBase(torso)
- return CFrame.new(0,torso.Size.Y*.175,-torso.Size.Z*.5-1.05)
+ -- Two-hand shoulder-ready silhouette (the left shooter in the reference).
+ -- A small right offset braces the rear, while the muzzle stays near centre.
+ return CFrame.new(torso.Size.X*.125,torso.Size.Y*.26,-torso.Size.Z*.5-1.09)*CFrame.Angles(0,.08,0)
 end
 function A.WorldSample(now,phase,move,run,jump,aim)
  local steady=1-.8*aim
  return worldIdle(now)*CFrame.new(math.sin(phase)*.012*move*steady,
   math.cos(phase*2)*.012*move*steady+.035*jump+.045*aim,-.025*aim)
-  *CFrame.Angles(-.055*run+.035*jump,math.sin(phase)*.012*move*steady,.018*run)
+  *CFrame.Angles(-.055*run+.035*jump,math.sin(phase)*.012*move*steady-.08*aim,.018*run)
 end
 return A
 ]=] end
@@ -329,7 +331,7 @@ local function arm(joint,torso,target,dt)
  local shoulder=(rest*CFrame.new(0,half,0)).Position
  local delta=target-shoulder if delta.Magnitude<.05 then return end
  -- Roll around the arm length: keep the palm contact, turn sleeves outward.
- local roll=joint.Name=="Right Shoulder" and -.3 or .4
+ local roll=joint.Name=="Right Shoulder" and -.15 or .2
  local rotation=CFrame.lookAt(Vector3.zero,delta.Unit)*CFrame.Angles(math.pi/2,0,0)*CFrame.Angles(0,roll,0)
  local desired=CFrame.new(target-delta.Unit*half)*rotation.Rotation
  local transform=base:Inverse()*torso.CFrame:ToObjectSpace(desired)*joint.C1
@@ -576,7 +578,7 @@ function F.Build(parent,scale)
   end
  end
  local function point(name,pos) local a=Instance.new("Attachment") a.Name=name a.CFrame=CFrame.new(pos*scale) a.Parent=root return a end
- point("WorldLeftGrip",Vector3.new(-.4,.04,-.38))
+ point("WorldLeftGrip",Vector3.new(-.55,-.1,-.48))
  point("AimPoint",Vector3.new(0,1.04,.55)) point("Muzzle",Vector3.new(0,.29,-3.38)) point("LeftGrip",Vector3.new(-.3,-.08,-.95)) point("RightGripPoint",Vector3.new(.05,-.3,.12)) point("MagazinePivot",Vector3.new(0,-.46,-.65))
  m.Parent=parent return m
 end

@@ -15,7 +15,7 @@ Cadencia 0.11s, recarga 1.65s, alcance 500 studs.
 
 POSE NOVA
 Idle autoral com keyframes de respiracao em AnimationController.WorldIdle.
-WorldBase centraliza a arma levantada a frente do peito. O cano fica
+WorldBase coloca a arma alta no peito, com leve apoio a direita. O cano fica
 horizontal em Idle neutro; a elevacao segue a mira com suavizacao.
 WorldSample faz as transicoes de caminhada, corrida e salto sem deixar
 a arma caida para o chao. Corrida inclina apenas levemente o cano.
@@ -64,3 +64,10 @@ municao, recarga, respawn, corrida, camera e nove raios centrais livres.
 RBXLX validado e regravado com rbxmk, fontes preservadas e Luau compilado.
 Roblox Studio nao esta disponivel neste ambiente. Aparencia em avatares
 reais e replicacao em rede ainda precisam de verificacao com 2 clientes.
+
+REFERENCIA VISUAL - PEGADA DE DUAS MAOS
+Usada a postura do personagem a esquerda da imagem enviada: arma elevada,
+traseira junto ao lado direito do peito, apoio esquerdo pela frente/lateral.
+O viewmodel e o modelo original permanecem iguais. Apenas pontos invisiveis
+de apoio, offsets e orientacoes dos ombros foram ajustados nesta revisao.
+ADS compensa o pequeno angulo lateral do Idle para alinhar o cano a frente.
