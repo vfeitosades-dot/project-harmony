@@ -67,3 +67,19 @@ com Plastic, SurfaceType.Studs e Inlet. Não depende de IDs de mesh ou textura.
 Lobby, largada, chegada, checkpoints, árvores, ilhas, nuvens, bancos, postes,
 troféu e oficina foram remodelados. As fotos são renders do Blender;
 a apresentação no Roblox Studio ainda precisa de inspeção dentro do motor.
+
+REVISAO: DETALHES, INTERFACE, EFEITOS E PASSES
+Os modelos agora incluem reforcos, paineis, indicadores, parafusos e faixas.
+Interface: loja, saldo, barras de tempo/energia animadas, entrada e hover.
+Efeitos locais: particulas de colocacao/chegada, entrada elastica das pecas,
+helices e serras animadas, pulsacao de cristais e lentes. As animacoes de
+perigo sao visuais; nao implementam os comportamentos de dano da etapa 06.
+VIP e Rastro Neon sao cosmeticos e nao alteram energia, velocidade ou vidas.
+Passes ficam EM BREVE por escolha do criador. Para ativar:
+1. Publique a experiencia e crie os passes no Creator Dashboard do Roblox.
+2. Copie os IDs para ReplicatedStorage.Modules.PassCatalog (id=0 atualmente).
+3. Publique novamente e teste a loja numa copia de teste apropriada.
+Os precos vem do MarketplaceService; nao ha precos nem IDs inventados.
+A posse e consultada no servidor. Cancelamento, ID desconhecido e falha de
+API foram testados e nao concedem beneficio. Compras reais nao foram testadas.
+Previa_UI_Detalhada.png e uma ilustracao do layout, nao captura do Studio.
