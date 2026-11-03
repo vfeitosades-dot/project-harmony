@@ -114,3 +114,13 @@ Preview_Pegada_R6.png e uma pre-visualizacao tecnica no Blender usando
 as matrizes do teste; o jogo mantem a skin da conta. Nao e foto do Studio.
 Contato das maos validado em idle, ADS, corrida, recarga e inspecao com
 matematica simulada. Validar aparencia/replicacao com dois clientes Studio.
+
+CORRECAO DA OBSTRUCAO DA CAMERA
+Os bracos do viewmodel agora se estendem para baixo e para tras do cabo,
+em vez de subir na frente da mira. Partes de tamanho controlado, sem
+SpecialMesh/CharacterMesh do pacote do avatar, evitam malhas gigantes.
+Cor da pele, BodyColors e Shirt continuam no viewmodel; a aparencia do
+personagem real, vista pelos outros jogadores, permanece preservada.
+O viewmodel nao usa Animator. Verificados nove raios centrais contra as
+caixas dos bracos durante ADS, hip-fire e toda a transicao entre eles.
+Teste simulado com malha de avatar exagerada tambem aprovado.

@@ -401,26 +401,25 @@ function V.new(camera)
  local function arm(name,point,angle)
   local player=game:GetService("Players").LocalPlayer local character=player and player.Character
   local original=character and character:FindFirstChild(name)
-  local p=original and original:Clone() or Instance.new("Part")
-  for _,v in ipairs(p:GetDescendants()) do if v:IsA("JointInstance") or v:IsA("WeldConstraint") or v:IsA("Constraint") or v:IsA("Script") or v:IsA("LocalScript") then v:Destroy() end end
-  p.Name=name p.Size=Vector3.new(.8,1.8,.8)
-  if not original then p.Color=Color3.fromRGB(211,180,153) end
+  -- Package meshes can extend far outside an R6 arm's Part bounds.
+  -- Use bounded first-person geometry and copy skin colour/clothing only.
+  local p=Instance.new("Part") p.Name=name p.Size=Vector3.new(.65,1.65,.65)
+  p.Color=original and original.Color or Color3.fromRGB(211,180,153)
   p.Anchored=false p.Material=Enum.Material.SmoothPlastic p.CanCollide=false p.CanQuery=false p.CanTouch=false p.Massless=true p.CastShadow=false p.LocalTransparencyModifier=0 p.Parent=model
-  local rot=CFrame.Angles(angle,0,name=="Left Arm" and .12 or -.12)
-  local motor=Instance.new("Motor6D") motor.Name=name.."Joint" motor.Part0=handle motor.Part1=p motor.C0=point.CFrame*rot*CFrame.new(0,.9,0) motor.Parent=handle p.CFrame=motor.C0
+  local rot=CFrame.Angles(angle,0,name=="Left Arm" and .25 or -.25)
+  local motor=Instance.new("Motor6D") motor.Name=name.."Joint" motor.Part0=handle motor.Part1=p motor.C0=point.CFrame*rot*CFrame.new(0,.825,0) motor.Parent=handle p.CFrame=motor.C0
   return motor
  end
- local right=arm("Right Arm",handle.RightGripPoint,1.1) local left=arm("Left Arm",handle.LeftGrip,1.15)
+ local right=arm("Right Arm",handle.RightGripPoint,2.2) local left=arm("Left Arm",handle.LeftGrip,2.15)
  local player=game:GetService("Players").LocalPlayer local character=player and player.Character
  local torso=Instance.new("Part") torso.Name="Torso" torso.Size=Vector3.new(2,2,1) torso.Transparency=1 torso.CanCollide=false torso.CanTouch=false torso.CanQuery=false torso.Massless=true torso.Parent=model
  local w=Instance.new("Weld") w.Part0=root w.Part1=torso w.Parent=torso
  local hrp=Instance.new("Part") hrp.Name="HumanoidRootPart" hrp.Size=Vector3.new(.1,.1,.1) hrp.Transparency=1 hrp.CanCollide=false hrp.CanTouch=false hrp.CanQuery=false hrp.Massless=true hrp.Parent=model
  local rw=Instance.new("Weld") rw.Part0=root rw.Part1=hrp rw.Parent=hrp
  local controller=Instance.new("Humanoid") controller.RigType=Enum.HumanoidRigType.R6 controller.RequiresNeck=false controller.DisplayDistanceType=Enum.HumanoidDisplayDistanceType.None controller.EvaluateStateMachine=false controller.PlatformStand=true controller.AutoRotate=false controller.Parent=model
- local animator=Instance.new("Animator") animator.Parent=controller
  if character then
   for _,v in ipairs(character:GetChildren()) do
-   if v:IsA("Shirt") or v:IsA("BodyColors") or (v:IsA("CharacterMesh") and (v.BodyPart==Enum.BodyPart.LeftArm or v.BodyPart==Enum.BodyPart.RightArm)) then v:Clone().Parent=model end
+   if v:IsA("Shirt") or v:IsA("BodyColors") then v:Clone().Parent=model end
   end
  end
  local magParts={} for _,p in ipairs(gun:GetDescendants()) do if p:IsA("BasePart") and p:GetAttribute("MagazinePart") then table.insert(magParts,p) end end
@@ -428,7 +427,7 @@ function V.new(camera)
   if part:IsA("BasePart") then part.CanCollide=false part.CanTouch=false part.CanQuery=false part.Massless=true part.CollisionGroup="FPSViewModel" end
  end
  model.Parent=camera
- return setmetatable({model=model,root=root,gun=gun,joint=joint,right=right,left=left,leftBase=left.C0,leftRotation=CFrame.Angles(1.15,0,.12),mag=handle.MagazineMotor,magBase=handle.MagazineMotor.C0,magAlpha=0,magParts=magParts,recoil=Recoil.new(),sway=Spring.new(Vector3.zero,14),aim=0,run=0,phase=0,pose=CFrame.new(),leftPose=CFrame.new(),magPose=CFrame.new()},V)
+ return setmetatable({model=model,root=root,gun=gun,joint=joint,right=right,left=left,leftBase=left.C0,leftRotation=CFrame.Angles(2.15,0,.25),mag=handle.MagazineMotor,magBase=handle.MagazineMotor.C0,magAlpha=0,magParts=magParts,recoil=Recoil.new(),sway=Spring.new(Vector3.zero,14),aim=0,run=0,phase=0,pose=CFrame.new(),leftPose=CFrame.new(),magPose=CFrame.new()},V)
 end
 function V:Fire() self.recoil:Fire(self.aim>.5) end
 function V:Step(dt,camera,info,mouse)
@@ -442,7 +441,7 @@ function V:Step(dt,camera,info,mouse)
  local leftTarget=self.leftBase
  if info.state=="Reloading" then
   local hand=self.gun.Handle.LeftGrip.CFrame:Lerp(self.magBase*self.magPose*CFrame.new(-.25,0,0),Anim.ReloadHandWeight(info.time))
-  leftTarget=hand*self.leftRotation*CFrame.new(0,.9,0) self.left.Transform=CFrame.new()
+  leftTarget=hand*self.leftRotation*CFrame.new(0,.825,0) self.left.Transform=CFrame.new()
  else self.left.Transform=self.leftPose end
  self.left.C0=self.left.C0:Lerp(leftTarget,smoothing)
  local kick=self.recoil:Step(dt) self.right.Transform=CFrame.Angles(kick.X*.3,0,0)

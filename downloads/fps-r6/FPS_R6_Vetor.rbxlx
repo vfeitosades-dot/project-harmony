@@ -631,26 +631,25 @@ function V.new(camera)
  local function arm(name,point,angle)
   local player=game:GetService(&quot;Players&quot;).LocalPlayer local character=player and player.Character
   local original=character and character:FindFirstChild(name)
-  local p=original and original:Clone() or Instance.new(&quot;Part&quot;)
-  for _,v in ipairs(p:GetDescendants()) do if v:IsA(&quot;JointInstance&quot;) or v:IsA(&quot;WeldConstraint&quot;) or v:IsA(&quot;Constraint&quot;) or v:IsA(&quot;Script&quot;) or v:IsA(&quot;LocalScript&quot;) then v:Destroy() end end
-  p.Name=name p.Size=Vector3.new(.8,1.8,.8)
-  if not original then p.Color=Color3.fromRGB(211,180,153) end
+  -- Package meshes can extend far outside an R6 arm&apos;s Part bounds.
+  -- Use bounded first-person geometry and copy skin colour/clothing only.
+  local p=Instance.new(&quot;Part&quot;) p.Name=name p.Size=Vector3.new(.65,1.65,.65)
+  p.Color=original and original.Color or Color3.fromRGB(211,180,153)
   p.Anchored=false p.Material=Enum.Material.SmoothPlastic p.CanCollide=false p.CanQuery=false p.CanTouch=false p.Massless=true p.CastShadow=false p.LocalTransparencyModifier=0 p.Parent=model
-  local rot=CFrame.Angles(angle,0,name==&quot;Left Arm&quot; and .12 or -.12)
-  local motor=Instance.new(&quot;Motor6D&quot;) motor.Name=name..&quot;Joint&quot; motor.Part0=handle motor.Part1=p motor.C0=point.CFrame*rot*CFrame.new(0,.9,0) motor.Parent=handle p.CFrame=motor.C0
+  local rot=CFrame.Angles(angle,0,name==&quot;Left Arm&quot; and .25 or -.25)
+  local motor=Instance.new(&quot;Motor6D&quot;) motor.Name=name..&quot;Joint&quot; motor.Part0=handle motor.Part1=p motor.C0=point.CFrame*rot*CFrame.new(0,.825,0) motor.Parent=handle p.CFrame=motor.C0
   return motor
  end
- local right=arm(&quot;Right Arm&quot;,handle.RightGripPoint,1.1) local left=arm(&quot;Left Arm&quot;,handle.LeftGrip,1.15)
+ local right=arm(&quot;Right Arm&quot;,handle.RightGripPoint,2.2) local left=arm(&quot;Left Arm&quot;,handle.LeftGrip,2.15)
  local player=game:GetService(&quot;Players&quot;).LocalPlayer local character=player and player.Character
  local torso=Instance.new(&quot;Part&quot;) torso.Name=&quot;Torso&quot; torso.Size=Vector3.new(2,2,1) torso.Transparency=1 torso.CanCollide=false torso.CanTouch=false torso.CanQuery=false torso.Massless=true torso.Parent=model
  local w=Instance.new(&quot;Weld&quot;) w.Part0=root w.Part1=torso w.Parent=torso
  local hrp=Instance.new(&quot;Part&quot;) hrp.Name=&quot;HumanoidRootPart&quot; hrp.Size=Vector3.new(.1,.1,.1) hrp.Transparency=1 hrp.CanCollide=false hrp.CanTouch=false hrp.CanQuery=false hrp.Massless=true hrp.Parent=model
  local rw=Instance.new(&quot;Weld&quot;) rw.Part0=root rw.Part1=hrp rw.Parent=hrp
  local controller=Instance.new(&quot;Humanoid&quot;) controller.RigType=Enum.HumanoidRigType.R6 controller.RequiresNeck=false controller.DisplayDistanceType=Enum.HumanoidDisplayDistanceType.None controller.EvaluateStateMachine=false controller.PlatformStand=true controller.AutoRotate=false controller.Parent=model
- local animator=Instance.new(&quot;Animator&quot;) animator.Parent=controller
  if character then
   for _,v in ipairs(character:GetChildren()) do
-   if v:IsA(&quot;Shirt&quot;) or v:IsA(&quot;BodyColors&quot;) or (v:IsA(&quot;CharacterMesh&quot;) and (v.BodyPart==Enum.BodyPart.LeftArm or v.BodyPart==Enum.BodyPart.RightArm)) then v:Clone().Parent=model end
+   if v:IsA(&quot;Shirt&quot;) or v:IsA(&quot;BodyColors&quot;) then v:Clone().Parent=model end
   end
  end
  local magParts={} for _,p in ipairs(gun:GetDescendants()) do if p:IsA(&quot;BasePart&quot;) and p:GetAttribute(&quot;MagazinePart&quot;) then table.insert(magParts,p) end end
@@ -658,7 +657,7 @@ function V.new(camera)
   if part:IsA(&quot;BasePart&quot;) then part.CanCollide=false part.CanTouch=false part.CanQuery=false part.Massless=true part.CollisionGroup=&quot;FPSViewModel&quot; end
  end
  model.Parent=camera
- return setmetatable({model=model,root=root,gun=gun,joint=joint,right=right,left=left,leftBase=left.C0,leftRotation=CFrame.Angles(1.15,0,.12),mag=handle.MagazineMotor,magBase=handle.MagazineMotor.C0,magAlpha=0,magParts=magParts,recoil=Recoil.new(),sway=Spring.new(Vector3.zero,14),aim=0,run=0,phase=0,pose=CFrame.new(),leftPose=CFrame.new(),magPose=CFrame.new()},V)
+ return setmetatable({model=model,root=root,gun=gun,joint=joint,right=right,left=left,leftBase=left.C0,leftRotation=CFrame.Angles(2.15,0,.25),mag=handle.MagazineMotor,magBase=handle.MagazineMotor.C0,magAlpha=0,magParts=magParts,recoil=Recoil.new(),sway=Spring.new(Vector3.zero,14),aim=0,run=0,phase=0,pose=CFrame.new(),leftPose=CFrame.new(),magPose=CFrame.new()},V)
 end
 function V:Fire() self.recoil:Fire(self.aim&gt;.5) end
 function V:Step(dt,camera,info,mouse)
@@ -672,7 +671,7 @@ function V:Step(dt,camera,info,mouse)
  local leftTarget=self.leftBase
  if info.state==&quot;Reloading&quot; then
   local hand=self.gun.Handle.LeftGrip.CFrame:Lerp(self.magBase*self.magPose*CFrame.new(-.25,0,0),Anim.ReloadHandWeight(info.time))
-  leftTarget=hand*self.leftRotation*CFrame.new(0,.9,0) self.left.Transform=CFrame.new()
+  leftTarget=hand*self.leftRotation*CFrame.new(0,.825,0) self.left.Transform=CFrame.new()
  else self.left.Transform=self.leftPose end
  self.left.C0=self.left.C0:Lerp(leftTarget,smoothing)
  local kick=self.recoil:Step(dt) self.right.Transform=CFrame.Angles(kick.X*.3,0,0)
@@ -1069,18 +1068,18 @@ return S
 							<Item class="Motor6D" referent="ASSET13">
 								<Properties>
 									<CoordinateFrame name="C0">
-										<X>0.15774098</X>
-										<Y>0.105300732</Y>
-										<Z>0.916318536</Z>
-										<R00>0.99280864</R00>
-										<R01>0.119712204</R01>
+										<X>0.25410828</X>
+										<Y>-0.770420015</Y>
+										<Z>0.766273797</Z>
+										<R00>0.968912423</R00>
+										<R01>0.247403964</R01>
 										<R02>0</R02>
-										<R10>-0.0543009937</R10>
-										<R11>0.450334132</R11>
-										<R12>-0.891207337</R12>
-										<R20>-0.106688403</R20>
-										<R21>0.884798348</R21>
-										<R22>0.453596115</R22>
+										<R10>0.145597503</R10>
+										<R11>-0.570206046</R11>
+										<R12>-0.808496416</R12>
+										<R20>-0.200025216</R20>
+										<R21>0.78336221</R21>
+										<R22>-0.588501096</R22>
 									</CoordinateFrame>
 									<string name="Name">Right ArmJoint</string>
 									<Ref name="Part0">ASSET6</Ref>
@@ -1090,18 +1089,18 @@ return S
 							<Item class="Motor6D" referent="ASSET14">
 								<Properties>
 									<CoordinateFrame name="C0">
-										<X>-0.40774098</X>
-										<Y>0.28499487</Y>
-										<Z>-0.134420067</Z>
-										<R00>0.99280864</R00>
-										<R01>-0.119712204</R01>
+										<X>-0.50410825</X>
+										<Y>-0.517531872</Y>
+										<Z>-0.281022638</Z>
+										<R00>0.968912423</R00>
+										<R01>-0.247403964</R01>
 										<R02>0</R02>
-										<R10>0.0489009321</R10>
-										<R11>0.405549854</R11>
-										<R12>-0.912763953</R12>
-										<R20>0.109268986</R20>
-										<R21>0.906199932</R21>
-										<R22>0.408487439</R22>
+										<R10>-0.13541846</R10>
+										<R11>-0.530341625</R11>
+										<R12>-0.836898804</R12>
+										<R20>0.207052067</R20>
+										<R21>0.810881615</R21>
+										<R22>-0.547357678</R22>
 									</CoordinateFrame>
 									<string name="Name">Left ArmJoint</string>
 									<Ref name="Part0">ASSET6</Ref>
@@ -5074,18 +5073,18 @@ return S
 						<Properties>
 							<bool name="Anchored">false</bool>
 							<CoordinateFrame name="CFrame">
-								<X>0.15774098</X>
-								<Y>0.105300732</Y>
-								<Z>0.916318536</Z>
-								<R00>0.99280864</R00>
-								<R01>0.119712204</R01>
+								<X>0.25410828</X>
+								<Y>-0.770420015</Y>
+								<Z>0.766273797</Z>
+								<R00>0.968912423</R00>
+								<R01>0.247403964</R01>
 								<R02>0</R02>
-								<R10>-0.0543009937</R10>
-								<R11>0.450334132</R11>
-								<R12>-0.891207337</R12>
-								<R20>-0.106688403</R20>
-								<R21>0.884798348</R21>
-								<R22>0.453596115</R22>
+								<R10>0.145597503</R10>
+								<R11>-0.570206046</R11>
+								<R12>-0.808496416</R12>
+								<R20>-0.200025216</R20>
+								<R21>0.78336221</R21>
+								<R22>-0.588501096</R22>
 							</CoordinateFrame>
 							<bool name="CanCollide">false</bool>
 							<bool name="CanQuery">false</bool>
@@ -5099,9 +5098,9 @@ return S
 							<string name="Name">Right Arm</string>
 							<float name="Transparency">0</float>
 							<Vector3 name="size">
-								<X>0.800000012</X>
-								<Y>1.79999995</Y>
-								<Z>0.800000012</Z>
+								<X>0.649999976</X>
+								<Y>1.64999998</Y>
+								<Z>0.649999976</Z>
 							</Vector3>
 						</Properties>
 					</Item>
@@ -5109,18 +5108,18 @@ return S
 						<Properties>
 							<bool name="Anchored">false</bool>
 							<CoordinateFrame name="CFrame">
-								<X>-0.40774098</X>
-								<Y>0.28499487</Y>
-								<Z>-0.134420067</Z>
-								<R00>0.99280864</R00>
-								<R01>-0.119712204</R01>
+								<X>-0.50410825</X>
+								<Y>-0.517531872</Y>
+								<Z>-0.281022638</Z>
+								<R00>0.968912423</R00>
+								<R01>-0.247403964</R01>
 								<R02>0</R02>
-								<R10>0.0489009321</R10>
-								<R11>0.405549854</R11>
-								<R12>-0.912763953</R12>
-								<R20>0.109268986</R20>
-								<R21>0.906199932</R21>
-								<R22>0.408487439</R22>
+								<R10>-0.13541846</R10>
+								<R11>-0.530341625</R11>
+								<R12>-0.836898804</R12>
+								<R20>0.207052067</R20>
+								<R21>0.810881615</R21>
+								<R22>-0.547357678</R22>
 							</CoordinateFrame>
 							<bool name="CanCollide">false</bool>
 							<bool name="CanQuery">false</bool>
@@ -5134,9 +5133,9 @@ return S
 							<string name="Name">Left Arm</string>
 							<float name="Transparency">0</float>
 							<Vector3 name="size">
-								<X>0.800000012</X>
-								<Y>1.79999995</Y>
-								<Z>0.800000012</Z>
+								<X>0.649999976</X>
+								<Y>1.64999998</Y>
+								<Z>0.649999976</Z>
 							</Vector3>
 						</Properties>
 					</Item>
@@ -5198,19 +5197,14 @@ return S
 							<bool name="RequiresNeck">false</bool>
 							<token name="RigType">0</token>
 						</Properties>
-						<Item class="Animator" referent="ASSET163">
-							<Properties>
-								<string name="Name">Animator</string>
-							</Properties>
-						</Item>
 					</Item>
 				</Item>
-				<Item class="Model" referent="ASSET164">
+				<Item class="Model" referent="ASSET163">
 					<Properties>
 						<string name="Name">RifleModel</string>
-						<Ref name="PrimaryPart">ASSET165</Ref>
+						<Ref name="PrimaryPart">ASSET164</Ref>
 					</Properties>
-					<Item class="Part" referent="ASSET165">
+					<Item class="Part" referent="ASSET164">
 						<Properties>
 							<CoordinateFrame name="CFrame">
 								<X>0</X>
@@ -5239,7 +5233,7 @@ return S
 								<Z>0.25</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Motor6D" referent="ASSET166">
+						<Item class="Motor6D" referent="ASSET165">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5256,11 +5250,11 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">MagazineMotor</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET274</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET273</Ref>
 							</Properties>
 						</Item>
-						<Item class="Attachment" referent="ASSET167">
+						<Item class="Attachment" referent="ASSET166">
 							<Properties>
 								<CoordinateFrame name="CFrame">
 									<X>0</X>
@@ -5279,7 +5273,7 @@ return S
 								<string name="Name">AimPoint</string>
 							</Properties>
 						</Item>
-						<Item class="Attachment" referent="ASSET168">
+						<Item class="Attachment" referent="ASSET167">
 							<Properties>
 								<CoordinateFrame name="CFrame">
 									<X>0</X>
@@ -5298,7 +5292,7 @@ return S
 								<string name="Name">Muzzle</string>
 							</Properties>
 						</Item>
-						<Item class="Attachment" referent="ASSET169">
+						<Item class="Attachment" referent="ASSET168">
 							<Properties>
 								<CoordinateFrame name="CFrame">
 									<X>-0.300000012</X>
@@ -5317,7 +5311,7 @@ return S
 								<string name="Name">LeftGrip</string>
 							</Properties>
 						</Item>
-						<Item class="Attachment" referent="ASSET170">
+						<Item class="Attachment" referent="ASSET169">
 							<Properties>
 								<CoordinateFrame name="CFrame">
 									<X>0.0500000007</X>
@@ -5336,7 +5330,7 @@ return S
 								<string name="Name">RightGripPoint</string>
 							</Properties>
 						</Item>
-						<Item class="Attachment" referent="ASSET171">
+						<Item class="Attachment" referent="ASSET170">
 							<Properties>
 								<CoordinateFrame name="CFrame">
 									<X>0</X>
@@ -5356,7 +5350,7 @@ return S
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET172">
+					<Item class="Part" referent="ASSET171">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5388,7 +5382,7 @@ return S
 								<Z>1.89999998</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET173">
+						<Item class="Weld" referent="ASSET172">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5405,12 +5399,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET172</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET171</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET174">
+					<Item class="Part" referent="ASSET173">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5442,7 +5436,7 @@ return S
 								<Z>1.45000005</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET175">
+						<Item class="Weld" referent="ASSET174">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5459,12 +5453,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET174</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET173</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="WedgePart" referent="ASSET176">
+					<Item class="WedgePart" referent="ASSET175">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5495,7 +5489,7 @@ return S
 								<Z>0.280000001</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET177">
+						<Item class="Weld" referent="ASSET176">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5512,12 +5506,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET176</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET175</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="WedgePart" referent="ASSET178">
+					<Item class="WedgePart" referent="ASSET177">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5548,7 +5542,7 @@ return S
 								<Z>0.280000001</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET179">
+						<Item class="Weld" referent="ASSET178">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5565,12 +5559,12 @@ return S
 									<R22>-1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET178</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET177</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET180">
+					<Item class="Part" referent="ASSET179">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5602,7 +5596,7 @@ return S
 								<Z>0.899999976</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET181">
+						<Item class="Weld" referent="ASSET180">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5619,12 +5613,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET180</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET179</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET182">
+					<Item class="Part" referent="ASSET181">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5657,7 +5651,7 @@ return S
 								<Z>0.159999996</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET183">
+						<Item class="Weld" referent="ASSET182">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5674,12 +5668,12 @@ return S
 									<R22>6.12323426e-017</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET182</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET181</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET184">
+					<Item class="Part" referent="ASSET183">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5712,7 +5706,7 @@ return S
 								<Z>0.289999992</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET185">
+						<Item class="Weld" referent="ASSET184">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5729,12 +5723,12 @@ return S
 									<R22>6.12323426e-017</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET184</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET183</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET186">
+					<Item class="Part" referent="ASSET185">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5767,7 +5761,7 @@ return S
 								<Z>0.340000004</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET187">
+						<Item class="Weld" referent="ASSET186">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5784,12 +5778,12 @@ return S
 									<R22>6.12323426e-017</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET186</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET185</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET188">
+					<Item class="Part" referent="ASSET187">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5821,7 +5815,7 @@ return S
 								<Z>1.70000005</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET189">
+						<Item class="Weld" referent="ASSET188">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5838,12 +5832,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET188</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET187</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET190">
+					<Item class="Part" referent="ASSET189">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5875,7 +5869,7 @@ return S
 								<Z>0.0900000036</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET191">
+						<Item class="Weld" referent="ASSET190">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5892,12 +5886,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET190</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET189</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET192">
+					<Item class="Part" referent="ASSET191">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5929,7 +5923,7 @@ return S
 								<Z>0.0900000036</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET193">
+						<Item class="Weld" referent="ASSET192">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -5946,12 +5940,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET192</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET191</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET194">
+					<Item class="Part" referent="ASSET193">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -5983,7 +5977,7 @@ return S
 								<Z>0.0900000036</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET195">
+						<Item class="Weld" referent="ASSET194">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -6000,12 +5994,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET194</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET193</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET196">
+					<Item class="Part" referent="ASSET195">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6037,7 +6031,7 @@ return S
 								<Z>0.0900000036</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET197">
+						<Item class="Weld" referent="ASSET196">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -6054,12 +6048,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET196</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET195</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET198">
+					<Item class="Part" referent="ASSET197">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6091,7 +6085,7 @@ return S
 								<Z>0.0900000036</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET199">
+						<Item class="Weld" referent="ASSET198">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -6108,12 +6102,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET198</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET197</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET200">
+					<Item class="Part" referent="ASSET199">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6145,7 +6139,7 @@ return S
 								<Z>0.0900000036</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET201">
+						<Item class="Weld" referent="ASSET200">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -6162,12 +6156,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET200</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET199</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET202">
+					<Item class="Part" referent="ASSET201">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6199,7 +6193,7 @@ return S
 								<Z>0.0900000036</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET203">
+						<Item class="Weld" referent="ASSET202">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -6216,12 +6210,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET202</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET201</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET204">
+					<Item class="Part" referent="ASSET203">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6253,7 +6247,7 @@ return S
 								<Z>1.10000002</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET205">
+						<Item class="Weld" referent="ASSET204">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>-0.300000012</X>
@@ -6270,12 +6264,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET204</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET203</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET206">
+					<Item class="Part" referent="ASSET205">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6307,7 +6301,7 @@ return S
 								<Z>0.699999988</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET207">
+						<Item class="Weld" referent="ASSET206">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>-0.300000012</X>
@@ -6324,12 +6318,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET206</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET205</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET208">
+					<Item class="Part" referent="ASSET207">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6362,7 +6356,7 @@ return S
 								<Z>0.0599999987</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET209">
+						<Item class="Weld" referent="ASSET208">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>-0.300000012</X>
@@ -6379,12 +6373,12 @@ return S
 									<R22>-1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET208</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET207</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET210">
+					<Item class="Part" referent="ASSET209">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6417,7 +6411,7 @@ return S
 								<Z>0.0599999987</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET211">
+						<Item class="Weld" referent="ASSET210">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>-0.300000012</X>
@@ -6434,12 +6428,12 @@ return S
 									<R22>-1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET210</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET209</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET212">
+					<Item class="Part" referent="ASSET211">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6472,7 +6466,7 @@ return S
 								<Z>0.0599999987</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET213">
+						<Item class="Weld" referent="ASSET212">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>-0.300000012</X>
@@ -6489,12 +6483,12 @@ return S
 									<R22>-1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET212</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET211</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET214">
+					<Item class="Part" referent="ASSET213">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6527,7 +6521,7 @@ return S
 								<Z>0.0599999987</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET215">
+						<Item class="Weld" referent="ASSET214">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>-0.300000012</X>
@@ -6544,12 +6538,12 @@ return S
 									<R22>-1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET214</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET213</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET216">
+					<Item class="Part" referent="ASSET215">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6581,7 +6575,7 @@ return S
 								<Z>0.109999999</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET217">
+						<Item class="Weld" referent="ASSET216">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>-0.252000004</X>
@@ -6598,12 +6592,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET216</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET215</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET218">
+					<Item class="Part" referent="ASSET217">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6635,7 +6629,7 @@ return S
 								<Z>0.109999999</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET219">
+						<Item class="Weld" referent="ASSET218">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>-0.252000004</X>
@@ -6652,12 +6646,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET218</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET217</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET220">
+					<Item class="Part" referent="ASSET219">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6689,7 +6683,7 @@ return S
 								<Z>0.109999999</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET221">
+						<Item class="Weld" referent="ASSET220">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>-0.252000004</X>
@@ -6706,12 +6700,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET220</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET219</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET222">
+					<Item class="Part" referent="ASSET221">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6743,7 +6737,7 @@ return S
 								<Z>0.109999999</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET223">
+						<Item class="Weld" referent="ASSET222">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>-0.252000004</X>
@@ -6760,12 +6754,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET222</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET221</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET224">
+					<Item class="Part" referent="ASSET223">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6797,7 +6791,7 @@ return S
 								<Z>0.270000011</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET225">
+						<Item class="Weld" referent="ASSET224">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>-0.300000012</X>
@@ -6814,12 +6808,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET224</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET223</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET226">
+					<Item class="Part" referent="ASSET225">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6851,7 +6845,7 @@ return S
 								<Z>1.10000002</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET227">
+						<Item class="Weld" referent="ASSET226">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.300000012</X>
@@ -6868,12 +6862,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET226</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET225</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET228">
+					<Item class="Part" referent="ASSET227">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6905,7 +6899,7 @@ return S
 								<Z>0.699999988</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET229">
+						<Item class="Weld" referent="ASSET228">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.300000012</X>
@@ -6922,12 +6916,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET228</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET227</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET230">
+					<Item class="Part" referent="ASSET229">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -6960,7 +6954,7 @@ return S
 								<Z>0.0599999987</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET231">
+						<Item class="Weld" referent="ASSET230">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.300000012</X>
@@ -6977,12 +6971,12 @@ return S
 									<R22>-1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET230</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET229</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET232">
+					<Item class="Part" referent="ASSET231">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7015,7 +7009,7 @@ return S
 								<Z>0.0599999987</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET233">
+						<Item class="Weld" referent="ASSET232">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.300000012</X>
@@ -7032,12 +7026,12 @@ return S
 									<R22>-1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET232</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET231</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET234">
+					<Item class="Part" referent="ASSET233">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7070,7 +7064,7 @@ return S
 								<Z>0.0599999987</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET235">
+						<Item class="Weld" referent="ASSET234">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.300000012</X>
@@ -7087,12 +7081,12 @@ return S
 									<R22>-1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET234</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET233</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET236">
+					<Item class="Part" referent="ASSET235">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7125,7 +7119,7 @@ return S
 								<Z>0.0599999987</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET237">
+						<Item class="Weld" referent="ASSET236">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.300000012</X>
@@ -7142,12 +7136,12 @@ return S
 									<R22>-1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET236</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET235</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET238">
+					<Item class="Part" referent="ASSET237">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7179,7 +7173,7 @@ return S
 								<Z>0.109999999</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET239">
+						<Item class="Weld" referent="ASSET238">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.252000004</X>
@@ -7196,12 +7190,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET238</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET237</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET240">
+					<Item class="Part" referent="ASSET239">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7233,7 +7227,7 @@ return S
 								<Z>0.109999999</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET241">
+						<Item class="Weld" referent="ASSET240">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.252000004</X>
@@ -7250,12 +7244,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET240</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET239</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET242">
+					<Item class="Part" referent="ASSET241">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7287,7 +7281,7 @@ return S
 								<Z>0.109999999</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET243">
+						<Item class="Weld" referent="ASSET242">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.252000004</X>
@@ -7304,12 +7298,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET242</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET241</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET244">
+					<Item class="Part" referent="ASSET243">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7341,7 +7335,7 @@ return S
 								<Z>0.109999999</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET245">
+						<Item class="Weld" referent="ASSET244">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.252000004</X>
@@ -7358,12 +7352,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET244</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET243</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET246">
+					<Item class="Part" referent="ASSET245">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7395,7 +7389,7 @@ return S
 								<Z>0.270000011</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET247">
+						<Item class="Weld" referent="ASSET246">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.300000012</X>
@@ -7412,12 +7406,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET246</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET245</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET248">
+					<Item class="Part" referent="ASSET247">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7449,7 +7443,7 @@ return S
 								<Z>0.649999976</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET249">
+						<Item class="Weld" referent="ASSET248">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -7466,12 +7460,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET248</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET247</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET250">
+					<Item class="Part" referent="ASSET249">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7503,7 +7497,7 @@ return S
 								<Z>0.400000006</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET251">
+						<Item class="Weld" referent="ASSET250">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -7520,12 +7514,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET250</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET249</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET252">
+					<Item class="Part" referent="ASSET251">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7557,7 +7551,7 @@ return S
 								<Z>0.119999997</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET253">
+						<Item class="Weld" referent="ASSET252">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -7574,12 +7568,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET252</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET251</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET254">
+					<Item class="Part" referent="ASSET253">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7611,7 +7605,7 @@ return S
 								<Z>0.129999995</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET255">
+						<Item class="Weld" referent="ASSET254">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -7628,12 +7622,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET254</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET253</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET256">
+					<Item class="Part" referent="ASSET255">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7665,7 +7659,7 @@ return S
 								<Z>0.129999995</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET257">
+						<Item class="Weld" referent="ASSET256">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -7682,12 +7676,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET256</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET255</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET258">
+					<Item class="Part" referent="ASSET257">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7719,7 +7713,7 @@ return S
 								<Z>0.129999995</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET259">
+						<Item class="Weld" referent="ASSET258">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -7736,12 +7730,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET258</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET257</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET260">
+					<Item class="Part" referent="ASSET259">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7773,7 +7767,7 @@ return S
 								<Z>0.129999995</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET261">
+						<Item class="Weld" referent="ASSET260">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -7790,12 +7784,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET260</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET259</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET262">
+					<Item class="Part" referent="ASSET261">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7827,7 +7821,7 @@ return S
 								<Z>0.360000014</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET263">
+						<Item class="Weld" referent="ASSET262">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -7844,12 +7838,12 @@ return S
 									<R22>0.98480773</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET262</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET261</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET264">
+					<Item class="Part" referent="ASSET263">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7881,7 +7875,7 @@ return S
 								<Z>0.340000004</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET265">
+						<Item class="Weld" referent="ASSET264">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -7898,12 +7892,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET264</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET263</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET266">
+					<Item class="Part" referent="ASSET265">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7935,7 +7929,7 @@ return S
 								<Z>0.340000004</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET267">
+						<Item class="Weld" referent="ASSET266">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -7952,12 +7946,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET266</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET265</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET268">
+					<Item class="Part" referent="ASSET267">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -7989,7 +7983,7 @@ return S
 								<Z>0.340000004</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET269">
+						<Item class="Weld" referent="ASSET268">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -8006,12 +8000,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET268</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET267</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET270">
+					<Item class="Part" referent="ASSET269">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8043,7 +8037,7 @@ return S
 								<Z>0.430000007</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET271">
+						<Item class="Weld" referent="ASSET270">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -8060,12 +8054,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET270</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET269</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET272">
+					<Item class="Part" referent="ASSET271">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8097,7 +8091,7 @@ return S
 								<Z>0.0549999997</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET273">
+						<Item class="Weld" referent="ASSET272">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -8114,12 +8108,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET272</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET271</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET274">
+					<Item class="Part" referent="ASSET273">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8152,7 +8146,7 @@ return S
 							</Vector3>
 						</Properties>
 					</Item>
-					<Item class="Part" referent="ASSET275">
+					<Item class="Part" referent="ASSET274">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8184,7 +8178,7 @@ return S
 								<Z>0.479999989</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET276">
+						<Item class="Weld" referent="ASSET275">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>-0.204999998</X>
@@ -8201,12 +8195,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET274</Ref>
-								<Ref name="Part1">ASSET275</Ref>
+								<Ref name="Part0">ASSET273</Ref>
+								<Ref name="Part1">ASSET274</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET277">
+					<Item class="Part" referent="ASSET276">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8238,7 +8232,7 @@ return S
 								<Z>0.479999989</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET278">
+						<Item class="Weld" referent="ASSET277">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>-0.204999998</X>
@@ -8255,12 +8249,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET274</Ref>
-								<Ref name="Part1">ASSET277</Ref>
+								<Ref name="Part0">ASSET273</Ref>
+								<Ref name="Part1">ASSET276</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET279">
+					<Item class="Part" referent="ASSET278">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8292,7 +8286,7 @@ return S
 								<Z>0.479999989</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET280">
+						<Item class="Weld" referent="ASSET279">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>-0.204999998</X>
@@ -8309,12 +8303,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET274</Ref>
-								<Ref name="Part1">ASSET279</Ref>
+								<Ref name="Part0">ASSET273</Ref>
+								<Ref name="Part1">ASSET278</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET281">
+					<Item class="Part" referent="ASSET280">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8346,7 +8340,7 @@ return S
 								<Z>0.479999989</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET282">
+						<Item class="Weld" referent="ASSET281">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.204999998</X>
@@ -8363,12 +8357,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET274</Ref>
-								<Ref name="Part1">ASSET281</Ref>
+								<Ref name="Part0">ASSET273</Ref>
+								<Ref name="Part1">ASSET280</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET283">
+					<Item class="Part" referent="ASSET282">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8400,7 +8394,7 @@ return S
 								<Z>0.479999989</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET284">
+						<Item class="Weld" referent="ASSET283">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.204999998</X>
@@ -8417,12 +8411,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET274</Ref>
-								<Ref name="Part1">ASSET283</Ref>
+								<Ref name="Part0">ASSET273</Ref>
+								<Ref name="Part1">ASSET282</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET285">
+					<Item class="Part" referent="ASSET284">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8454,7 +8448,7 @@ return S
 								<Z>0.479999989</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET286">
+						<Item class="Weld" referent="ASSET285">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.204999998</X>
@@ -8471,12 +8465,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET274</Ref>
-								<Ref name="Part1">ASSET285</Ref>
+								<Ref name="Part0">ASSET273</Ref>
+								<Ref name="Part1">ASSET284</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET287">
+					<Item class="Part" referent="ASSET286">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8508,7 +8502,7 @@ return S
 								<Z>0.560000002</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET288">
+						<Item class="Weld" referent="ASSET287">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -8525,12 +8519,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET274</Ref>
-								<Ref name="Part1">ASSET287</Ref>
+								<Ref name="Part0">ASSET273</Ref>
+								<Ref name="Part1">ASSET286</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET289">
+					<Item class="Part" referent="ASSET288">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8562,7 +8556,7 @@ return S
 								<Z>0.219999999</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET290">
+						<Item class="Weld" referent="ASSET289">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -8579,12 +8573,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET289</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET288</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET291">
+					<Item class="Part" referent="ASSET290">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8616,7 +8610,7 @@ return S
 								<Z>0.119999997</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET292">
+						<Item class="Weld" referent="ASSET291">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>-0.129999995</X>
@@ -8633,12 +8627,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET291</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET290</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET293">
+					<Item class="Part" referent="ASSET292">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8670,7 +8664,7 @@ return S
 								<Z>0.119999997</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET294">
+						<Item class="Weld" referent="ASSET293">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.129999995</X>
@@ -8687,12 +8681,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET293</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET292</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET295">
+					<Item class="Part" referent="ASSET294">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8724,7 +8718,7 @@ return S
 								<Z>0.100000001</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET296">
+						<Item class="Weld" referent="ASSET295">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -8741,12 +8735,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET295</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET294</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET297">
+					<Item class="Part" referent="ASSET296">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8778,7 +8772,7 @@ return S
 								<Z>0.239999995</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET298">
+						<Item class="Weld" referent="ASSET297">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -8795,12 +8789,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET297</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET296</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET299">
+					<Item class="Part" referent="ASSET298">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8832,7 +8826,7 @@ return S
 								<Z>0.200000003</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET300">
+						<Item class="Weld" referent="ASSET299">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -8849,12 +8843,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET299</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET298</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET301">
+					<Item class="Part" referent="ASSET300">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8886,7 +8880,7 @@ return S
 								<Z>0.5</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET302">
+						<Item class="Weld" referent="ASSET301">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -8903,12 +8897,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET301</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET300</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET303">
+					<Item class="Part" referent="ASSET302">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8940,7 +8934,7 @@ return S
 								<Z>0.0949999988</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET304">
+						<Item class="Weld" referent="ASSET303">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>-0.234999999</X>
@@ -8957,12 +8951,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET303</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET302</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET305">
+					<Item class="Part" referent="ASSET304">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -8994,7 +8988,7 @@ return S
 								<Z>0.0949999988</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET306">
+						<Item class="Weld" referent="ASSET305">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.234999999</X>
@@ -9011,12 +9005,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET305</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET304</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET307">
+					<Item class="Part" referent="ASSET306">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -9048,7 +9042,7 @@ return S
 								<Z>0.0949999988</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET308">
+						<Item class="Weld" referent="ASSET307">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -9065,12 +9059,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET307</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET306</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET309">
+					<Item class="Part" referent="ASSET308">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -9102,7 +9096,7 @@ return S
 								<Z>0.0179999992</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET310">
+						<Item class="Weld" referent="ASSET309">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0</X>
@@ -9119,12 +9113,12 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET309</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET308</Ref>
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="Part" referent="ASSET311">
+					<Item class="Part" referent="ASSET310">
 						<Properties>
 							<token name="BottomSurface">0</token>
 							<CoordinateFrame name="CFrame">
@@ -9156,7 +9150,7 @@ return S
 								<Z>0.170000002</Z>
 							</Vector3>
 						</Properties>
-						<Item class="Weld" referent="ASSET312">
+						<Item class="Weld" referent="ASSET311">
 							<Properties>
 								<CoordinateFrame name="C0">
 									<X>0.300000012</X>
@@ -9173,17 +9167,17 @@ return S
 									<R22>1</R22>
 								</CoordinateFrame>
 								<string name="Name">Weld</string>
-								<Ref name="Part0">ASSET165</Ref>
-								<Ref name="Part1">ASSET311</Ref>
+								<Ref name="Part0">ASSET164</Ref>
+								<Ref name="Part1">ASSET310</Ref>
 							</Properties>
 						</Item>
 					</Item>
 				</Item>
-				<Item class="Folder" referent="FPS344">
+				<Item class="Folder" referent="FPS343">
 					<Properties>
 						<string name="Name">Animations</string>
 					</Properties>
-					<Item class="StringValue" referent="FPS345">
+					<Item class="StringValue" referent="FPS344">
 						<Properties>
 							<string name="Name">Procedural</string>
 							<string name="Value">Timelines em Modules.AnimationController; tiro e recoil em Modules.Recoil. Sem IDs externos.</string>
@@ -9193,7 +9187,7 @@ return S
 			</Item>
 		</Item>
 	</Item>
-	<Item class="StarterPlayer" referent="FPS346">
+	<Item class="StarterPlayer" referent="FPS345">
 		<Properties>
 			<float name="CharacterJumpPower">50</float>
 			<bool name="CharacterUseJumpPower">true</bool>
@@ -9201,11 +9195,11 @@ return S
 			<bool name="EnableMouseLockOption">false</bool>
 			<string name="Name">StarterPlayer</string>
 		</Properties>
-		<Item class="StarterPlayerScripts" referent="FPS347">
+		<Item class="StarterPlayerScripts" referent="FPS346">
 			<Properties>
 				<string name="Name">StarterPlayerScripts</string>
 			</Properties>
-			<Item class="LocalScript" referent="FPS348">
+			<Item class="LocalScript" referent="FPS347">
 				<Properties>
 					<bool name="Disabled">false</bool>
 					<string name="Name">FPSObserver</string>
@@ -9218,18 +9212,18 @@ require(modules:WaitForChild(&quot;ThirdPersonController&quot;)).init(false)
 			</Item>
 		</Item>
 	</Item>
-	<Item class="StarterPack" referent="FPS349">
+	<Item class="StarterPack" referent="FPS348">
 		<Properties>
 			<string name="Name">StarterPack</string>
 		</Properties>
-		<Item class="Tool" referent="FPS350">
+		<Item class="Tool" referent="FPS349">
 			<Properties>
 				<bool name="CanBeDropped">false</bool>
 				<string name="Name">Rifle</string>
 				<bool name="RequiresHandle">true</bool>
 				<string name="ToolTip">Vetor-30 &#183; R recarga &#183; H inspecao &#183; Shift corrida</string>
 			</Properties>
-			<Item class="Part" referent="FPS351">
+			<Item class="Part" referent="FPS350">
 				<Properties>
 					<bool name="Anchored">false</bool>
 					<token name="BottomSurface">0</token>
@@ -9261,7 +9255,7 @@ require(modules:WaitForChild(&quot;ThirdPersonController&quot;)).init(false)
 					</Vector3>
 				</Properties>
 			</Item>
-			<Item class="LocalScript" referent="FPS352">
+			<Item class="LocalScript" referent="FPS351">
 				<Properties>
 					<bool name="Disabled">false</bool>
 					<string name="Name">Controller</string>
@@ -9272,11 +9266,11 @@ require(system.Modules.ClientController).attach(script.Parent)
 			</Item>
 		</Item>
 	</Item>
-	<Item class="ServerScriptService" referent="FPS353">
+	<Item class="ServerScriptService" referent="FPS352">
 		<Properties>
 			<string name="Name">ServerScriptService</string>
 		</Properties>
-		<Item class="Script" referent="FPS354">
+		<Item class="Script" referent="FPS353">
 			<Properties>
 				<bool name="Disabled">false</bool>
 				<string name="Name">Demo</string>
@@ -9303,7 +9297,7 @@ Players.PlayerAdded:Connect(start) local first=Players:GetPlayers()[1] if first 
 </ProtectedString>
 			</Properties>
 		</Item>
-		<Item class="Script" referent="FPS355">
+		<Item class="Script" referent="FPS354">
 			<Properties>
 				<bool name="Disabled">false</bool>
 				<string name="Name">GunServer</string>
@@ -9419,7 +9413,7 @@ for _,p in ipairs(Players:GetPlayers()) do added(p) end
 </ProtectedString>
 			</Properties>
 		</Item>
-		<Item class="Script" referent="FPS356">
+		<Item class="Script" referent="FPS355">
 			<Properties>
 				<bool name="Disabled">false</bool>
 				<string name="Name">R6Characters</string>
@@ -9461,7 +9455,7 @@ for _,p in ipairs(Players:GetPlayers()) do add(p) end
 </ProtectedString>
 			</Properties>
 		</Item>
-		<Item class="Script" referent="FPS357">
+		<Item class="Script" referent="FPS356">
 			<Properties>
 				<bool name="Disabled">false</bool>
 				<string name="Name">ReplicateAnimations</string>
@@ -9472,11 +9466,11 @@ require(system:WaitForChild(&quot;Modules&quot;):WaitForChild(&quot;ThirdPersonC
 			</Properties>
 		</Item>
 	</Item>
-	<Item class="StarterGui" referent="FPS358">
+	<Item class="StarterGui" referent="FPS357">
 		<Properties>
 			<string name="Name">StarterGui</string>
 		</Properties>
-		<Item class="ScreenGui" referent="FPS359">
+		<Item class="ScreenGui" referent="FPS358">
 			<Properties>
 				<bool name="Enabled">false</bool>
 				<string name="Name">GunHUD</string>
@@ -9484,7 +9478,7 @@ require(system:WaitForChild(&quot;Modules&quot;):WaitForChild(&quot;ThirdPersonC
 			</Properties>
 		</Item>
 	</Item>
-	<Item class="Lighting" referent="FPS360">
+	<Item class="Lighting" referent="FPS359">
 		<Properties>
 			<Color3 name="Ambient">
 				<R>0.5</R>
@@ -9496,7 +9490,7 @@ require(system:WaitForChild(&quot;Modules&quot;):WaitForChild(&quot;ThirdPersonC
 			<string name="Name">Lighting</string>
 		</Properties>
 	</Item>
-	<Item class="SoundService" referent="FPS361">
+	<Item class="SoundService" referent="FPS360">
 		<Properties>
 			<string name="Name">SoundService</string>
 		</Properties>
