@@ -37,6 +37,26 @@ function A.MagazineAlpha(time) if time<.72 or time>1.04 then return 0 end if tim
 function A.State(equipped,age,reload,inspect,running,aiming,firing,walking)
  if not equipped then return "Unequipping" elseif age<.45 then return "Equipping" elseif reload then return "Reloading" elseif inspect then return "Inspecting" elseif firing then return "Firing" elseif aiming then return "Aiming" elseif running then return "Running" elseif walking then return "Walking" else return "Idle" end
 end
+-- Authored third-person chest-ready idle; no uploaded AnimationId required.
+-- Stock is kept outside the front of a standard R6 torso.
+A.WorldIdle={{0,CFrame.new()},{1.2,CFrame.new(0,.006,0)},{2.4,CFrame.new()}}
+local function worldIdle(time)
+ local phase=time%2.4
+ for i=2,#A.WorldIdle do
+  local a,b=A.WorldIdle[i-1],A.WorldIdle[i]
+  if phase<=b[1] then local t=(phase-a[1])/(b[1]-a[1]) t=t*t*(3-2*t) return a[2]:Lerp(b[2],t) end
+ end
+ return CFrame.new()
+end
+function A.WorldBase(torso)
+ return CFrame.new(0,torso.Size.Y*.175,-torso.Size.Z*.5-1.05)
+end
+function A.WorldSample(now,phase,move,run,jump,aim)
+ local steady=1-.8*aim
+ return worldIdle(now)*CFrame.new(math.sin(phase)*.012*move*steady,
+  math.cos(phase*2)*.012*move*steady+.035*jump+.045*aim,-.025*aim)
+  *CFrame.Angles(-.055*run+.035*jump,math.sin(phase)*.012*move*steady,.018*run)
+end
 return A
 ]=] end
 do local x=node(mods,'ModuleScript',"AvatarAppearance") x.Source=[=[-- Executado no servidor. A aparencia vem da conta; so o rig e convertido em R6.
@@ -282,6 +302,7 @@ do local x=node(mods,'ModuleScript',"ThirdPersonController") x.Source=[=[local P
 local CS=game:GetService("CollectionService")
 local C=require(script.Parent.WeaponConfig) local Anim=require(script.Parent.AnimationController) local Effects=require(script.Parent.WeaponEffects)
 local T={} local rigs={} local bases={} local poses={}
+local bodyJoint={["Right Shoulder"]=true,["Left Shoulder"]=true,["Right Hip"]=true,["Left Hip"]=true,Neck=true,RootJoint=true}
 local function unbind(p)
  local r=rigs[p] if r then for _,j in pairs(r.j) do bases[j]=nil poses[j]=nil end end rigs[p]=nil
 end
@@ -295,8 +316,8 @@ local function bind(p,char)
  if p:IsA("Player") and p.Character~=char then return end
  for _,name in ipairs({"Right Shoulder","Left Shoulder","Right Hip","Left Hip","Neck"}) do if not torso:WaitForChild(name,10) then return end end
  unbind(p)
- local j={} for _,v in ipairs(char:GetDescendants()) do if v:IsA("Motor6D") and v.Name~="WorldGrip" and v.Name~="MagazineMotor" then j[v.Name]=v bases[v]=v.C0 poses[v]=CFrame.new() end end
- rigs[p]={char=char,torso=torso,h=h,root=root,j=j,pose=CFrame.new(),magPose=CFrame.new(),phase=0,moveWeight=0,runWeight=0,magAlpha=0}
+ local j={} for _,v in ipairs(char:GetDescendants()) do if v:IsA("Motor6D") and bodyJoint[v.Name] and (v.Part0==torso or v.Part0==root) then j[v.Name]=v bases[v]=v.C0 poses[v]=CFrame.new() end end
+ rigs[p]={char=char,torso=torso,h=h,root=root,j=j,pose=CFrame.new(),magPose=CFrame.new(),phase=0,moveWeight=0,runWeight=0,jumpWeight=0,aimWeight=0,pitch=0,magAlpha=0}
 end
 local function arm(joint,torso,target,dt)
  if not joint or not joint.Parent then return end
@@ -352,6 +373,8 @@ function T.init(serverMode)
    r.phase+=dt*(7.5+3.5*r.runWeight)*math.clamp(speed/C.WalkSpeed,0,1.5)
    local stride=math.sin(r.phase)*(.5+.4*r.runWeight)*r.moveWeight
    local jump=r.h.FloorMaterial==Enum.Material.Air and not r.root.Anchored
+   r.jumpWeight+=((jump and 1 or 0)-r.jumpWeight)*alpha
+   r.aimWeight+=((held and held:GetAttribute("Aiming") and 1 or 0)-r.aimWeight)*alpha
    for name,j in pairs(r.j) do if j.Parent and not (held and (name=="Right Shoulder" or name=="Left Shoulder")) then
     local target=CFrame.new()
     if name=="Right Hip" then target=CFrame.Angles(jump and -.25 or stride,0,0) elseif name=="Left Hip" then target=CFrame.Angles(jump and .25 or -stride,0,0)
@@ -365,21 +388,35 @@ function T.init(serverMode)
     local state=Anim.State(true,age,reloadEnd>now,inspectEnd>now,running,tool:GetAttribute("Aiming"),now-(r.char:GetAttribute("FPSLastShotAt") or -1e5)<.12)
     local phase=state=="Reloading" and now-(reloadEnd-C.ReloadTime) or state=="Inspecting" and now-(inspectEnd-C.InspectTime) or age
     local pose,left,mag=Anim.Sample(state,math.max(0,phase))
-    local stance=CFrame.Angles(-.14,-.06,.025)
-    if state=="Running" then stance=CFrame.new(.05,-.22,.1)*CFrame.Angles(-.45,.1,.1)
-    elseif tool:GetAttribute("Aiming") then stance=CFrame.new(.08,.28,-.1)*CFrame.Angles(0,-.025,0) end
-    local moving=math.clamp(speed/C.WalkSpeed,0,1)*(tool:GetAttribute("Aiming") and .2 or 1)
-    local breathe=CFrame.new(0,math.sin(now*2)*.008,0)
-    local walk=CFrame.new(math.sin(r.phase)*.012*moving,math.cos(r.phase*2)*.016*moving,0)
-    pose=stance*breathe*walk*pose
+    if state=="Equipping" then
+     local blend=math.clamp(phase/C.EquipTime,0,1) blend=blend*blend*(3-2*blend)
+     pose=(CFrame.new(0,-.25,.15)*CFrame.Angles(-.12,0,.06)):Lerp(CFrame.new(),blend)
+    end
+    pose=Anim.WorldSample(now,r.phase,r.moveWeight,r.runWeight,r.jumpWeight,r.aimWeight)*pose
     local since=now-(r.char:GetAttribute("FPSLastShotAt") or -1e5) if since>=0 and since<.15 then pose=pose*CFrame.new(0,0,.08*math.exp(-since*25))*CFrame.Angles(.035*math.exp(-since*25),0,0) end
-    r.pose=r.pose:Lerp(CFrame.Angles(tool:GetAttribute("AimPitch") or 0,0,0)*pose,alpha) r.magPose=r.magPose:Lerp(mag,alpha) if r.grip~=grip then r.grip=grip r.gripBase=grip.C0 end
-    grip.Transform=CFrame.new() grip.C0=r.gripBase*r.pose
+    r.pose=r.pose:Lerp(pose,alpha) r.magPose=r.magPose:Lerp(mag,alpha) if r.grip~=grip then r.grip=grip r.configureGrip=true end
+    -- Pivot elevation around the stock, rather than swinging the gun through the torso.
+    local stock=CFrame.new(0,.1066,.9512)
+    local base=Anim.WorldBase(r.torso)
+    r.pitch+=((tool:GetAttribute("AimPitch") or 0)-r.pitch)*alpha
+    local pitch=r.pitch
+    local localGun=base*stock*CFrame.Angles(pitch,0,0)*stock:Inverse()*r.pose
     local neck=r.j.Neck
     if neck and neck.Parent then local basis=bases[neck].Rotation local target=CFrame.Angles((tool:GetAttribute("AimPitch") or 0)*.4,0,0) apply(neck,basis:Inverse()*target*basis,alpha) end
-    local gunCF=r.torso.CFrame*grip.C0
-    local right=handle:FindFirstChild("RightGripPoint") local support=handle:FindFirstChild("LeftGrip")
+    local gunCF=r.torso.CFrame*localGun
+    local right=handle:FindFirstChild("RightGripPoint") local support=handle:FindFirstChild("WorldLeftGrip") or handle:FindFirstChild("LeftGrip")
     if right then arm(r.j["Right Shoulder"],r.torso,(gunCF*right.CFrame).Position,dt) end
+    -- A real arm-to-weapon Motor6D carries the rifle. Shoulder animation and
+    -- tool grip are solved from the same weapon pose, avoiding duplicate constraints.
+    local rightJoint=r.j["Right Shoulder"]
+    if rightJoint and rightJoint.Part1 then
+     local armCF=r.torso.CFrame*rightJoint.C0*rightJoint.C1:Inverse()
+     grip.Part0=rightJoint.Part1 grip.C1=CFrame.new() grip.Transform=CFrame.new()
+     grip.C0=armCF:ToObjectSpace(gunCF)
+     if r.configureGrip then
+      tool.Grip=grip.C0:Inverse()*CFrame.new(0,-rightJoint.Part1.Size.Y*.5,0) r.configureGrip=false
+     end
+    end
     if support then
      local target=support.CFrame*left
      if state=="Reloading" then target=support.CFrame:Lerp(handle.MagazinePivot.CFrame*r.magPose*CFrame.new(-.25,0,0),Anim.ReloadHandWeight(phase)) end
@@ -539,6 +576,7 @@ function F.Build(parent,scale)
   end
  end
  local function point(name,pos) local a=Instance.new("Attachment") a.Name=name a.CFrame=CFrame.new(pos*scale) a.Parent=root return a end
+ point("WorldLeftGrip",Vector3.new(-.4,.04,-.38))
  point("AimPoint",Vector3.new(0,1.04,.55)) point("Muzzle",Vector3.new(0,.29,-3.38)) point("LeftGrip",Vector3.new(-.3,-.08,-.95)) point("RightGripPoint",Vector3.new(.05,-.3,.12)) point("MagazinePivot",Vector3.new(0,-.46,-.65))
  m.Parent=parent return m
 end
@@ -596,6 +634,7 @@ pcall(function() Physics:RegisterCollisionGroup("FPSViewModel") end)
 for _,g in ipairs(Physics:GetRegisteredCollisionGroups()) do Physics:CollisionGroupSetCollidable("FPSViewModel",g.name,false) end
 local System=RS:WaitForChild("FPSSystem") local Modules=System.Modules
 local C=require(Modules.WeaponConfig) local Logic=require(Modules.WeaponState) local Factory=require(Modules.WeaponFactory)
+local Anim=require(Modules.AnimationController)
 local Remotes=System:WaitForChild("Remotes")
 local states={} local lives={} local windows={}
 local function now() return workspace:GetServerTimeNow() end
@@ -628,7 +667,13 @@ Remotes.Fire.OnServerEvent:Connect(function(p,life,seq,origin,direction)
  local ok,reason=Logic.Fire(s,seq,now()) if not ok then snapshot(p,s,reason) return end
  local dir=direction.Unit local hit=workspace:Raycast(head.Position,dir*C.Range,params) local target=hit and hit.Position or head.Position+dir*C.Range
  local muzzle=s.tool.Handle:FindFirstChild("Muzzle") local joint=s.tool.Handle:FindFirstChild("WorldGrip") local torso=p.Character:FindFirstChild("Torso")
- local gunCF=torso and joint and torso.CFrame*joint.C0
+ local gunCF
+ if torso and joint then
+  local shoulder=torso:FindFirstChild("Right Shoulder")
+  if shoulder and joint.Part0==shoulder.Part1 then
+   gunCF=torso.CFrame*shoulder.C0*shoulder.C1:Inverse()*joint.C0*(joint.C1 or CFrame.new()):Inverse()
+  else gunCF=torso.CFrame*joint.C0 end
+ end
  local start=gunCF and muzzle and (gunCF*muzzle.CFrame).Position or head.Position
  if (start-head.Position).Magnitude>6 or workspace:Raycast(head.Position,start-head.Position,params) then start=head.Position end
  if hit then
@@ -685,9 +730,20 @@ local function character(p,char)
   local function removeDefault() local arm=char:FindFirstChild("Right Arm") local old=arm and arm:FindFirstChild("RightGrip") if old then old:Destroy() end end
   removeDefault() task.defer(removeDefault)
   local previous=tool.Handle:FindFirstChild("WorldGrip") if previous then previous:Destroy() end
-  local joint=Instance.new("Motor6D") joint.Name="WorldGrip" joint.Part0=torso joint.Part1=tool.Handle joint.C0=CFrame.new(.18,-.15,-.82) joint.Parent=tool.Handle
+  local right=char:FindFirstChild("Right Arm") local shoulder=torso:FindFirstChild("Right Shoulder")
+  local joint=Instance.new("Motor6D") joint.Name="WorldGrip" joint.Part1=tool.Handle joint.C1=CFrame.new()
+  local desired=torso.CFrame*Anim.WorldBase(torso)
+  if right and shoulder then
+   joint.Part0=right joint.C0=(torso.CFrame*shoulder.C0*shoulder.C1:Inverse()):ToObjectSpace(desired)
+   tool.Grip=joint.C0:Inverse()*CFrame.new(0,-right.Size.Y*.5,0)
+  else joint.Part0=torso joint.C0=Anim.WorldBase(torso) end
+  joint.Parent=tool.Handle
   Logic.Equip(s,true,now()) snapshot(p,s)
  end)
+ local rightArm=char:FindFirstChild("Right Arm")
+ if rightArm then connect(rightArm.ChildAdded,function(j)
+  if j.Name=="RightGrip" and j:IsA("JointInstance") and j.Part1==tool.Handle and tool.Parent==char then j:Destroy() end
+ end) end
  connect(tool.Unequipped,function() if states[p]==s then cancel() end end)
  connect(h.Died,function() if states[p]==s then cancel() end end)
  tool.Parent=backpack snapshot(p,s)
