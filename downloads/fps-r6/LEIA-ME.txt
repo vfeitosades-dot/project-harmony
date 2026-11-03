@@ -48,7 +48,7 @@ ServerScriptService/GunServer/R6Characters, StarterPlayerScripts/FPSObserver.
 HUD e criado pelo modulo HUD em PlayerGui/GunHUD.
 
 VALIDACAO E LIMITES
-16 scripts e instalador compilados com Luau 0.698. XML lido e regravado pelo
+18 scripts e instalador compilados com Luau 0.698. XML lido e regravado pelo
 rbxmk, mantendo fontes e referencias. Testes executados com APIs simuladas:
 municao/cadencia, parcial, cancelamento, spring 30/60/144, prioridades,
 viewmodel unico, ACK, reload, ADS, retorno da camera, foco/chat, morte,
@@ -62,3 +62,22 @@ Teste equip/unequip rapido, segurando tiro, municao 0, recarga parcial,
 tiro durante reload, ADS andando, inspect interrompido, reset/respawn,
 dois clientes, equipes e dispositivos moveis. Confira Output.
 A pasta Testes contem testes para Luau CLI, nao scripts para colocar no jogo.
+
+VERSAO APARENCIA / MODELO / ANIMACAO
+O personagem agora usa HumanoidDescription da conta, convertido para R6.
+Foram removidos o rosto desenhado e as cores fixas azul/verde do noob.
+Os bracos do viewmodel copiam cor, forma e camisa do personagem.
+Bots de treino usam a aparencia da primeira conta a entrar, com nomes BOT.
+Roupas em camadas e partes exclusivamente R15 podem ser omitidas na conversao
+para R6 pelo Roblox. Falhas da API usam uma aparencia neutra temporaria.
+Em clientes locais do Studio com IDs negativos, usa-se o criador quando
+possivel; confirme a aparencia com uma conta real na experiencia publicada.
+A arma foi remodelada no Blender com 65 componentes: formas chanfradas,
+trilho, ventilacao, parafusos, empunhadura e magazine detalhado.
+A geometria e exportada em pecas nativas: nenhum mesh ID externo e exigido.
+Equip e reload receberam novas curvas. A mao segue o magazine.
+Cada observador anima os personagens a partir dos estados replicados pelo
+servidor. As juntas padrao R6 sao respeitadas; bots tambem recebem idle.
+Testes simulados de aparencia, roupa, cache, recuperacao e animacao de um
+segundo observador passaram. Ainda NAO testado no motor Roblox Studio.
+O .blend e o render estao no ZIP; o render nao e uma captura do jogo.

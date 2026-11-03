@@ -11,12 +11,16 @@ local A={}
 local I=CFrame.new()
 local function cf(x,y,z,rx,ry,rz) return CFrame.new(x,y,z)*CFrame.Angles(math.rad(rx or 0),math.rad(ry or 0),math.rad(rz or 0)) end
 A.Clips={
- Equipping={{0,cf(.15,-1.1,.45,-28,15,12),cf(-.2,-.5,.3),I},{.12,cf(.08,-.6,.2,-12,5,7),cf(-.2,-.2,.15),I},{.28,cf(0,-.08,0,2,0,-2),cf(-.05,-.05,0),I},{.45,I,I,I}},
+ Equipping={{0,cf(.12,-1.15,.4,-25,10,14),cf(-.15,-.4,.25),I},{.12,cf(.06,-.55,.18,-12,5,6),cf(-.1,-.18,.1),I},{.27,cf(-.015,.035,-.015,1,0,-2),cf(-.025,-.015,0),I},{.36,cf(0,-.012,0,-.4,0,.6),I,I},{.45,I,I,I}},
  Unequipping={{0,I,I,I},{.3,cf(.2,-1.3,.4,-35,15,20),cf(-.2,-.3,.2),I}},
- Reloading={{0,I,I,I},{.28,cf(-.08,.03,.1,-5,0,-24),cf(-.2,-.2,.45,0,0,-15),I},{.58,cf(-.08,.03,.1,-5,0,-28),cf(-.15,-.55,.5,15,0,-10),cf(0,-.85,.1,0,0,-12)},
- {.82,cf(-.08,.03,.1,-5,0,-28),cf(-.3,-.75,.4),cf(0,-1.2,.2,0,0,-15)},
- {.98,cf(-.08,.03,.1,-5,0,-24),cf(-.15,-.45,.3),cf(0,-.65,.1,0,0,-8)},
- {1.35,cf(0,0,0,0,0,-4),cf(-.05,-.05,.05),I},{1.65,I,I,I}},
+ Reloading={{0,I,I,I},{.16,cf(-.04,.01,.05,-3,0,-15),cf(-.1,-.1,.2),I},
+ {.28,cf(-.07,.025,.09,-5,0,-24),cf(-.15,-.2,.3),I},
+ {.5,cf(-.07,.025,.09,-5,0,-26),cf(-.15,-.4,.4),cf(0,-.45,.08,0,0,-7)},
+ {.68,cf(-.07,.025,.09,-5,0,-26),cf(-.2,-.65,.4),cf(0,-1.05,.16,0,0,-12)},
+ {.86,cf(-.07,.025,.09,-5,0,-25),cf(-.2,-.7,.4),cf(0,-1.15,.18,0,0,-12)},
+ {1.01,cf(-.065,.02,.08,-4,0,-22),cf(-.1,-.4,.2),cf(0,-.5,.08,0,0,-5)},
+ {1.2,cf(-.03,.035,.04,-2,0,-14),cf(-.04,-.1,.1),cf(0,.025,0)},
+ {1.36,cf(0,-.01,.015,.8,0,-4),I,I},{1.65,I,I,I}},
  Inspecting={{0,I,I,I},{.45,cf(-.22,.1,.12,5,-25,-22),cf(-.1,-.05,.05),I},{1.05,cf(-.08,.15,.3,-8,20,30),cf(.05,0,0),I},{1.65,cf(-.15,.06,.15,3,-18,-16),I,I},{2.15,cf(0,.02,0,0,0,2),I,I},{2.5,I,I,I}},
 }
 function A.Sample(name,time)
@@ -33,6 +37,39 @@ function A.MagazineAlpha(time) if time<.72 or time>1.04 then return 0 end if tim
 function A.State(equipped,age,reload,inspect,running,aiming,firing,walking)
  if not equipped then return "Unequipping" elseif age<.45 then return "Equipping" elseif reload then return "Reloading" elseif inspect then return "Inspecting" elseif firing then return "Firing" elseif aiming then return "Aiming" elseif running then return "Running" elseif walking then return "Walking" else return "Idle" end
 end
+return A
+]=] end
+do local x=node(mods,'ModuleScript',"AvatarAppearance") x.Source=[=[-- Executado no servidor. A aparencia vem da conta; so o rig e convertido em R6.
+local Players=game:GetService("Players")
+local A={} local templates={} local loading={}
+local function neutral()
+ local d=Instance.new("HumanoidDescription")
+ local skin=Color3.fromRGB(211,180,153)
+ d.HeadColor=skin d.LeftArmColor=skin d.RightArmColor=skin
+ d.TorsoColor=Color3.fromRGB(55,65,81) d.LeftLegColor=Color3.fromRGB(31,41,55) d.RightLegColor=d.LeftLegColor
+ return d
+end
+function A.Create(userId)
+ userId=tonumber(userId) or 0
+ while loading[userId] do task.wait(.1) end
+ local cached=templates[userId]
+ if cached and (not cached:GetAttribute("AppearanceFallback") or userId<=0) then return cached:Clone() end
+ loading[userId]=true
+ local description local fallback=false
+ if userId>0 then
+  for attempt=1,3 do local ok,result=pcall(Players.GetHumanoidDescriptionFromUserIdAsync,Players,userId) if ok then description=result break end if attempt<3 then task.wait(attempt) end end
+ end
+ if not description then description=neutral() fallback=true end
+ local ok,model=pcall(Players.CreateHumanoidModelFromDescriptionAsync,Players,description,Enum.HumanoidRigType.R6)
+ description:Destroy()
+ if not ok then loading[userId]=nil return nil,tostring(model) end
+ for _,v in ipairs(model:GetDescendants()) do if v:IsA("Script") or v:IsA("LocalScript") then v:Destroy() end end
+ local h=model:FindFirstChildOfClass("Humanoid") if h then h.Health=h.MaxHealth end
+ model:SetAttribute("AppearanceFallback",fallback) model:SetAttribute("AppearanceUserId",userId)
+ if cached then cached:Destroy() end templates[userId]=model loading[userId]=nil
+ return model:Clone()
+end
+function A.Clear(userId) local m=templates[userId] if m then m:Destroy() templates[userId]=nil end end
 return A
 ]=] end
 do local x=node(mods,'ModuleScript',"ClientController") x.Source=[=[local Players=game:GetService("Players") local Input=game:GetService("UserInputService") local Run=game:GetService("RunService") local Gui=game:GetService("GuiService")
@@ -225,12 +262,14 @@ end
 return S
 ]=] end
 do local x=node(mods,'ModuleScript',"ThirdPersonController") x.Source=[=[local Players=game:GetService("Players") local Run=game:GetService("RunService") local RS=game:GetService("ReplicatedStorage")
+local CS=game:GetService("CollectionService")
 local C=require(script.Parent.WeaponConfig) local Anim=require(script.Parent.AnimationController) local Effects=require(script.Parent.WeaponEffects)
 local T={} local rigs={} local shotAt={}
 local function bind(p,char)
  local torso=char:WaitForChild("Torso",8) local h=char:FindFirstChildOfClass("Humanoid") local root=char:FindFirstChild("HumanoidRootPart") if not torso or not h or not root then return end
+ if p:IsA("Player") and p.Character~=char then return end
  local j={} for _,v in ipairs(char:GetDescendants()) do if v:IsA("Motor6D") and v.Name~="WorldGrip" and v.Name~="MagazineMotor" then j[v.Name]=v end end
- rigs[p]={char=char,torso=torso,h=h,root=root,j=j,pose=CFrame.new(),magPose=CFrame.new()}
+ rigs[p]={char=char,torso=torso,h=h,root=root,j=j,pose=CFrame.new(),magPose=CFrame.new(),phase=0,magAlpha=0}
 end
 local function arm(joint,torso,target,dt)
  if not joint or not joint.Parent then return end
@@ -243,6 +282,9 @@ end
 function T.init()
  local function add(p) p.CharacterAdded:Connect(function(char) task.spawn(bind,p,char) end) if p.Character then task.spawn(bind,p,p.Character) end end
  Players.PlayerAdded:Connect(add) Players.PlayerRemoving:Connect(function(p) rigs[p]=nil shotAt[p]=nil end) for _,p in ipairs(Players:GetPlayers()) do add(p) end
+ for _,bot in ipairs(CS:GetTagged("FPSDemoBot")) do task.spawn(bind,bot,bot) end
+ CS:GetInstanceAddedSignal("FPSDemoBot"):Connect(function(bot) task.spawn(bind,bot,bot) end)
+ CS:GetInstanceRemovedSignal("FPSDemoBot"):Connect(function(bot) rigs[bot]=nil end)
  RS.FPSSystem.Remotes.WeaponFX.OnClientEvent:Connect(function(id,a,b)
   local p=Players:GetPlayerByUserId(id) if p then shotAt[p]=workspace:GetServerTimeNow() end
   if id~=Players.LocalPlayer.UserId then Effects.Shot(a,b) end
@@ -251,14 +293,14 @@ function T.init()
   local now=workspace:GetServerTimeNow() local alpha=1-math.exp(-dt*16)
   for p,r in pairs(rigs) do
    if not r.char.Parent then rigs[p]=nil continue end
-   local speed=Vector3.new(r.root.AssemblyLinearVelocity.X,0,r.root.AssemblyLinearVelocity.Z).Magnitude local stride=math.sin(now*math.clamp(speed*.65,5,16))*math.min(speed/16,1)*.7
-   local jump=r.h.FloorMaterial==Enum.Material.Air
+   local speed=Vector3.new(r.root.AssemblyLinearVelocity.X,0,r.root.AssemblyLinearVelocity.Z).Magnitude r.phase+=speed*dt*1.15 local stride=math.sin(r.phase)*math.min(speed/16,1)*.7
+   local jump=r.h.FloorMaterial==Enum.Material.Air and not r.root.Anchored
    for name,j in pairs(r.j) do if j.Parent then
     local target=CFrame.new()
     if name=="Right Hip" then target=CFrame.Angles(jump and -.25 or stride,0,0) elseif name=="Left Hip" then target=CFrame.Angles(jump and .25 or -stride,0,0)
     elseif name=="Right Shoulder" then target=CFrame.Angles(-stride,0,.04) elseif name=="Left Shoulder" then target=CFrame.Angles(stride,0,-.04)
     elseif name=="RootJoint" then target=CFrame.new(0,math.sin(now*2)*.02,0) end
-    j.Transform=j.Transform:Lerp(target,alpha)
+    local basis=j.C0.Rotation j.Transform=j.Transform:Lerp(basis:Inverse()*target*basis,alpha)
    end end
    local tool=r.char:FindFirstChild("Rifle") local handle=tool and tool:FindFirstChild("Handle") local grip=handle and handle:FindFirstChild("WorldGrip")
    if handle and grip then
@@ -270,6 +312,8 @@ function T.init()
     if tool:GetAttribute("Aiming") then pose=CFrame.new(0,.65,.05)*pose end
     local since=now-(shotAt[p] or -1e5) if since>=0 and since<.15 then pose=pose*CFrame.new(0,0,.08*math.exp(-since*25))*CFrame.Angles(.035*math.exp(-since*25),0,0) end
     r.pose=r.pose:Lerp(CFrame.Angles(tool:GetAttribute("AimPitch") or 0,0,0)*pose,alpha) r.magPose=r.magPose:Lerp(mag,alpha) grip.Transform=r.pose
+    local neck=r.j.Neck
+    if neck and neck.Parent then local basis=neck.C0.Rotation local target=CFrame.Angles((tool:GetAttribute("AimPitch") or 0)*.4,0,0) neck.Transform=neck.Transform:Lerp(basis:Inverse()*target*basis,alpha) end
     local gunCF=r.torso.CFrame*grip.C0*r.pose
     local right=handle:FindFirstChild("RightGripPoint") local support=handle:FindFirstChild("LeftGrip")
     if right then arm(r.j["Right Shoulder"],r.torso,(gunCF*right.CFrame).Position,dt) end
@@ -279,6 +323,8 @@ function T.init()
      arm(r.j["Left Shoulder"],r.torso,(gunCF*target).Position,dt)
     end
     local magazine=handle:FindFirstChild("MagazineMotor") if magazine then magazine.Transform=r.magPose end
+    local targetAlpha=state=="Reloading" and Anim.MagazineAlpha(phase) or 0 r.magAlpha+=(targetAlpha-r.magAlpha)*alpha
+    for _,part in ipairs(tool:GetDescendants()) do if part:IsA("BasePart") and part:GetAttribute("MagazinePart") then part.Transparency=r.magAlpha end end
    end
   end
  end)
@@ -297,15 +343,33 @@ function V.new(camera)
  local gun=Factory.Build(model) local handle=gun.Handle for _,p in ipairs(gun:GetDescendants()) do if p:IsA("BasePart") then p.CastShadow=false end end
  local joint=Instance.new("Motor6D") joint.Name="WeaponMotor" joint.Part0=root joint.Part1=handle joint.Parent=root
  local function arm(name,point,angle)
-  local p=Instance.new("Part") p.Name=name p.Size=Vector3.new(.8,1.8,.8) p.TopSurface=Enum.SurfaceType.Smooth p.BottomSurface=Enum.SurfaceType.Smooth p.Color=Color3.fromRGB(240,194,124) p.Material=Enum.Material.SmoothPlastic p.CanCollide=false p.CanQuery=false p.CanTouch=false p.Massless=true p.CastShadow=false p.Parent=model
-  local rot=CFrame.Angles(angle,0,name=="LeftArm" and .12 or -.12)
+  local player=game:GetService("Players").LocalPlayer local character=player and player.Character
+  local original=character and character:FindFirstChild(name)
+  local p=original and original:Clone() or Instance.new("Part")
+  for _,v in ipairs(p:GetDescendants()) do if v:IsA("JointInstance") or v:IsA("WeldConstraint") or v:IsA("Script") or v:IsA("LocalScript") then v:Destroy() end end
+  p.Name=name p.Size=Vector3.new(.8,1.8,.8)
+  if not original then p.Color=Color3.fromRGB(211,180,153) end
+  p.Anchored=false p.Material=Enum.Material.SmoothPlastic p.CanCollide=false p.CanQuery=false p.CanTouch=false p.Massless=true p.CastShadow=false p.LocalTransparencyModifier=0 p.Parent=model
+  local rot=CFrame.Angles(angle,0,name=="Left Arm" and .12 or -.12)
   local motor=Instance.new("Motor6D") motor.Name=name.."Joint" motor.Part0=handle motor.Part1=p motor.C0=point.CFrame*rot*CFrame.new(0,.9,0) motor.Parent=handle p.CFrame=motor.C0
   return motor
  end
- local right=arm("RightArm",handle.RightGripPoint,1.1) local left=arm("LeftArm",handle.LeftGrip,1.15)
- local controller=Instance.new("AnimationController") controller.Parent=model local animator=Instance.new("Animator") animator.Parent=controller
+ local right=arm("Right Arm",handle.RightGripPoint,1.1) local left=arm("Left Arm",handle.LeftGrip,1.15)
+ local player=game:GetService("Players").LocalPlayer local character=player and player.Character
+ local torso=Instance.new("Part") torso.Name="Torso" torso.Size=Vector3.new(2,2,1) torso.Transparency=1 torso.CanCollide=false torso.CanTouch=false torso.CanQuery=false torso.Massless=true torso.Parent=model
+ local w=Instance.new("Weld") w.Part0=root w.Part1=torso w.Parent=torso
+ local hrp=Instance.new("Part") hrp.Name="HumanoidRootPart" hrp.Size=Vector3.new(.1,.1,.1) hrp.Transparency=1 hrp.CanCollide=false hrp.CanTouch=false hrp.CanQuery=false hrp.Massless=true hrp.Parent=model
+ local rw=Instance.new("Weld") rw.Part0=root rw.Part1=hrp rw.Parent=hrp
+ local controller=Instance.new("Humanoid") controller.RigType=Enum.HumanoidRigType.R6 controller.RequiresNeck=false controller.DisplayDistanceType=Enum.HumanoidDisplayDistanceType.None controller.PlatformStand=true controller.AutoRotate=false controller.Parent=model
+ local animator=Instance.new("Animator") animator.Parent=controller
+ if character then
+  for _,v in ipairs(character:GetChildren()) do
+   if v:IsA("Shirt") or v:IsA("BodyColors") or (v:IsA("CharacterMesh") and (v.BodyPart==Enum.BodyPart.LeftArm or v.BodyPart==Enum.BodyPart.RightArm)) then v:Clone().Parent=model end
+  end
+ end
+ local magParts={} for _,p in ipairs(gun:GetDescendants()) do if p:IsA("BasePart") and p:GetAttribute("MagazinePart") then table.insert(magParts,p) end end
  model.Parent=camera
- return setmetatable({model=model,root=root,gun=gun,joint=joint,right=right,left=left,leftBase=left.C0,leftRotation=CFrame.Angles(1.15,0,.12),mag=handle.MagazineMotor,magBase=handle.MagazineMotor.C0,magAlpha=0,recoil=Recoil.new(),sway=Spring.new(Vector3.zero,14),aim=0,run=0,phase=0,pose=CFrame.new(),leftPose=CFrame.new(),magPose=CFrame.new()},V)
+ return setmetatable({model=model,root=root,gun=gun,joint=joint,right=right,left=left,leftBase=left.C0,leftRotation=CFrame.Angles(1.15,0,.12),mag=handle.MagazineMotor,magBase=handle.MagazineMotor.C0,magAlpha=0,magParts=magParts,recoil=Recoil.new(),sway=Spring.new(Vector3.zero,14),aim=0,run=0,phase=0,pose=CFrame.new(),leftPose=CFrame.new(),magPose=CFrame.new()},V)
 end
 function V:Fire() self.recoil:Fire(self.aim>.5) end
 function V:Step(dt,camera,info,mouse)
@@ -314,7 +378,7 @@ function V:Step(dt,camera,info,mouse)
  local gunPose,leftPose,magPose=Anim.Sample(info.state,info.time)
  if info.state=="Running" then gunPose=CFrame.new(.12,-.22,.12)*CFrame.Angles(-.2,.15,.15) end
  self.pose=self.pose:Lerp(gunPose,smoothing) self.leftPose=self.leftPose:Lerp(leftPose,smoothing) self.magPose=self.magPose:Lerp(magPose,smoothing)
- local targetAlpha=info.state=="Reloading" and Anim.MagazineAlpha(info.time) or 0 self.magAlpha+=(targetAlpha-self.magAlpha)*smoothing self.gun.Magazine.Transparency=self.magAlpha
+ local targetAlpha=info.state=="Reloading" and Anim.MagazineAlpha(info.time) or 0 self.magAlpha+=(targetAlpha-self.magAlpha)*smoothing for _,p in ipairs(self.magParts) do if p.Parent then p.Transparency=self.magAlpha end end
  self.mag.C0=self.magBase*self.magPose
  local leftTarget=self.leftBase
  if info.state=="Reloading" then
@@ -367,28 +431,22 @@ function F.Build(parent)
  local m=Instance.new("Model") m.Name="RifleModel"
  local root=Instance.new("Part") root.Name="Handle" root.Size=Vector3.new(.25,.25,.25) root.CFrame=CFrame.new() root.Transparency=1 root.CanCollide=false root.CanTouch=false root.CanQuery=false root.Massless=true root.Parent=m m.PrimaryPart=root
  local magazine
- local function part(name,size,pos,color,attach)
-  local p=Instance.new("Part") p.Name=name p.Size=size p.CFrame=CFrame.new(pos) p.TopSurface=Enum.SurfaceType.Smooth p.BottomSurface=Enum.SurfaceType.Smooth p.Color=color p.Material=Enum.Material.SmoothPlastic p.CanCollide=false p.CanTouch=false p.CanQuery=false p.Massless=true p.Parent=m
-  if attach~=false then local w=Instance.new("Weld") w.Part0=root w.Part1=p w.C0=root.CFrame:Inverse()*p.CFrame w.Parent=p end return p
+ for _,d in ipairs(require(script.Parent.WeaponGeometry)) do
+  local p=Instance.new(d.shape=="Wedge" and "WedgePart" or "Part") p.Name=d.name
+  p.Size=Vector3.new(d.size[1],d.size[2],d.size[3])
+  p.CFrame=CFrame.new(d.pos[1],d.pos[2],d.pos[3])*CFrame.Angles(math.rad(d.rot[1]),math.rad(d.rot[2]),math.rad(d.rot[3]))
+  if d.shape=="Tube" then p.Shape=Enum.PartType.Cylinder p.Size=Vector3.new(d.size[3],d.size[1],d.size[2]) p.CFrame=p.CFrame*CFrame.Angles(0,math.pi/2,0) end
+  p.Color=Color3.fromRGB(d.color[1],d.color[2],d.color[3]) p.Material=Enum.Material.SmoothPlastic p.TopSurface=Enum.SurfaceType.Smooth p.BottomSurface=Enum.SurfaceType.Smooth
+  p.CanCollide=false p.CanTouch=false p.CanQuery=false p.Massless=true p.Parent=m
+  if d.name=="Magazine" then
+   magazine=p p:SetAttribute("MagazinePart",true)
+   local motor=Instance.new("Motor6D") motor.Name="MagazineMotor" motor.Part0=root motor.Part1=p motor.C0=p.CFrame motor.Parent=root
+  else
+   local parentPart=d.group=="Mag" and magazine or root
+   if d.group=="Mag" then p:SetAttribute("MagazinePart",true) end
+   local w=Instance.new("Weld") w.Part0=parentPart w.Part1=p w.C0=parentPart.CFrame:Inverse()*p.CFrame w.Parent=p
+  end
  end
- part("Corpo",Vector3.new(.55,.58,2.1),Vector3.new(0,.23,-.65),blue)
- part("Cobertura",Vector3.new(.6,.13,1.8),Vector3.new(0,.57,-.7),dark)
- part("Guarda frontal",Vector3.new(.5,.42,.85),Vector3.new(0,.18,-1.8),dark)
- part("Cano virtual",Vector3.new(.2,.2,1.2),Vector3.new(0,.29,-2.65),pale)
- part("Emissor",Vector3.new(.32,.3,.35),Vector3.new(0,.29,-3.18),dark)
- part("Coronha",Vector3.new(.4,.42,.8),Vector3.new(0,.16,.75),dark)
- part("Apoio",Vector3.new(.48,.65,.2),Vector3.new(0,.1,1.18),pale)
- part("Cabo",Vector3.new(.35,.65,.38),Vector3.new(0,-.34,.1),dark)
- magazine=part("Magazine",Vector3.new(.4,.65,.55),Vector3.new(0,-.46,-.65),pale,false)
- local magMotor=Instance.new("Motor6D") magMotor.Name="MagazineMotor" magMotor.Part0=root magMotor.Part1=magazine magMotor.C0=magazine.CFrame magMotor.Parent=root
- for _,x in ipairs({-.29,.29}) do
-  for z=-1.3,-.3,.25 do part("Rebaixo",Vector3.new(.035,.15,.12),Vector3.new(x,.23,z),dark) end
-  part("Faixa",Vector3.new(.035,.08,.65),Vector3.new(x,.43,-.6),gold)
- end
- part("Mira traseira",Vector3.new(.38,.12,.25),Vector3.new(0,.7,.15),dark)
- for _,x in ipairs({-.13,.13}) do part("Mira lateral",Vector3.new(.07,.18,.12),Vector3.new(x,.78,.15),pale) end
- part("Mira frontal",Vector3.new(.06,.18,.1),Vector3.new(0,.78,-1.7),gold)
- for _,z in ipairs({-.9,-.55,-.2}) do part("Indicador",Vector3.new(.025,.06,.12),Vector3.new(-.298,.3,z),gold) end
  local function point(name,pos) local a=Instance.new("Attachment") a.Name=name a.CFrame=CFrame.new(pos) a.Parent=root return a end
  point("AimPoint",Vector3.new(0,.78,.65)) point("Muzzle",Vector3.new(0,.29,-3.38)) point("LeftGrip",Vector3.new(-.3,-.4,-1.0)) point("RightGripPoint",Vector3.new(.05,-.45,.1)) point("MagazinePivot",Vector3.new(0,-.46,-.65))
  m.Parent=parent return m
@@ -400,6 +458,9 @@ function F.Mount(tool)
  local model=F.Build(nil) for _,p in ipairs(model:GetChildren()) do p.Parent=tool end model:Destroy()
 end
 return F
+]=] end
+do local x=node(mods,'ModuleScript',"WeaponGeometry") x.Source=[=[-- Exportado da modelagem original no Blender.
+return {{["name"]="Receiver",["size"]={0.57,0.46,1.9},["pos"]={0,0.25,-0.65},["color"]={48,104,135},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Upper receiver",["size"]={0.62,0.14,1.45},["pos"]={0,0.55,-0.55},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Chamfer frente",["size"]={0.57,0.16,0.28},["pos"]={0,0.51,-1.55},["color"]={48,104,135},["shape"]="Wedge",["rot"]={0,0,0},["group"]="Body"},{["name"]="Chamfer traseiro",["size"]={0.57,0.16,0.28},["pos"]={0,0.51,0.28},["color"]={48,104,135},["shape"]="Wedge",["rot"]={0,180,0},["group"]="Body"},{["name"]="Handguard",["size"]={0.49,0.4,0.9},["pos"]={0,0.24,-1.95},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Cano virtual",["size"]={0.16,0.16,0.8},["pos"]={0,0.29,-2.78},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,0,0},["group"]="Body"},{["name"]="Emissor",["size"]={0.29,0.29,0.28},["pos"]={0,0.29,-3.22},["color"]={24,30,39},["shape"]="Tube",["rot"]={0,0,0},["group"]="Body"},{["name"]="Anel frontal",["size"]={0.34,0.34,0.07},["pos"]={0,0.29,-3.12},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,0,0},["group"]="Body"},{["name"]="Trilho",["size"]={0.29,0.07,1.7},["pos"]={0,0.66,-0.7},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Dente do trilho",["size"]={0.34,0.05,0.09},["pos"]={0,0.715,-1.45},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Dente do trilho",["size"]={0.34,0.05,0.09},["pos"]={0,0.715,-1.2},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Dente do trilho",["size"]={0.34,0.05,0.09},["pos"]={0,0.715,-0.95},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Dente do trilho",["size"]={0.34,0.05,0.09},["pos"]={0,0.715,-0.7},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Dente do trilho",["size"]={0.34,0.05,0.09},["pos"]={0,0.715,-0.45},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Dente do trilho",["size"]={0.34,0.05,0.09},["pos"]={0,0.715,-0.2},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Dente do trilho",["size"]={0.34,0.05,0.09},["pos"]={0,0.715,0.05},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Painel lateral",["size"]={0.045,0.3,1.1},["pos"]={-0.3,0.26,-0.65},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Faixa lateral",["size"]={0.05,0.055,0.7},["pos"]={-0.3,0.46,-0.5},["color"]={235,170,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Parafuso",["size"]={0.06,0.06,0.025},["pos"]={-0.3,0.25,-1.05},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,90,0},["group"]="Body"},{["name"]="Parafuso",["size"]={0.06,0.06,0.025},["pos"]={-0.3,0.25,-0.75},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,90,0},["group"]="Body"},{["name"]="Parafuso",["size"]={0.06,0.06,0.025},["pos"]={-0.3,0.25,-0.45},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,90,0},["group"]="Body"},{["name"]="Parafuso",["size"]={0.06,0.06,0.025},["pos"]={-0.3,0.25,-0.15},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,90,0},["group"]="Body"},{["name"]="Janela de ventilacao",["size"]={0.025,0.12,0.11},["pos"]={-0.252,0.27,-2.22},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Janela de ventilacao",["size"]={0.025,0.12,0.11},["pos"]={-0.252,0.27,-2.02},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Janela de ventilacao",["size"]={0.025,0.12,0.11},["pos"]={-0.252,0.27,-1.82},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Janela de ventilacao",["size"]={0.025,0.12,0.11},["pos"]={-0.252,0.27,-1.62},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Painel traseiro",["size"]={0.045,0.18,0.27},["pos"]={-0.3,0.3,0.1},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Painel lateral",["size"]={0.045,0.3,1.1},["pos"]={0.3,0.26,-0.65},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Faixa lateral",["size"]={0.05,0.055,0.7},["pos"]={0.3,0.46,-0.5},["color"]={235,170,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Parafuso",["size"]={0.06,0.06,0.025},["pos"]={0.3,0.25,-1.05},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,90,0},["group"]="Body"},{["name"]="Parafuso",["size"]={0.06,0.06,0.025},["pos"]={0.3,0.25,-0.75},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,90,0},["group"]="Body"},{["name"]="Parafuso",["size"]={0.06,0.06,0.025},["pos"]={0.3,0.25,-0.45},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,90,0},["group"]="Body"},{["name"]="Parafuso",["size"]={0.06,0.06,0.025},["pos"]={0.3,0.25,-0.15},["color"]={151,170,184},["shape"]="Tube",["rot"]={0,90,0},["group"]="Body"},{["name"]="Janela de ventilacao",["size"]={0.025,0.12,0.11},["pos"]={0.252,0.27,-2.22},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Janela de ventilacao",["size"]={0.025,0.12,0.11},["pos"]={0.252,0.27,-2.02},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Janela de ventilacao",["size"]={0.025,0.12,0.11},["pos"]={0.252,0.27,-1.82},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Janela de ventilacao",["size"]={0.025,0.12,0.11},["pos"]={0.252,0.27,-1.62},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Painel traseiro",["size"]={0.045,0.18,0.27},["pos"]={0.3,0.3,0.1},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Coronha",["size"]={0.38,0.34,0.65},["pos"]={0,0.2,0.77},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Haste da coronha",["size"]={0.24,0.19,0.4},["pos"]={0,0.32,0.33},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Ombreira",["size"]={0.44,0.57,0.12},["pos"]={0,0.13,1.16},["color"]={48,55,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Textura ombreira",["size"]={0.46,0.035,0.13},["pos"]={0,-0.04,1.17},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Textura ombreira",["size"]={0.46,0.035,0.13},["pos"]={0,0.08,1.17},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Textura ombreira",["size"]={0.46,0.035,0.13},["pos"]={0,0.2,1.17},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Textura ombreira",["size"]={0.46,0.035,0.13},["pos"]={0,0.32,1.17},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Cabo",["size"]={0.33,0.58,0.36},["pos"]={0,-0.34,0.12},["color"]={48,55,62},["shape"]="Block",["rot"]={-10,0,0},["group"]="Body"},{["name"]="Relevo cabo",["size"]={0.35,0.035,0.34},["pos"]={0,-0.5,0.13},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Relevo cabo",["size"]={0.35,0.035,0.34},["pos"]={0,-0.38,0.13},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Relevo cabo",["size"]={0.35,0.035,0.34},["pos"]={0,-0.26,0.13},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Guarda inferior",["size"]={0.34,0.055,0.43},["pos"]={0,-0.25,-0.22},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Guarda frontal",["size"]={0.34,0.2,0.055},["pos"]={0,-0.13,-0.42},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Magazine",["size"]={0.39,0.63,0.53},["pos"]={0,-0.46,-0.65},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Mag"},{["name"]="Rib magazine",["size"]={0.035,0.045,0.48},["pos"]={-0.205,-0.65,-0.65},["color"]={48,55,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Mag"},{["name"]="Rib magazine",["size"]={0.035,0.045,0.48},["pos"]={-0.205,-0.48,-0.65},["color"]={48,55,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Mag"},{["name"]="Rib magazine",["size"]={0.035,0.045,0.48},["pos"]={-0.205,-0.31,-0.65},["color"]={48,55,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Mag"},{["name"]="Rib magazine",["size"]={0.035,0.045,0.48},["pos"]={0.205,-0.65,-0.65},["color"]={48,55,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Mag"},{["name"]="Rib magazine",["size"]={0.035,0.045,0.48},["pos"]={0.205,-0.48,-0.65},["color"]={48,55,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Mag"},{["name"]="Rib magazine",["size"]={0.035,0.045,0.48},["pos"]={0.205,-0.31,-0.65},["color"]={48,55,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Mag"},{["name"]="Base magazine",["size"]={0.44,0.08,0.56},["pos"]={0,-0.8,-0.65},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Mag"},{["name"]="Mira traseira",["size"]={0.37,0.09,0.22},["pos"]={0,0.71,0.15},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Mira lateral",["size"]={0.065,0.17,0.12},["pos"]={-0.13,0.79,0.15},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Mira lateral",["size"]={0.065,0.17,0.12},["pos"]={0.13,0.79,0.15},["color"]={151,170,184},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Mira frontal",["size"]={0.06,0.16,0.1},["pos"]={0,0.79,-1.7},["color"]={235,170,62},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Suporte da mira",["size"]={0.18,0.25,0.24},["pos"]={0,0.56,-1.7},["color"]={36,48,67},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"},{["name"]="Moldura frontal",["size"]={0.25,0.07,0.2},["pos"]={0,0.7,-1.7},["color"]={24,30,39},["shape"]="Block",["rot"]={0,0,0},["group"]="Body"}}
 ]=] end
 do local x=node(mods,'ModuleScript',"WeaponState") x.Source=[=[local C=require(script.Parent.WeaponConfig)
 local S={}
@@ -541,55 +602,37 @@ local function added(p) p.CharacterAdded:Connect(function(char) task.spawn(chara
 Players.PlayerAdded:Connect(added) Players.PlayerRemoving:Connect(function(p) local s=states[p] if s then for _,c in ipairs(s.connections or {}) do c:Disconnect() end end states[p]=nil windows[p]=nil lives[p]=nil end)
 for _,p in ipairs(Players:GetPlayers()) do added(p) end
 ]=] x.Parent=SS end
-if USE_CUSTOM_R6 then local x=Instance.new('Script') x.Name="R6Characters" x.Source=[=[-- Rig R6 proprio: nao depende da configuracao de avatar da experiencia.
-local Players=game:GetService("Players")
-local C=require(game:GetService("ReplicatedStorage").FPSSystem.Modules.WeaponConfig)
+if USE_CUSTOM_R6 then local x=Instance.new('Script') x.Name="R6Characters" x.Source=[=[local Players=game:GetService("Players")
 local Physics=game:GetService("PhysicsService")
-local S={} local spawning={}
-local function spawnCharacter(p)
+local System=game:GetService("ReplicatedStorage").FPSSystem
+local C=require(System.Modules.WeaponConfig)
+local Avatar=require(System.Modules.AvatarAppearance)
+local spawning={} local bound={}
+local function spawn(p)
  if not p.Parent or spawning[p] then return end spawning[p]=true
- local old=p.Character local m=Instance.new("Model") m.Name=p.Name
- local start=CFrame.new(C.LOBBY.ORIGIN+Vector3.new(0,5,-5))
- local function limb(name,size,offset,color,collide)
-  local part=Instance.new("Part") part.Name=name part.Size=size part.CFrame=start*CFrame.new(offset) part.Color=color part.TopSurface=Enum.SurfaceType.Smooth part.BottomSurface=Enum.SurfaceType.Smooth part.CanCollide=collide part.CollisionGroup="Characters" part.Parent=m return part
- end
- local skin=Color3.fromRGB(255,207,123) local blue=Color3.fromRGB(40,114,232) local green=Color3.fromRGB(73,133,75)
- local root=limb("HumanoidRootPart",Vector3.new(2,2,1),Vector3.zero,blue,false) root.Transparency=1
- local torso=limb("Torso",Vector3.new(2,2,1),Vector3.zero,blue,true)
- local head=limb("Head",Vector3.new(2,1,1),Vector3.new(0,1.5,0),skin,false)
- local ra=limb("Right Arm",Vector3.new(1,2,1),Vector3.new(1.5,0,0),skin,false)
- local la=limb("Left Arm",Vector3.new(1,2,1),Vector3.new(-1.5,0,0),skin,false)
- local rl=limb("Right Leg",Vector3.new(1,2,1),Vector3.new(.5,-2,0),green,false)
- local ll=limb("Left Leg",Vector3.new(1,2,1),Vector3.new(-.5,-2,0),green,false)
- for _,part in ipairs({head,torso,ra,la,rl,ll}) do part.Massless=true end
- local function motor(name,a,b,c0,c1) local j=Instance.new("Motor6D") j.Name=name j.Part0=a j.Part1=b j.C0=CFrame.new(c0) j.C1=CFrame.new(c1) j.Parent=a end
- motor("RootJoint",root,torso,Vector3.zero,Vector3.zero)
- motor("Neck",torso,head,Vector3.new(0,1,0),Vector3.new(0,-.5,0))
- motor("Right Shoulder",torso,ra,Vector3.new(1.5,.5,0),Vector3.new(0,.5,0)) motor("Left Shoulder",torso,la,Vector3.new(-1.5,.5,0),Vector3.new(0,.5,0))
- motor("Right Hip",torso,rl,Vector3.new(.5,-1,0),Vector3.new(0,1,0)) motor("Left Hip",torso,ll,Vector3.new(-.5,-1,0),Vector3.new(0,1,0))
- -- Rosto desenhado com UI, sem dependencia de asset.
- local gui=Instance.new("SurfaceGui") gui.Name="Rosto" gui.Face=Enum.NormalId.Front gui.CanvasSize=Vector2.new(160,80) gui.Parent=head
- local function facePart(name,x,y,w,h)
-  local f=Instance.new("Frame") f.Name=name f.Position=UDim2.fromOffset(x,y) f.Size=UDim2.fromOffset(w,h) f.BackgroundColor3=Color3.fromRGB(40,34,31) f.BorderSizePixel=0 f.Parent=gui return f
- end
- for _,x in ipairs({45,105}) do local eye=facePart("Olho",x,20,10,10) local c=Instance.new("UICorner") c.CornerRadius=UDim.new(1,0) c.Parent=eye end
- facePart("Sorriso",50,56,60,5) facePart("Sorriso",45,47,6,10) facePart("Sorriso",109,47,6,10)
-
- local h=Instance.new("Humanoid") h.Name="Humanoid" h.RigType=Enum.HumanoidRigType.R6 h.HipHeight=0 h.WalkSpeed=C.RUNNER.WALKSPEED h.UseJumpPower=true h.JumpPower=C.RUNNER.JUMPPOWER h.DisplayName=p.DisplayName h.Parent=m
- local animator=Instance.new("Animator") animator.Parent=h
- m.PrimaryPart=root m.Parent=workspace p.Character=m if old then old:Destroy() end
- spawning[p]=nil
- h.Died:Connect(function() task.delay(3,function() if p.Parent and p.Character==m then spawnCharacter(p) end end) end)
+ local id=p.UserId
+ -- Clientes locais do Studio usam IDs negativos. O criador e uma referencia opcional.
+ if id<=0 and game.CreatorType==Enum.CreatorType.User and game.CreatorId>0 then id=game.CreatorId end
+ local model,err=Avatar.Create(id)
+ if not p.Parent then if model then model:Destroy() end Avatar.Clear(id) spawning[p]=nil return end
+ if not model then spawning[p]=nil warn("[R6] Avatar indisponivel: "..tostring(err)) task.delay(3,function() spawn(p) end) return end
+ local old=p.Character model.Name=p.Name
+ local root=model:FindFirstChild("HumanoidRootPart") local h=model:FindFirstChildOfClass("Humanoid")
+ if not root or not h then model:Destroy() spawning[p]=nil return end
+ model.PrimaryPart=root h.DisplayName=p.DisplayName h.WalkSpeed=C.WalkSpeed h.UseJumpPower=true h.JumpPower=50
+ for _,v in ipairs(model:GetDescendants()) do if v:IsA("BasePart") then v.CollisionGroup="Characters" end end
+ model:PivotTo(CFrame.new(C.LOBBY.ORIGIN+Vector3.new(0,5,-5))) model.Parent=workspace p.Character=model
+ if old then old:Destroy() end spawning[p]=nil
+ h.Died:Connect(function() task.delay(3,function() if p.Parent and p.Character==model then spawn(p) end end) end)
+ if model:GetAttribute("AppearanceFallback") then warn("[R6] Aparencia neutra temporaria; nao foi possivel carregar a conta "..id) end
 end
-function S.init()
- pcall(function() Physics:RegisterCollisionGroup("Characters") end)
- Physics:CollisionGroupSetCollidable("Characters","Characters",false)
- Players.CharacterAutoLoads=false
- Players.PlayerAdded:Connect(function(p) task.defer(spawnCharacter,p) end)
- Players.PlayerRemoving:Connect(function(p) spawning[p]=nil end)
- for _,p in ipairs(Players:GetPlayers()) do task.defer(spawnCharacter,p) end
-end
-S.init()
+pcall(function() Physics:RegisterCollisionGroup("Characters") end)
+Physics:CollisionGroupSetCollidable("Characters","Characters",false)
+Players.CharacterAutoLoads=false
+local function add(p) if bound[p] then return end bound[p]=true task.spawn(spawn,p) end
+Players.PlayerAdded:Connect(add)
+Players.PlayerRemoving:Connect(function(p) spawning[p]=nil bound[p]=nil Avatar.Clear(p.UserId) end)
+for _,p in ipairs(Players:GetPlayers()) do add(p) end
 ]=] x.Parent=SS end
 require(mods.WeaponFactory).Build(assets)
 local vm=require(mods.ViewModelController).new(workspace.CurrentCamera) vm.model.Parent=assets
