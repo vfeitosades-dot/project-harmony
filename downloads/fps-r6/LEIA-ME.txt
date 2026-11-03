@@ -73,3 +73,30 @@ Mao direita no cabo; a esquerda cruza pela frente para apoiar a arma.
 A pose de R6 e estilizada com membros rigidos, preservando a skin.
 Teste exige a coronha a menos de 0.23 stud da regiao do ombro direito,
 contato das maos, ausencia de alongamento e passagem livre da mira.
+
+INTERFACE, ANIMACOES E EFEITOS - ATUALIZACAO
+Hotbar padrao do Roblox removida no cliente. LoadoutController cria um
+slot proprio no canto inferior direito; tecla 1, toque ou R1 alternam
+entre equipar/desequipar a Rifle real. Nao ha slots falsos de outras armas.
+Vida numerica e barra ficam a esquerda; municao grande e reserva separada
+ficam a direita. Slot e vida persistem no respawn; chat nao equipa arma.
+A UI tem leitura para desktop/mobile, selecao destacada e silhouette autoral.
+O controlador restaura o estado anterior da CoreGui se for encerrado.
+
+Idle tem respiracao; caminhar e correr possuem cadencias/amplitudes distintas.
+Corrida adiciona inclinacao do tronco, passada maior, sway e FOV +4 gradual.
+Salto e pouso usam transicoes suaves e mola visual na primeira pessoa,
+sem aplicar forcas ao personagem. Os bracos continuam na arma a direita.
+Movimentos do corpo permanecem replicados pelo servidor.
+
+Flash em cruz com luz curta, cartucho ejetado, fumaca e tracer com fade.
+Impactos produzem faiscas, poeira e marca curta, sem colisao. Sem impacto
+flutuante no ar quando o tiro erra. O servidor envia dano realmente aplicado
+e confirma eliminacao; HUD mostra numero, critico e ELIMINADO com fade.
+Linhas discretas nas laterais reforcam corrida, sem cobrir o centro da mira.
+Elementos e efeitos sao originais, inspirados no estilo arcade de RIVALS.
+
+Previa/Preview_Interface.png e uma pre-visualizacao tecnica da disposicao
+da GUI com os dados dos testes, nao uma captura do Roblox Studio.
+Testes adicionais cobrem hotbar, selecao por tecla/toque, chat, vida, respawn,
+limpeza da UI, salto/pouso, dano confirmado e efeitos sem colisao.

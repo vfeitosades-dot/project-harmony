@@ -55,9 +55,9 @@ function A.WorldBase(torso)
 end
 function A.WorldSample(now,phase,move,run,jump,aim)
  local steady=1-.8*aim
- return worldIdle(now)*CFrame.new(math.sin(phase)*.012*move*steady,
-  math.cos(phase*2)*.012*move*steady+.035*jump+.045*aim,-.025*aim)
-  *CFrame.Angles(-.055*run+.035*jump,math.sin(phase)*.012*move*steady,.018*run)
+ return worldIdle(now)*CFrame.new(math.sin(phase)*.02*move*steady,
+  math.cos(phase*2)*(.016+.012*run)*move*steady+.055*jump+.045*aim-.06*run,-.025*aim+.045*run)
+  *CFrame.Angles(-.055*run+.035*jump,math.sin(phase)*.02*move*steady,.018*run)
 end
 return A
 ]=] end
@@ -180,9 +180,9 @@ function Controller:Step(dt)
  local state=Anim.State(self.equipped,age,self.reloading,self.inspectEnd>t,running,aim,t-self.lastFire<.12,h.MoveDirection.Magnitude>.05)
  local phase=state=="Reloading" and t-(self.reloadEnd-C.ReloadTime) or state=="Inspecting" and t-(self.inspectEnd-C.InspectTime) or state=="Unequipping" and t-self.exitAt or age
  local root=char:FindFirstChild("HumanoidRootPart") local speed=root and h.MoveDirection.Magnitude>.05 and h.FloorMaterial~=Enum.Material.Air and Vector3.new(root.AssemblyLinearVelocity.X,0,root.AssemblyLinearVelocity.Z).Magnitude or 0
- local camera=workspace.CurrentCamera local kick,alpha=self.vm:Step(dt,camera,{state=state,time=math.max(0,phase),speed=speed,running=running,aim=aim},Input:GetMouseDelta())
+ local camera=workspace.CurrentCamera local kick,alpha=self.vm:Step(dt,camera,{state=state,time=math.max(0,phase),speed=speed,running=running,aim=aim,grounded=h.FloorMaterial~=Enum.Material.Air},Input:GetMouseDelta())
  camera.CFrame=camera.CFrame*kick self.lastKick=kick self.vm.root.CFrame=camera.CFrame
- camera.FieldOfView=self.oldFOV+(C.ADSFOV-self.oldFOV)*alpha
+ camera.FieldOfView=self.oldFOV+(C.ADSFOV-self.oldFOV)*alpha+4*self.vm.run*(1-alpha)
  Input.MouseDeltaSensitivity=self.oldSensitivity*(1-.42*alpha)
  self.hud:Tick(alpha,dt,speed,running) self.hud:Update(self:Ammo(),self.reserve,state,self.reloading and math.clamp(phase/C.ReloadTime,0,1) or 0,phase)
 end
@@ -211,7 +211,7 @@ function Controller.attach(tool)
   elseif not self.reloadRequestedAt or now()-self.reloadRequestedAt>.35 or d.reason then self.reloading=false self.reloadEnd=0 self.reloadRequestedAt=nil end
   self.inspectEnd=d.inspectEnd self.readyAt=d.readyAt self.serverEquipped=d.equipped
  end)
- connect(R.Hit.OnClientEvent,function(critical) if active==self then self.hud:Hit(critical) end end)
+ connect(R.Hit.OnClientEvent,function(critical,amount,killed) if active==self then self.hud:Hit(critical,amount,killed) end end)
  connect(tool.Destroying,function() self:Cleanup() for _,c in ipairs(self.connections) do c:Disconnect() end self.hud:Destroy() end)
  R.Action:FireServer("Sync")
  return self
@@ -228,14 +228,21 @@ function H.new(actions)
  local function label(text,size,pos,fs)
   local t=Instance.new("TextLabel") t.Text=text t.Size=size t.Position=pos t.BackgroundTransparency=1 t.TextColor3=Color3.fromRGB(235,242,248) t.Font=Enum.Font.GothamMedium t.TextSize=fs t.Parent=root return t
  end
- local ammo=label(C.Magazine.." / "..C.Reserve,UDim2.fromOffset(210,44),UDim2.new(1,-230,1,-92),26) ammo.TextXAlignment=Enum.TextXAlignment.Right
- local weapon=label(C.Name,UDim2.fromOffset(210,24),UDim2.new(1,-230,1,-116),12) weapon.TextXAlignment=Enum.TextXAlignment.Right weapon.TextColor3=Color3.fromRGB(130,161,180)
+ local ammo=label(tostring(C.Magazine),UDim2.fromOffset(80,44),UDim2.new(1,-154,1,-137),34) ammo.TextXAlignment=Enum.TextXAlignment.Right
+ local reserveText=label("/ "..C.Reserve,UDim2.fromOffset(55,24),UDim2.new(1,-68,1,-121),15) reserveText.TextColor3=Color3.fromRGB(148,160,177)
+ local weapon=label("AUTO",UDim2.fromOffset(100,18),UDim2.new(1,-118,1,-153),10) weapon.TextXAlignment=Enum.TextXAlignment.Right weapon.TextColor3=Color3.fromRGB(146,160,178)
  local debugLabel=label("",UDim2.fromOffset(240,24),UDim2.fromOffset(12,12),12) debugLabel.Visible=C.DebugHUD
  local status=label("",UDim2.new(.8,0,0,24),UDim2.new(.1,0,.6,0),13)
  local hint=label("R  recarregar    H  inspecionar    Shift  correr",UDim2.new(.9,0,0,22),UDim2.new(.05,0,1,-30),11) hint.TextColor3=Color3.fromRGB(151,168,187) hint.Visible=not Input.TouchEnabled
  local cross={}
  for _,v in ipairs({{-7,0,4,1},{4,0,4,1},{0,-7,1,4},{0,4,1,4}}) do local f=Instance.new("Frame") f.Size=UDim2.fromOffset(v[3],v[4]) f.Position=UDim2.new(.5,v[1],.5,v[2]) f.BackgroundColor3=Color3.fromRGB(225,240,248) f.BorderSizePixel=0 f.Parent=root table.insert(cross,f) end
  local dot=Instance.new("Frame") dot.Name="CenterDot" dot.Size=UDim2.fromOffset(2,2) dot.Position=UDim2.new(.5,-1,.5,-1) dot.BorderSizePixel=0 dot.BackgroundColor3=Color3.fromRGB(255,207,109) dot.Parent=root
+ local damage=label("",UDim2.fromOffset(100,24),UDim2.new(.5,20,.5,-33),16) damage.Visible=false
+ local kill=label("ELIMINADO",UDim2.fromOffset(160,24),UDim2.new(.5,-80,.5,44),11) kill.TextColor3=Color3.fromRGB(255,207,104) kill.Visible=false
+ local speedLines={}
+ for side=0,1 do for i=1,3 do
+  local f=Instance.new("Frame") f.Name="SprintLine" f.Size=UDim2.fromOffset(26+i*6,1) f.Position=UDim2.new(side,side==0 and 14 or -54,.3+i*.11,0) f.Rotation=side==0 and -16 or 16 f.BorderSizePixel=0 f.BackgroundColor3=Color3.fromRGB(223,234,245) f.BackgroundTransparency=1 f.Parent=root table.insert(speedLines,f)
+ end end
  local hit=label("×",UDim2.fromOffset(42,42),UDim2.new(.5,-21,.5,-21),32) hit.Visible=false
  local track=Instance.new("Frame") track.Size=UDim2.fromOffset(130,2) track.Position=UDim2.new(.5,-65,.6,26) track.BackgroundColor3=Color3.fromRGB(36,53,71) track.BorderSizePixel=0 track.Visible=false track.Parent=root
  local fill=Instance.new("Frame") fill.Size=UDim2.fromScale(0,1) fill.BackgroundColor3=Color3.fromRGB(76,197,214) fill.BorderSizePixel=0 fill.Parent=track
@@ -254,18 +261,22 @@ function H.new(actions)
  button("RELOAD",UDim2.new(1,-84,.5,90),actions.reload)
  button("CORRER",UDim2.new(0,20,.5,90),actions.run)
  button("INSPECT",UDim2.new(0,20,.5,30),actions.inspect)
- return setmetatable({gui=gui,root=root,ammo=ammo,status=status,debugLabel=debugLabel,hit=hit,cross=cross,dot=dot,bloom=0,track=track,fill=fill,connections=connections},H)
+ return setmetatable({gui=gui,root=root,ammo=ammo,status=status,debugLabel=debugLabel,reserveText=reserveText,damage=damage,kill=kill,speedLines=speedLines,sprintWeight=0,hit=hit,cross=cross,dot=dot,bloom=0,track=track,fill=fill,connections=connections},H)
 end
 function H:SetVisible(v) self.gui.Enabled=v end
 function H:Update(ammo,reserve,state,progress,phase)
  if C.DebugHUD then self.debugLabel.Text=string.format("%s · %.2fs",state,phase or 0) end
- self.ammo.Text=string.format("%02d / %02d",math.max(0,ammo),reserve)
+ self.ammo.Text=string.format("%02d",math.max(0,ammo)) self.reserveText.Text="/ "..reserve
  self.ammo.TextColor3=ammo<=5 and Color3.fromRGB(255,151,133) or Color3.fromRGB(235,242,248)
  self.status.Text=state=="Reloading" and "Recarregando" or state=="Equipping" and "Equipando" or state=="Inspecting" and "Inspecionando" or ""
  self.track.Visible=state=="Reloading" self.fill.Size=UDim2.fromScale(math.clamp(progress or 0,0,1),1)
 end
-function H:Hit(critical)
- self.hitAt=os.clock()+.15 self.hit.Visible=true self.hit.TextColor3=critical and Color3.fromRGB(255,192,91) or Color3.fromRGB(235,242,248)
+function H:Hit(critical,amount,killed)
+ local t=os.clock() self.hitAt=t+.18 self.damageAt=t+.55 self.hit.Visible=true
+ local color=critical and Color3.fromRGB(255,192,91) or Color3.fromRGB(235,242,248)
+ self.hit.TextColor3=color self.damage.TextColor3=color
+ self.damage.Text=amount and string.format("%d%s",math.floor(amount+.5),critical and "!" or "") or ""
+ if killed then self.killAt=t+.9 end
 end
 function H:Pulse() self.bloom=math.min((self.bloom or 0)+3,13) end
 function H:Tick(aim,dt,speed,running)
@@ -276,10 +287,112 @@ function H:Tick(aim,dt,speed,running)
   f.Position=UDim2.new(.5,offsets[i][1],.5,offsets[i][2]) f.BackgroundTransparency=aim f.Visible=aim<.98
  end
  self.dot.BackgroundTransparency=aim self.dot.Visible=aim<.98
+ self.ammo.TextSize=34+math.min(self.bloom,4)*.35
+ self.sprintWeight+=((running and 1 or 0)-self.sprintWeight)*(1-math.exp(-dt*9))
+ for _,f in ipairs(self.speedLines) do f.BackgroundTransparency=1-self.sprintWeight*.2 end
+ local damageLeft=(self.damageAt or 0)-os.clock() self.damage.Visible=damageLeft>0 self.damage.TextTransparency=1-math.clamp(damageLeft/.3,0,1)
+ self.damage.Position=UDim2.new(.5,20,.5,-33-(.55-math.max(0,damageLeft))*12)
+ local killLeft=(self.killAt or 0)-os.clock() self.kill.Visible=killLeft>0 self.kill.TextTransparency=1-math.clamp(killLeft/.3,0,1)
  local left=(self.hitAt or 0)-os.clock() self.hit.Visible=left>0 self.hit.TextTransparency=1-math.clamp(left/.15,0,1)
 end
 function H:Destroy() for _,c in ipairs(self.connections) do c:Disconnect() end if self.root.Parent then self.root:Destroy() end end
 return H
+]=] end
+do local x=node(mods,'ModuleScript',"LoadoutController") x.Source=[=[-- Persistent custom loadout: one real weapon slot, never decorative fake weapons.
+local Players=game:GetService("Players") local Input=game:GetService("UserInputService")
+local StarterGui=game:GetService("StarterGui") local C=require(script.Parent.WeaponConfig)
+local L={} local previousCleanup
+function L.init()
+ if previousCleanup then previousCleanup() end
+ local player=Players.LocalPlayer local pg=player:WaitForChild("PlayerGui")
+ local alive=true local links={} local charLinks={} local saved={}
+ local function connect(list,event,fn) table.insert(list,event:Connect(fn)) end
+ local function disconnect(list) for _,c in ipairs(list) do c:Disconnect() end table.clear(list) end
+ local function disable(attempt)
+  if not alive then return end
+  local ok=pcall(function()
+   for _,kind in ipairs({Enum.CoreGuiType.Backpack,Enum.CoreGuiType.Health}) do
+    if saved[kind]==nil then saved[kind]=StarterGui:GetCoreGuiEnabled(kind) end
+    StarterGui:SetCoreGuiEnabled(kind,false)
+   end
+  end)
+  if not ok and attempt<24 then task.delay(.25,function() disable(attempt+1) end) end
+ end
+ disable(0)
+ local old=pg:FindFirstChild("FPSLoadout") if old then old:Destroy() end
+ local gui=Instance.new("ScreenGui") gui.Name="FPSLoadout" gui.ResetOnSpawn=false gui.IgnoreGuiInset=true gui.DisplayOrder=19 gui.Parent=pg
+ local function frame(parent,name,size,pos,color,alpha)
+  local f=Instance.new("Frame") f.Name=name f.Size=size f.Position=pos f.BackgroundColor3=color f.BackgroundTransparency=alpha or 0 f.BorderSizePixel=0 f.Parent=parent return f
+ end
+ local function label(parent,name,text,size,pos,fontSize)
+  local t=Instance.new("TextLabel") t.Name=name t.Text=text t.Size=size t.Position=pos t.BackgroundTransparency=1 t.Font=Enum.Font.GothamMedium t.TextSize=fontSize t.TextColor3=Color3.fromRGB(241,245,250) t.TextXAlignment=Enum.TextXAlignment.Left t.Parent=parent return t
+ end
+ local width=Input.TouchEnabled and 150 or 186
+ local slot=Instance.new("TextButton") slot.Name="PrimarySlot" slot.Text="" slot.Size=UDim2.fromOffset(width,56) slot.Position=UDim2.new(1,-width-18,1,-74) slot.BackgroundColor3=Color3.fromRGB(17,22,29) slot.BackgroundTransparency=.22 slot.BorderSizePixel=0 slot.Parent=gui
+ local corner=Instance.new("UICorner") corner.CornerRadius=UDim.new(0,5) corner.Parent=slot
+ local border=Instance.new("UIStroke") border.Thickness=1 border.Transparency=.65 border.Color=Color3.fromRGB(220,230,240) border.Parent=slot
+ local selected=frame(slot,"Selection",UDim2.new(1,0,0,2),UDim2.new(0,0,1,-2),Color3.fromRGB(255,207,104))
+ label(slot,"Key","1",UDim2.fromOffset(16,18),UDim2.fromOffset(9,31),12)
+ local name=label(slot,"Weapon",C.Name,UDim2.new(1,-18,0,16),UDim2.fromOffset(9,5),10)
+ local caption=label(slot,"State","EQUIPAR",UDim2.fromOffset(68,14),UDim2.fromOffset(28,33),9) caption.TextColor3=Color3.fromRGB(152,166,180) caption.Visible=not Input.TouchEnabled
+ -- Original vector silhouette of this rifle, no external icon assets.
+ local icon=frame(slot,"RifleIcon",UDim2.fromOffset(70,24),UDim2.new(1,-79,0,23),Color3.fromRGB(255,255,255),1)
+ for i,d in ipairs({{17,7,30,8},{46,8,19,3},{63,7,5,5},{8,9,10,7},{2,8,7,12},{21,15,5,7},{32,15,7,8},{23,4,17,2}}) do
+  frame(icon,"Piece"..i,UDim2.fromOffset(d[3],d[4]),UDim2.fromOffset(d[1],d[2]),Color3.fromRGB(226,234,242))
+ end
+ local healthWidth=Input.TouchEnabled and 108 or 140
+ local health=frame(gui,"Health",UDim2.fromOffset(healthWidth,44),UDim2.new(0,18,1,-62),Color3.fromRGB(15,20,27),1)
+ local hp=label(health,"Value","100",UDim2.fromOffset(80,30),UDim2.fromOffset(0,0),28)
+ label(health,"Unit","HP",UDim2.fromOffset(22,18),UDim2.fromOffset(67,10),10)
+ local track=frame(health,"Track",UDim2.new(1,0,0,3),UDim2.fromOffset(0,37),Color3.fromRGB(64,72,84),.35)
+ local fill=frame(track,"Fill",UDim2.fromScale(1,1),UDim2.fromScale(0,0),Color3.fromRGB(239,243,248))
+ local function humanoid() local char=player.Character return char and char:FindFirstChildOfClass("Humanoid") end
+ local function rifle()
+  local char=player.Character local bag=player:FindFirstChild("Backpack")
+  local tool=char and char:FindFirstChild("Rifle") or bag and bag:FindFirstChild("Rifle")
+  return tool and tool:IsA("Tool") and tool or nil
+ end
+ local function refresh()
+  if not alive then return end
+  local tool=rifle() local equipped=tool and tool.Parent==player.Character
+  slot.Active=tool~=nil selected.Visible=equipped==true border.Transparency=equipped and .15 or .7
+  name.Text=tool and C.Name or "AGUARDANDO" caption.Text=equipped and "EQUIPADO" or "EQUIPAR"
+  local h=humanoid() local value=h and math.max(0,h.Health) or 0 local max=h and math.max(1,h.MaxHealth) or 100
+  hp.Text=tostring(math.ceil(value)) fill.Size=UDim2.fromScale(math.clamp(value/max,0,1),1)
+  fill.BackgroundColor3=value<=max*.3 and Color3.fromRGB(255,112,100) or Color3.fromRGB(239,243,248)
+ end
+ local function toggle()
+  local h=humanoid() local tool=rifle()
+  if not h or h.Health<=0 or not tool then return end
+  if tool.Parent==player.Character then h:UnequipTools() else h:EquipTool(tool) end
+  task.defer(refresh)
+ end
+ connect(links,slot.Activated,toggle)
+ connect(links,Input.InputBegan,function(i,processed)
+  if not processed and not Input:GetFocusedTextBox() and (i.KeyCode==Enum.KeyCode.One or i.KeyCode==Enum.KeyCode.ButtonR1) then toggle() end
+ end)
+ local function bindCharacter(char)
+  disconnect(charLinks)
+  if not char then refresh() return end
+  connect(charLinks,char.ChildAdded,function() task.defer(refresh) end)
+  connect(charLinks,char.ChildRemoved,function() task.defer(refresh) end)
+  local h=char:WaitForChild("Humanoid",10)
+  if h and player.Character==char then
+   connect(charLinks,h.HealthChanged,refresh) connect(charLinks,h.Died,refresh)
+  end
+  refresh()
+ end
+ local bag=player:WaitForChild("Backpack",10)
+ if bag then connect(links,bag.ChildAdded,refresh) connect(links,bag.ChildRemoved,function() task.defer(refresh) end) end
+ connect(links,player.CharacterAdded,bindCharacter)
+ if player.Character then bindCharacter(player.Character) else refresh() end
+ local function cleanup()
+  if not alive then return end alive=false disconnect(links) disconnect(charLinks) gui:Destroy()
+  for kind,value in pairs(saved) do pcall(function() StarterGui:SetCoreGuiEnabled(kind,value) end) end
+ end
+ previousCleanup=cleanup return cleanup
+end
+return L
 ]=] end
 do local x=node(mods,'ModuleScript',"Recoil") x.Source=[=[local Spring=require(script.Parent.Spring)
 local R={} R.__index=R
@@ -346,7 +459,8 @@ function T.init(serverMode)
    for _,player in ipairs(Players:GetPlayers()) do
     local char=player.Character local torso=char and char:FindFirstChild("Torso") local tool=char and char:FindFirstChild("Rifle")
     if torso and tool and tool:FindFirstChild("Handle") and tool.Handle:FindFirstChild("WorldGrip") then
-     for _,name in ipairs({"Right Shoulder","Left Shoulder","Neck"}) do local joint=torso:FindFirstChild(name) if joint then joint.Transform=CFrame.new() end end
+     for _,name in ipairs({"Right Shoulder","Left Shoulder","Right Hip","Left Hip","Neck"}) do local joint=torso:FindFirstChild(name) if joint then joint.Transform=CFrame.new() end end
+     local root=char:FindFirstChild("HumanoidRootPart") local rootJoint=root and root:FindFirstChild("RootJoint") or torso:FindFirstChild("RootJoint") if rootJoint then rootJoint.Transform=CFrame.new() end
      tool.Handle.WorldGrip.Transform=CFrame.new() local mag=tool.Handle:FindFirstChild("MagazineMotor") if mag then mag.Transform=CFrame.new() end
     end
    end
@@ -373,15 +487,15 @@ function T.init(serverMode)
    r.moveWeight+=(math.clamp(speed/C.WalkSpeed,0,1)-r.moveWeight)*alpha
    r.runWeight+=((sprint and 1 or 0)-r.runWeight)*alpha
    r.phase+=dt*(7.5+3.5*r.runWeight)*math.clamp(speed/C.WalkSpeed,0,1.5)
-   local stride=math.sin(r.phase)*(.5+.4*r.runWeight)*r.moveWeight
+   local stride=math.sin(r.phase)*(.48+.52*r.runWeight)*r.moveWeight
    local jump=r.h.FloorMaterial==Enum.Material.Air and not r.root.Anchored
    r.jumpWeight+=((jump and 1 or 0)-r.jumpWeight)*alpha
    r.aimWeight+=((held and held:GetAttribute("Aiming") and 1 or 0)-r.aimWeight)*alpha
    for name,j in pairs(r.j) do if j.Parent and not (held and (name=="Right Shoulder" or name=="Left Shoulder")) then
     local target=CFrame.new()
-    if name=="Right Hip" then target=CFrame.Angles(jump and -.25 or stride,0,0) elseif name=="Left Hip" then target=CFrame.Angles(jump and .25 or -stride,0,0)
+    if name=="Right Hip" then target=CFrame.Angles(jump and -.4 or stride,0,0) elseif name=="Left Hip" then target=CFrame.Angles(jump and .28 or -stride,0,0)
     elseif name=="Right Shoulder" then target=CFrame.Angles(-stride,0,.04) elseif name=="Left Shoulder" then target=CFrame.Angles(stride,0,-.04)
-    elseif name=="RootJoint" then target=CFrame.new(0,math.sin(now*2)*.012,0)*CFrame.Angles(-.12*r.runWeight*r.moveWeight,0,0) end
+    elseif name=="RootJoint" then target=CFrame.new(0,math.sin(now*2)*.006+math.cos(r.phase*2)*.018*r.moveWeight*(1-r.jumpWeight),0)*CFrame.Angles(-.17*r.runWeight*r.moveWeight+.04*r.jumpWeight,0,math.sin(r.phase)*.015*r.moveWeight) end
     local basis=bases[j].Rotation apply(j,basis:Inverse()*target*basis,alpha)
    end end
    local tool=r.char:FindFirstChild("Rifle") local handle=tool and tool:FindFirstChild("Handle") local grip=handle and handle:FindFirstChild("WorldGrip")
@@ -473,7 +587,7 @@ function V.new(camera)
   if part:IsA("BasePart") then part.CanCollide=false part.CanTouch=false part.CanQuery=false part.Massless=true part.CollisionGroup="FPSViewModel" end
  end
  model.Parent=camera
- return setmetatable({model=model,root=root,gun=gun,joint=joint,right=right,left=left,leftBase=left.C0,leftRotation=CFrame.Angles(2.15,0,.25),mag=handle.MagazineMotor,magBase=handle.MagazineMotor.C0,magAlpha=0,magParts=magParts,recoil=Recoil.new(),sway=Spring.new(Vector3.zero,14),aim=0,run=0,phase=0,pose=CFrame.new(),leftPose=CFrame.new(),magPose=CFrame.new()},V)
+ return setmetatable({model=model,root=root,gun=gun,joint=joint,right=right,left=left,leftBase=left.C0,leftRotation=CFrame.Angles(2.15,0,.25),mag=handle.MagazineMotor,magBase=handle.MagazineMotor.C0,magAlpha=0,magParts=magParts,recoil=Recoil.new(),sway=Spring.new(Vector3.zero,14),aim=0,run=0,move=0,jump=0,grounded=true,landing=Spring.new(Vector3.zero,18),phase=0,pose=CFrame.new(),leftPose=CFrame.new(),magPose=CFrame.new()},V)
 end
 function V:Fire() self.recoil:Fire(self.aim>.5) end
 function V:Step(dt,camera,info,mouse)
@@ -494,13 +608,20 @@ function V:Step(dt,camera,info,mouse)
  local rate=mouse/math.max(dt,1/300)
  self.sway.target=Vector3.new(math.clamp(-rate.Y*.000012,-.025,.025),math.clamp(-rate.X*.000012,-.025,.025),0)
  local sway=self.sway:Step(dt)*(1-self.aim) self.phase+=dt*(info.running and 11 or 7.5)*math.clamp(info.speed/16,0,1.5)
- local moving=math.clamp(info.speed/16,0,1)
- local bob=Vector3.new(math.sin(self.phase)*(.018+self.run*.017),math.cos(self.phase*2)*(.025+self.run*.035),0)*moving*(1-self.aim)
+ local grounded=info.grounded~=false
+ if grounded and not self.grounded then self.landing:Impulse(Vector3.new(0,-.7,.22)) end self.grounded=grounded
+ self.move+=(math.clamp(info.speed/16,0,1)-self.move)*smoothing
+ self.jump+=((grounded and 0 or 1)-self.jump)*smoothing
+ local moving=self.move
+ local bob=Vector3.new(math.sin(self.phase)*(.018+self.run*.027),math.cos(self.phase*2)*(.018+self.run*.033),0)*moving*(1-self.aim)
  local breath=Vector3.new(0,math.sin(os.clock()*3.49)*.0035,0)*(1-self.aim)
  local offset=CFrame.new(.65,-.8,-1.2):Lerp(self.gun.Handle.AimPoint.CFrame:Inverse(),self.aim)
  local visualKick=CFrame.new(0,0,kick.X*6)*CFrame.Angles(kick.X,kick.Y,0)
  self.root.CFrame=camera.CFrame
- self.joint.C0=offset*CFrame.new(bob+breath)*CFrame.Angles(sway.X,sway.Y,0)*self.pose*visualKick
+ local land=self.landing:Step(dt)*(1-self.aim*.7)
+ local jump=Vector3.new(0,-.035*self.jump,.04*self.jump)
+ local gait=CFrame.Angles(.012*self.run*math.cos(self.phase*2)+.025*self.jump,0,.018*self.run*math.sin(self.phase))
+ self.joint.C0=offset*CFrame.new(bob+breath+land+jump)*CFrame.Angles(sway.X,sway.Y,0)*gait*self.pose*visualKick
  return CFrame.Angles(kick.X,kick.Y,0),self.aim
 end
 function V:Destroy() if self.model then self.model:Destroy() end end
@@ -536,13 +657,22 @@ function E.Shot(a,b,normal)
  flash.Shape=Enum.PartType.Ball
  local light=Instance.new("PointLight") light.Color=warm light.Brightness=2 light.Range=7 light.Shadows=false light.Parent=flash
  fade(flash,.045,{Transparency=1,Size=Vector3.new(.025,.025,.1)})
+ -- Cross-shaped flash gives a crisp arcade silhouette without texture assets.
+ for i=1,2 do
+  local petal=part("MuzzlePetal",Vector3.new(.28,.035,.2),forward*CFrame.new(0,0,-.18)*CFrame.Angles(0,0,i*math.pi/2+.3),warm,Enum.Material.Neon,.25)
+  fade(petal,.04,{Transparency=1,Size=Vector3.new(.07,.015,.05)})
+ end
+ local shell=part("Cartridge",Vector3.new(.06,.12,.06),forward*CFrame.new(.16,-.06,.35),Color3.fromRGB(194,157,78),Enum.Material.SmoothPlastic)
+ fade(shell,.24,{Transparency=1,CFrame=forward*CFrame.new(.7,-.42,.6)*CFrame.Angles(1.6,.8,2.2)})
  local smoke=part("MuzzleSmoke",Vector3.new(.12,.12,.18),forward*CFrame.new(0,.04,-.28),Color3.fromRGB(163,176,184),Enum.Material.SmoothPlastic,.85)
  smoke.Shape=Enum.PartType.Ball fade(smoke,.22,{Transparency=1,Size=Vector3.new(.4,.4,.5),CFrame=forward*CFrame.new(0,.2,-.55)})
  -- A miss ends at range and must not produce an impact floating in the sky.
  if typeof(normal)~="Vector3" or normal.Magnitude<.5 then return end
- local surface=CFrame.lookAt(b+normal*.025,b+normal)
+ local surface=CFrame.lookAt(b+normal*.025,b+normal,math.abs(normal.Y)>.95 and Vector3.new(0,0,1) or Vector3.new(0,1,0))
  local ring=part("ImpactGlow",Vector3.new(.13,.13,.025),surface,Color3.fromRGB(255,217,151),Enum.Material.Neon,.1)
  fade(ring,.16,{Transparency=1,Size=Vector3.new(.3,.3,.025)})
+ local mark=part("ImpactMark",Vector3.new(.1,.1,.012),surface,Color3.fromRGB(65,68,73),Enum.Material.SmoothPlastic,.3)
+ fade(mark,.65,{Transparency=1})
  local dust=part("ImpactDust",Vector3.new(.16,.16,.16),surface,Color3.fromRGB(167,160,143),Enum.Material.SmoothPlastic,.6)
  dust.Shape=Enum.PartType.Ball fade(dust,.28,{Transparency=1,Size=Vector3.new(.55,.55,.55),CFrame=surface*CFrame.new(0,.12,-.22)})
  for i=1,3 do
@@ -626,6 +756,8 @@ require(system.Modules.ClientController).attach(script.Parent)
 ]=] end
 do local x=node(SP,'LocalScript','FPSObserver') x.Source=[=[local system=game:GetService("ReplicatedStorage"):WaitForChild("FPSSystem")
 local modules=system:WaitForChild("Modules")
+local cleanup=require(modules:WaitForChild("LoadoutController")).init()
+script.Destroying:Connect(cleanup)
 system:WaitForChild("Remotes"):WaitForChild("WeaponFX")
 require(modules:WaitForChild("ThirdPersonController")).init(false)
 ]=] end
@@ -684,7 +816,7 @@ Remotes.Fire.OnServerEvent:Connect(function(p,life,seq,origin,direction)
   local friendly=victim and not p.Neutral and not victim.Neutral and p.Team==victim.Team
   if humanoid and humanoid.Health>0 and model~=p.Character and not friendly and not model:FindFirstChildOfClass("ForceField") then
    local critical=hit.Instance.Name=="Head" local before=humanoid.Health humanoid:TakeDamage(C.Damage*(critical and C.Critical or 1))
-   if humanoid.Health<before then Remotes.Hit:FireClient(p,critical) end
+   if humanoid.Health<before then Remotes.Hit:FireClient(p,critical,before-humanoid.Health,humanoid.Health<=0) end
   end
  end
  p.Character:SetAttribute("FPSLastShotAt",now())
