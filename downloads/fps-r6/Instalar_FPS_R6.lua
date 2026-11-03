@@ -307,7 +307,9 @@ local function arm(joint,torso,target,dt)
  local rest=torso.CFrame*base*joint.C1:Inverse()
  local shoulder=(rest*CFrame.new(0,half,0)).Position
  local delta=target-shoulder if delta.Magnitude<.05 then return end
- local rotation=CFrame.lookAt(Vector3.zero,delta.Unit)*CFrame.Angles(math.pi/2,0,0)
+ -- Roll around the arm length: keep the palm contact, turn sleeves outward.
+ local roll=joint.Name=="Right Shoulder" and -.3 or .4
+ local rotation=CFrame.lookAt(Vector3.zero,delta.Unit)*CFrame.Angles(math.pi/2,0,0)*CFrame.Angles(0,roll,0)
  local desired=CFrame.new(target-delta.Unit*half)*rotation.Rotation
  local transform=base:Inverse()*torso.CFrame:ToObjectSpace(desired)*joint.C1
  -- Weapon motion is already smoothed. A second arm lerp breaks palm contact.
@@ -363,8 +365,13 @@ function T.init(serverMode)
     local state=Anim.State(true,age,reloadEnd>now,inspectEnd>now,running,tool:GetAttribute("Aiming"),now-(r.char:GetAttribute("FPSLastShotAt") or -1e5)<.12)
     local phase=state=="Reloading" and now-(reloadEnd-C.ReloadTime) or state=="Inspecting" and now-(inspectEnd-C.InspectTime) or age
     local pose,left,mag=Anim.Sample(state,math.max(0,phase))
-    if state=="Running" then pose=CFrame.new(.1,-.2,.1)*CFrame.Angles(-.25,.15,.15) end
-    if tool:GetAttribute("Aiming") then pose=CFrame.new(-.08,.18,-.12)*pose end
+    local stance=CFrame.Angles(-.14,-.06,.025)
+    if state=="Running" then stance=CFrame.new(.05,-.22,.1)*CFrame.Angles(-.45,.1,.1)
+    elseif tool:GetAttribute("Aiming") then stance=CFrame.new(.08,.28,-.1)*CFrame.Angles(0,-.025,0) end
+    local moving=math.clamp(speed/C.WalkSpeed,0,1)*(tool:GetAttribute("Aiming") and .2 or 1)
+    local breathe=CFrame.new(0,math.sin(now*2)*.008,0)
+    local walk=CFrame.new(math.sin(r.phase)*.012*moving,math.cos(r.phase*2)*.016*moving,0)
+    pose=stance*breathe*walk*pose
     local since=now-(r.char:GetAttribute("FPSLastShotAt") or -1e5) if since>=0 and since<.15 then pose=pose*CFrame.new(0,0,.08*math.exp(-since*25))*CFrame.Angles(.035*math.exp(-since*25),0,0) end
     r.pose=r.pose:Lerp(CFrame.Angles(tool:GetAttribute("AimPitch") or 0,0,0)*pose,alpha) r.magPose=r.magPose:Lerp(mag,alpha) if r.grip~=grip then r.grip=grip r.gripBase=grip.C0 end
     grip.Transform=CFrame.new() grip.C0=r.gripBase*r.pose
@@ -510,17 +517,18 @@ return E
 do local x=node(mods,'ModuleScript',"WeaponFactory") x.Source=[=[-- Rifle virtual original em pecas nativas, sem assets externos.
 local F={}
 local dark=Color3.fromRGB(35,47,65) local blue=Color3.fromRGB(47,139,171) local pale=Color3.fromRGB(182,203,214) local gold=Color3.fromRGB(255,197,80)
-function F.Build(parent)
+function F.Build(parent,scale)
+ scale=scale or 1
  local m=Instance.new("Model") m.Name="RifleModel"
  local root=Instance.new("Part") root.Name="Handle" root.Size=Vector3.new(.25,.25,.25) root.CFrame=CFrame.new() root.Transparency=1 root.CanCollide=false root.CanTouch=false root.CanQuery=false root.Massless=true root.Parent=m m.PrimaryPart=root
  local magazine
  for _,d in ipairs(require(script.Parent.WeaponGeometry)) do
   local p=Instance.new(d.shape=="Wedge" and "WedgePart" or "Part") p.Name=d.name
-  p.Size=Vector3.new(d.size[1],d.size[2],d.size[3])
-  p.CFrame=CFrame.new(d.pos[1],d.pos[2],d.pos[3])*CFrame.Angles(math.rad(d.rot[1]),math.rad(d.rot[2]),math.rad(d.rot[3]))
-  if d.shape=="Tube" then p.Shape=Enum.PartType.Cylinder p.Size=Vector3.new(d.size[3],d.size[1],d.size[2]) p.CFrame=p.CFrame*CFrame.Angles(0,math.pi/2,0) end
+  p.Size=Vector3.new(d.size[1],d.size[2],d.size[3])*scale
+  p.CFrame=CFrame.new(Vector3.new(d.pos[1],d.pos[2],d.pos[3])*scale)*CFrame.Angles(math.rad(d.rot[1]),math.rad(d.rot[2]),math.rad(d.rot[3]))
+  if d.shape=="Tube" then p.Shape=Enum.PartType.Cylinder p.Size=Vector3.new(d.size[3],d.size[1],d.size[2])*scale p.CFrame=p.CFrame*CFrame.Angles(0,math.pi/2,0) end
   p.Color=Color3.fromRGB(d.color[1],d.color[2],d.color[3]) p.Material=d.name=="Ponto reflex" and Enum.Material.Neon or Enum.Material.SmoothPlastic p.TopSurface=Enum.SurfaceType.Smooth p.BottomSurface=Enum.SurfaceType.Smooth
-  p.CanCollide=false p.CanTouch=false p.CanQuery=false p.Massless=true p.Parent=m
+  p.Reflectance=0 p.CanCollide=false p.CanTouch=false p.CanQuery=false p.Massless=true p.Parent=m
   if d.name=="Magazine" then
    magazine=p p:SetAttribute("MagazinePart",true)
    local motor=Instance.new("Motor6D") motor.Name="MagazineMotor" motor.Part0=root motor.Part1=p motor.C0=p.CFrame motor.Parent=root
@@ -530,7 +538,7 @@ function F.Build(parent)
    local w=Instance.new("Weld") w.Part0=parentPart w.Part1=p w.C0=parentPart.CFrame:Inverse()*p.CFrame w.Parent=p
   end
  end
- local function point(name,pos) local a=Instance.new("Attachment") a.Name=name a.CFrame=CFrame.new(pos) a.Parent=root return a end
+ local function point(name,pos) local a=Instance.new("Attachment") a.Name=name a.CFrame=CFrame.new(pos*scale) a.Parent=root return a end
  point("AimPoint",Vector3.new(0,1.04,.55)) point("Muzzle",Vector3.new(0,.29,-3.38)) point("LeftGrip",Vector3.new(-.3,-.08,-.95)) point("RightGripPoint",Vector3.new(.05,-.3,.12)) point("MagazinePivot",Vector3.new(0,-.46,-.65))
  m.Parent=parent return m
 end
@@ -538,7 +546,7 @@ function F.Mount(tool)
  if tool:GetAttribute("FactoryRuntimeBuilt") then return end
  for _,old in ipairs(tool:GetChildren()) do if old:IsA("BasePart") or old:IsA("Model") then old:Destroy() end end
  tool:SetAttribute("FactoryRuntimeBuilt",true)
- local model=F.Build(nil) for _,p in ipairs(model:GetChildren()) do p.Parent=tool end model:Destroy()
+ local model=F.Build(nil,.82) for _,p in ipairs(model:GetChildren()) do p.Parent=tool end model:Destroy()
 end
 return F
 ]=] end
@@ -677,7 +685,7 @@ local function character(p,char)
   local function removeDefault() local arm=char:FindFirstChild("Right Arm") local old=arm and arm:FindFirstChild("RightGrip") if old then old:Destroy() end end
   removeDefault() task.defer(removeDefault)
   local previous=tool.Handle:FindFirstChild("WorldGrip") if previous then previous:Destroy() end
-  local joint=Instance.new("Motor6D") joint.Name="WorldGrip" joint.Part0=torso joint.Part1=tool.Handle joint.C0=CFrame.new(.3,-.1,-.85) joint.Parent=tool.Handle
+  local joint=Instance.new("Motor6D") joint.Name="WorldGrip" joint.Part0=torso joint.Part1=tool.Handle joint.C0=CFrame.new(.18,-.15,-.82) joint.Parent=tool.Handle
   Logic.Equip(s,true,now()) snapshot(p,s)
  end)
  connect(tool.Unequipped,function() if states[p]==s then cancel() end end)

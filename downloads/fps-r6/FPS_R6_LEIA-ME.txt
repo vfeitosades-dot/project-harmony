@@ -124,3 +124,12 @@ personagem real, vista pelos outros jogadores, permanece preservada.
 O viewmodel nao usa Animator. Verificados nove raios centrais contra as
 caixas dos bracos durante ADS, hip-fire e toda a transicao entre eles.
 Teste simulado com malha de avatar exagerada tambem aprovado.
+
+POSTURA EM TERCEIRA PESSOA - REVISAO
+Arma nas maos em escala 82% do viewmodel para proporcoes melhores em R6.
+Postura de descanso com cano mais baixo, postura ADS elevada e alinhada,
+e corrida com arma abaixada. Punhos girados sem soltar os pontos de contato.
+Oscilacao leve de caminhada e respiracao sem deslocar as maos da arma.
+Primeira pessoa preserva escala e correcoes de camera da versao anterior.
+Placa de instrucoes com separadores ASCII e serializacao UTF-8 corrigida.
+Teste de contato das palmas e mira livre passou; validar no Studio.
