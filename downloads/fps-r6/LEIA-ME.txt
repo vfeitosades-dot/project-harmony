@@ -100,3 +100,31 @@ Previa/Preview_Interface.png e uma pre-visualizacao tecnica da disposicao
 da GUI com os dados dos testes, nao uma captura do Roblox Studio.
 Testes adicionais cobrem hotbar, selecao por tecla/toque, chat, vida, respawn,
 limpeza da UI, salto/pouso, dano confirmado e efeitos sem colisao.
+
+CAMERA E HUD DA REFERENCIA - VERSAO ATUAL
+Primeira pessoa permanente no StarterPlayer, no jogador e no cliente.
+Desequipar, morrer e renascer nao restauram a camera em terceira pessoa.
+A arma permanece na mao/braco direito, na pose lateral anterior.
+
+HUD com vida verde no canto inferior esquerdo, municao grande/reserva e
+nome da arma a direita, quatro slots numerados (1 ativo, demais vazios),
+ranking com retratos das contas, cronometro central e feed de eliminacoes.
+TAB: placar da rodada. V: mostrar/ocultar objetivos. M: ajustes.
+Ajustes permitem ligar/desligar VFX e FOV da corrida; nao disparam a arma
+enquanto o menu esta aberto. No mobile existem botoes de placar e ajustes.
+
+MatchState controla rodadas de 4 minutos e estatisticas da sessao.
+Eliminacoes reais, incluindo alvos de treino, somam pontos no ranking.
+Objetivos funcionais: equipar, eliminar 5 alvos e concluir uma rodada.
+XP: 25/75/50 por objetivo, uma vez por sessao; 10 por eliminacao.
+Ao fim da rodada o placar reinicia, rodadas concluidas incrementam e o
+lider unico com pelo menos 1 ponto recebe uma vitoria. Nao ha matchmaking
+de duelos. XP/objetivos sao de sessao, sem salvamento entre servidores.
+Nao ha jogadores, armas ou resultados inventados para preencher o HUD.
+
+Validacoes simuladas adicionais: camera bloqueada apos desequipar/morrer/
+respawn; contador, ranking e feed conectados ao servidor; XP sem recompensa
+duplicada; troca de rodada; placar/ajustes; slots desktop/mobile.
+Preview_Interface.png mostra uma previa tecnica com dados de teste e
+retratos ilustrativos. No jogo os retratos carregam das contas Roblox.
+O Roblox Studio nao esta disponivel aqui; validar aparencia e rede nele.

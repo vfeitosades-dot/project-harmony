@@ -198,7 +198,7 @@ R: recarga  |  H: inspecao  |  Shift: correr</string>
 				<Properties>
 					<string name="Name">Modules</string>
 				</Properties>
-				<Item class="ModuleScript" referent="FPS19">
+				<Item class="ModuleScript" referent="FPS20">
 					<Properties>
 						<string name="Name">AnimationController</string>
 						<ProtectedString name="Source">-- Timelines autorais. Campos: tempo, transformacao da arma, mao esquerda, carregador.
@@ -258,7 +258,7 @@ return A
 </ProtectedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="FPS20">
+				<Item class="ModuleScript" referent="FPS21">
 					<Properties>
 						<string name="Name">AvatarAppearance</string>
 						<ProtectedString name="Source">-- Executado no servidor. A aparencia vem da conta; so o rig e convertido em R6.
@@ -296,7 +296,7 @@ return A
 </ProtectedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="FPS21">
+				<Item class="ModuleScript" referent="FPS22">
 					<Properties>
 						<string name="Name">ClientController</string>
 						<ProtectedString name="Source">local Players=game:GetService(&quot;Players&quot;) local Input=game:GetService(&quot;UserInputService&quot;) local Run=game:GetService(&quot;RunService&quot;) local Gui=game:GetService(&quot;GuiService&quot;)
@@ -312,7 +312,7 @@ function Controller:Cleanup()
  if active==self then
   Run:UnbindFromRenderStep(&quot;VetorFPSPre&quot;) Run:UnbindFromRenderStep(&quot;VetorFPSPost&quot;)
   local camera=workspace.CurrentCamera if camera then camera.CFrame=camera.CFrame*self.lastKick:Inverse() camera.FieldOfView=self.oldFOV or C.FOV end self.lastKick=CFrame.new()
-  Players.LocalPlayer.CameraMode=self.oldMode or Enum.CameraMode.Classic Input.MouseDeltaSensitivity=self.oldSensitivity or 1 Input.MouseIconEnabled=self.oldIcon~=false Input.MouseBehavior=self.oldMouse or Enum.MouseBehavior.Default
+  Players.LocalPlayer.CameraMode=C.AlwaysFirstPerson and Enum.CameraMode.LockFirstPerson or self.oldMode or Enum.CameraMode.Classic Input.MouseDeltaSensitivity=self.oldSensitivity or 1 Input.MouseIconEnabled=self.oldIcon~=false Input.MouseBehavior=self.oldMouse or Enum.MouseBehavior.Default
   self.hud:SetVisible(false) active=nil
  end
 end
@@ -365,8 +365,8 @@ function Controller:Step(dt)
  if active~=self or not self.vm then return end
  local char=Players.LocalPlayer.Character local h=char and char:FindFirstChildOfClass(&quot;Humanoid&quot;)
  if char~=self.character or not h or h.Health&lt;=0 then self:Cleanup() return end
- if Input:GetFocusedTextBox() then self.holding=false self.wantAim=false self.wantRun=false end
- if self.equipped and not Input.TouchEnabled and not Input:GetFocusedTextBox() then
+ if Input:GetFocusedTextBox() or Players.LocalPlayer:GetAttribute(&quot;FPSMenuOpen&quot;)==true then self.holding=false self.wantAim=false self.wantRun=false end
+ if self.equipped and not Input.TouchEnabled and not Input:GetFocusedTextBox() and Players.LocalPlayer:GetAttribute(&quot;FPSMenuOpen&quot;)~=true then
   if Input.IsKeyDown then self.wantRun=Input:IsKeyDown(Enum.KeyCode.LeftShift) or Input:IsKeyDown(Enum.KeyCode.RightShift) end
   if self.holding and Input.IsMouseButtonPressed and not Input:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then self.holding=false end
  end
@@ -387,7 +387,7 @@ function Controller:Step(dt)
  local root=char:FindFirstChild(&quot;HumanoidRootPart&quot;) local speed=root and h.MoveDirection.Magnitude&gt;.05 and h.FloorMaterial~=Enum.Material.Air and Vector3.new(root.AssemblyLinearVelocity.X,0,root.AssemblyLinearVelocity.Z).Magnitude or 0
  local camera=workspace.CurrentCamera local kick,alpha=self.vm:Step(dt,camera,{state=state,time=math.max(0,phase),speed=speed,running=running,aim=aim,grounded=h.FloorMaterial~=Enum.Material.Air},Input:GetMouseDelta())
  camera.CFrame=camera.CFrame*kick self.lastKick=kick self.vm.root.CFrame=camera.CFrame
- camera.FieldOfView=self.oldFOV+(C.ADSFOV-self.oldFOV)*alpha+4*self.vm.run*(1-alpha)
+ camera.FieldOfView=self.oldFOV+(C.ADSFOV-self.oldFOV)*alpha+(Players.LocalPlayer:GetAttribute(&quot;FPSRunFOV&quot;)==false and 0 or 4)*self.vm.run*(1-alpha)
  Input.MouseDeltaSensitivity=self.oldSensitivity*(1-.42*alpha)
  self.hud:Tick(alpha,dt,speed,running) self.hud:Update(self:Ammo(),self.reserve,state,self.reloading and math.clamp(phase/C.ReloadTime,0,1) or 0,phase)
 end
@@ -398,7 +398,7 @@ function Controller.attach(tool)
  connect(tool.Equipped,function() self:Equip() end) connect(tool.Unequipped,function() self:Unequip() end)
  connect(tool.Activated,function() if self.equipped then self.holding=true end end) connect(tool.Deactivated,function() self.holding=false end)
  connect(Input.InputBegan,function(i,processed)
-  if not self.equipped or processed or Input:GetFocusedTextBox() then return end
+  if not self.equipped or processed or Input:GetFocusedTextBox() or Players.LocalPlayer:GetAttribute(&quot;FPSMenuOpen&quot;)==true then return end
   if i.UserInputType==Enum.UserInputType.MouseButton1 then self.holding=true elseif i.UserInputType==Enum.UserInputType.MouseButton2 then self.wantAim=true
   elseif i.KeyCode==Enum.KeyCode.R then self:Reload() elseif i.KeyCode==Enum.KeyCode.H then self:Inspect() elseif (i.KeyCode==Enum.KeyCode.LeftShift or i.KeyCode==Enum.KeyCode.RightShift) then self.wantRun=true end
  end)
@@ -425,7 +425,7 @@ return Controller
 </ProtectedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="FPS22">
+				<Item class="ModuleScript" referent="FPS23">
 					<Properties>
 						<string name="Name">HUD</string>
 						<ProtectedString name="Source">local Players=game:GetService(&quot;Players&quot;) local Input=game:GetService(&quot;UserInputService&quot;)
@@ -438,12 +438,14 @@ function H.new(actions)
  local function label(text,size,pos,fs)
   local t=Instance.new(&quot;TextLabel&quot;) t.Text=text t.Size=size t.Position=pos t.BackgroundTransparency=1 t.TextColor3=Color3.fromRGB(235,242,248) t.Font=Enum.Font.GothamMedium t.TextSize=fs t.Parent=root return t
  end
- local ammo=label(tostring(C.Magazine),UDim2.fromOffset(80,44),UDim2.new(1,-154,1,-137),34) ammo.TextXAlignment=Enum.TextXAlignment.Right
- local reserveText=label(&quot;/ &quot;..C.Reserve,UDim2.fromOffset(55,24),UDim2.new(1,-68,1,-121),15) reserveText.TextColor3=Color3.fromRGB(148,160,177)
- local weapon=label(&quot;AUTO&quot;,UDim2.fromOffset(100,18),UDim2.new(1,-118,1,-153),10) weapon.TextXAlignment=Enum.TextXAlignment.Right weapon.TextColor3=Color3.fromRGB(146,160,178)
+ local viewport=workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize
+ local compact=Input.TouchEnabled or viewport and viewport.X&lt;1000
+ local ammo=label(tostring(C.Magazine),UDim2.fromOffset(90,60),UDim2.new(1,compact and -145 or -516,1,compact and -158 or -130),compact and 36 or 52) ammo.TextXAlignment=Enum.TextXAlignment.Left ammo.Font=Enum.Font.GothamBlack
+ local reserveText=label(tostring(C.Reserve)..&quot; III&quot;,UDim2.fromOffset(88,28),UDim2.new(1,compact and -64 or -426,1,compact and -133 or -103),compact and 14 or 20) reserveText.TextColor3=Color3.fromRGB(242,244,240) reserveText.Font=Enum.Font.GothamBold
+ local weapon=label(C.Name,UDim2.fromOffset(210,28),UDim2.new(1,compact and -210 or -516,1,compact and -106 or -76),compact and 15 or 23) weapon.TextXAlignment=Enum.TextXAlignment.Left weapon.Font=Enum.Font.GothamBold
  local debugLabel=label(&quot;&quot;,UDim2.fromOffset(240,24),UDim2.fromOffset(12,12),12) debugLabel.Visible=C.DebugHUD
  local status=label(&quot;&quot;,UDim2.new(.8,0,0,24),UDim2.new(.1,0,.6,0),13)
- local hint=label(&quot;R  recarregar    H  inspecionar    Shift  correr&quot;,UDim2.new(.9,0,0,22),UDim2.new(.05,0,1,-30),11) hint.TextColor3=Color3.fromRGB(151,168,187) hint.Visible=not Input.TouchEnabled
+ local hint=label(&quot;Placar [TAB]   Objetivos [V]   Ajustes [M]&quot;,UDim2.new(.9,0,0,22),UDim2.new(.05,0,1,-30),11) hint.TextColor3=Color3.fromRGB(151,168,187) hint.Visible=not Input.TouchEnabled
  local cross={}
  for _,v in ipairs({{-7,0,4,1},{4,0,4,1},{0,-7,1,4},{0,4,1,4}}) do local f=Instance.new(&quot;Frame&quot;) f.Size=UDim2.fromOffset(v[3],v[4]) f.Position=UDim2.new(.5,v[1],.5,v[2]) f.BackgroundColor3=Color3.fromRGB(225,240,248) f.BorderSizePixel=0 f.Parent=root table.insert(cross,f) end
  local dot=Instance.new(&quot;Frame&quot;) dot.Name=&quot;CenterDot&quot; dot.Size=UDim2.fromOffset(2,2) dot.Position=UDim2.new(.5,-1,.5,-1) dot.BorderSizePixel=0 dot.BackgroundColor3=Color3.fromRGB(255,207,109) dot.Parent=root
@@ -471,12 +473,12 @@ function H.new(actions)
  button(&quot;RELOAD&quot;,UDim2.new(1,-84,.5,90),actions.reload)
  button(&quot;CORRER&quot;,UDim2.new(0,20,.5,90),actions.run)
  button(&quot;INSPECT&quot;,UDim2.new(0,20,.5,30),actions.inspect)
- return setmetatable({gui=gui,root=root,ammo=ammo,status=status,debugLabel=debugLabel,reserveText=reserveText,damage=damage,kill=kill,speedLines=speedLines,sprintWeight=0,hit=hit,cross=cross,dot=dot,bloom=0,track=track,fill=fill,connections=connections},H)
+ return setmetatable({gui=gui,root=root,ammo=ammo,status=status,debugLabel=debugLabel,ammoBase=compact and 36 or 52,reserveText=reserveText,damage=damage,kill=kill,speedLines=speedLines,sprintWeight=0,hit=hit,cross=cross,dot=dot,bloom=0,track=track,fill=fill,connections=connections},H)
 end
 function H:SetVisible(v) self.gui.Enabled=v end
 function H:Update(ammo,reserve,state,progress,phase)
  if C.DebugHUD then self.debugLabel.Text=string.format(&quot;%s \u{b7} %.2fs&quot;,state,phase or 0) end
- self.ammo.Text=string.format(&quot;%02d&quot;,math.max(0,ammo)) self.reserveText.Text=&quot;/ &quot;..reserve
+ self.ammo.Text=string.format(&quot;%02d&quot;,math.max(0,ammo)) self.reserveText.Text=tostring(reserve)..&quot; III&quot;
  self.ammo.TextColor3=ammo&lt;=5 and Color3.fromRGB(255,151,133) or Color3.fromRGB(235,242,248)
  self.status.Text=state==&quot;Reloading&quot; and &quot;Recarregando&quot; or state==&quot;Equipping&quot; and &quot;Equipando&quot; or state==&quot;Inspecting&quot; and &quot;Inspecionando&quot; or &quot;&quot;
  self.track.Visible=state==&quot;Reloading&quot; self.fill.Size=UDim2.fromScale(math.clamp(progress or 0,0,1),1)
@@ -497,7 +499,7 @@ function H:Tick(aim,dt,speed,running)
   f.Position=UDim2.new(.5,offsets[i][1],.5,offsets[i][2]) f.BackgroundTransparency=aim f.Visible=aim&lt;.98
  end
  self.dot.BackgroundTransparency=aim self.dot.Visible=aim&lt;.98
- self.ammo.TextSize=34+math.min(self.bloom,4)*.35
+ self.ammo.TextSize=self.ammoBase+math.min(self.bloom,4)*.35
  self.sprintWeight+=((running and 1 or 0)-self.sprintWeight)*(1-math.exp(-dt*9))
  for _,f in ipairs(self.speedLines) do f.BackgroundTransparency=1-self.sprintWeight*.2 end
  local damageLeft=(self.damageAt or 0)-os.clock() self.damage.Visible=damageLeft&gt;0 self.damage.TextTransparency=1-math.clamp(damageLeft/.3,0,1)
@@ -510,7 +512,7 @@ return H
 </ProtectedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="FPS23">
+				<Item class="ModuleScript" referent="FPS24">
 					<Properties>
 						<string name="Name">LoadoutController</string>
 						<ProtectedString name="Source">-- Persistent custom loadout: one real weapon slot, never decorative fake weapons.
@@ -526,7 +528,7 @@ function L.init()
  local function disable(attempt)
   if not alive then return end
   local ok=pcall(function()
-   for _,kind in ipairs({Enum.CoreGuiType.Backpack,Enum.CoreGuiType.Health}) do
+   for _,kind in ipairs({Enum.CoreGuiType.Backpack,Enum.CoreGuiType.Health,Enum.CoreGuiType.PlayerList}) do
     if saved[kind]==nil then saved[kind]=StarterGui:GetCoreGuiEnabled(kind) end
     StarterGui:SetCoreGuiEnabled(kind,false)
    end
@@ -534,6 +536,11 @@ function L.init()
   if not ok and attempt&lt;24 then task.delay(.25,function() disable(attempt+1) end) end
  end
  disable(0)
+ local oldMode,oldMin,oldMax=player.CameraMode,player.CameraMinZoomDistance,player.CameraMaxZoomDistance
+ local function lockCamera()
+  if C.AlwaysFirstPerson and alive then player.CameraMode=Enum.CameraMode.LockFirstPerson player.CameraMinZoomDistance=.5 player.CameraMaxZoomDistance=.5 Input.MouseIconEnabled=player:GetAttribute(&quot;FPSMenuOpen&quot;)==true end
+ end
+ lockCamera() connect(links,game:GetService(&quot;RunService&quot;).Heartbeat,lockCamera)
  local old=pg:FindFirstChild(&quot;FPSLoadout&quot;) if old then old:Destroy() end
  local gui=Instance.new(&quot;ScreenGui&quot;) gui.Name=&quot;FPSLoadout&quot; gui.ResetOnSpawn=false gui.IgnoreGuiInset=true gui.DisplayOrder=19 gui.Parent=pg
  local function frame(parent,name,size,pos,color,alpha)
@@ -542,25 +549,38 @@ function L.init()
  local function label(parent,name,text,size,pos,fontSize)
   local t=Instance.new(&quot;TextLabel&quot;) t.Name=name t.Text=text t.Size=size t.Position=pos t.BackgroundTransparency=1 t.Font=Enum.Font.GothamMedium t.TextSize=fontSize t.TextColor3=Color3.fromRGB(241,245,250) t.TextXAlignment=Enum.TextXAlignment.Left t.Parent=parent return t
  end
- local width=Input.TouchEnabled and 150 or 186
- local slot=Instance.new(&quot;TextButton&quot;) slot.Name=&quot;PrimarySlot&quot; slot.Text=&quot;&quot; slot.Size=UDim2.fromOffset(width,56) slot.Position=UDim2.new(1,-width-18,1,-74) slot.BackgroundColor3=Color3.fromRGB(17,22,29) slot.BackgroundTransparency=.22 slot.BorderSizePixel=0 slot.Parent=gui
+ local viewport=workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize
+ local compact=Input.TouchEnabled or viewport and viewport.X&lt;1000
+ local width=compact and 46 or 66 local gap=compact and 5 or 6 local slotHeight=compact and 56 or 72
+ local first=18+width*4+gap*3
+ local slot=Instance.new(&quot;TextButton&quot;) slot.Name=&quot;PrimarySlot&quot; slot.Text=&quot;&quot; slot.Size=UDim2.fromOffset(width,slotHeight) slot.Position=UDim2.new(1,-first,1,-slotHeight-28) slot.BackgroundColor3=Color3.fromRGB(20,24,30) slot.BackgroundTransparency=.4 slot.BorderSizePixel=0 slot.Parent=gui
  local corner=Instance.new(&quot;UICorner&quot;) corner.CornerRadius=UDim.new(0,5) corner.Parent=slot
  local border=Instance.new(&quot;UIStroke&quot;) border.Thickness=1 border.Transparency=.65 border.Color=Color3.fromRGB(220,230,240) border.Parent=slot
- local selected=frame(slot,&quot;Selection&quot;,UDim2.new(1,0,0,2),UDim2.new(0,0,1,-2),Color3.fromRGB(255,207,104))
- label(slot,&quot;Key&quot;,&quot;1&quot;,UDim2.fromOffset(16,18),UDim2.fromOffset(9,31),12)
- local name=label(slot,&quot;Weapon&quot;,C.Name,UDim2.new(1,-18,0,16),UDim2.fromOffset(9,5),10)
- local caption=label(slot,&quot;State&quot;,&quot;EQUIPAR&quot;,UDim2.fromOffset(68,14),UDim2.fromOffset(28,33),9) caption.TextColor3=Color3.fromRGB(152,166,180) caption.Visible=not Input.TouchEnabled
+ local selected=frame(slot,&quot;Selection&quot;,UDim2.new(1,0,0,2),UDim2.new(0,0,1,-2),Color3.fromRGB(245,248,255))
+ label(slot,&quot;Key&quot;,&quot;1&quot;,UDim2.fromOffset(16,18),UDim2.new(0,5,1,-20),12)
+ local name=label(slot,&quot;Weapon&quot;,C.Name,UDim2.new(1,-8,0,16),UDim2.fromOffset(4,2),9) name.Visible=false
+ local caption=label(slot,&quot;State&quot;,&quot;EQUIPAR&quot;,UDim2.fromOffset(68,14),UDim2.fromOffset(28,33),9) caption.TextColor3=Color3.fromRGB(152,166,180) caption.Visible=false
  -- Original vector silhouette of this rifle, no external icon assets.
- local icon=frame(slot,&quot;RifleIcon&quot;,UDim2.fromOffset(70,24),UDim2.new(1,-79,0,23),Color3.fromRGB(255,255,255),1)
+ local icon=frame(slot,&quot;RifleIcon&quot;,UDim2.fromOffset(70,24),UDim2.new(.5,compact and -20 or -30,.5,-10),Color3.fromRGB(255,255,255),1)
  for i,d in ipairs({{17,7,30,8},{46,8,19,3},{63,7,5,5},{8,9,10,7},{2,8,7,12},{21,15,5,7},{32,15,7,8},{23,4,17,2}}) do
   frame(icon,&quot;Piece&quot;..i,UDim2.fromOffset(d[3],d[4]),UDim2.fromOffset(d[1],d[2]),Color3.fromRGB(226,234,242))
  end
- local healthWidth=Input.TouchEnabled and 108 or 140
- local health=frame(gui,&quot;Health&quot;,UDim2.fromOffset(healthWidth,44),UDim2.new(0,18,1,-62),Color3.fromRGB(15,20,27),1)
- local hp=label(health,&quot;Value&quot;,&quot;100&quot;,UDim2.fromOffset(80,30),UDim2.fromOffset(0,0),28)
- label(health,&quot;Unit&quot;,&quot;HP&quot;,UDim2.fromOffset(22,18),UDim2.fromOffset(67,10),10)
- local track=frame(health,&quot;Track&quot;,UDim2.new(1,0,0,3),UDim2.fromOffset(0,37),Color3.fromRGB(64,72,84),.35)
- local fill=frame(track,&quot;Fill&quot;,UDim2.fromScale(1,1),UDim2.fromScale(0,0),Color3.fromRGB(239,243,248))
+ local scale=Instance.new(&quot;UIScale&quot;) scale.Scale=compact and .58 or .85 scale.Parent=icon
+ for i=2,4 do
+  local empty=Instance.new(&quot;Frame&quot;) empty.Name=&quot;EmptySlot&quot;..i empty.Size=UDim2.fromOffset(width,slotHeight) empty.Position=UDim2.new(1,-first+(i-1)*(width+gap),1,-slotHeight-28) empty.BackgroundColor3=Color3.fromRGB(20,24,30) empty.BackgroundTransparency=.65 empty.BorderSizePixel=0 empty.Parent=gui
+  local c=Instance.new(&quot;UICorner&quot;) c.CornerRadius=UDim.new(0,5) c.Parent=empty
+  local key=label(empty,&quot;Key&quot;,tostring(i),UDim2.fromOffset(16,18),UDim2.new(0,5,1,-20),12) key.TextTransparency=.4
+  local dash=label(empty,&quot;Empty&quot;,&quot;-&quot;,UDim2.new(1,0,1,-20),UDim2.fromOffset(0,0),18) dash.TextXAlignment=Enum.TextXAlignment.Center dash.TextTransparency=.75
+ end
+ local healthWidth=compact and 130 or 290
+ local health=frame(gui,&quot;Health&quot;,UDim2.fromOffset(healthWidth,compact and 24 or 30),UDim2.new(0,compact and 18 or 32,1,compact and -132 or -76),Color3.fromRGB(16,19,20),.05)
+ local hc=Instance.new(&quot;UICorner&quot;) hc.CornerRadius=UDim.new(1,0) hc.Parent=health
+ local outline=Instance.new(&quot;UIStroke&quot;) outline.Thickness=2 outline.Transparency=.15 outline.Color=Color3.fromRGB(0,0,0) outline.Parent=health
+ local track=frame(health,&quot;Track&quot;,UDim2.new(1,-10,1,-10),UDim2.fromOffset(5,5),Color3.fromRGB(42,70,27),0)
+ local tc=Instance.new(&quot;UICorner&quot;) tc.CornerRadius=UDim.new(1,0) tc.Parent=track
+ local fill=frame(track,&quot;Fill&quot;,UDim2.fromScale(1,1),UDim2.fromScale(0,0),Color3.fromRGB(88,255,34))
+ local fc=Instance.new(&quot;UICorner&quot;) fc.CornerRadius=UDim.new(1,0) fc.Parent=fill
+ local hp=label(health,&quot;Value&quot;,&quot;100&quot;,UDim2.new(1,-15,1,0),UDim2.fromOffset(0,0),compact and 11 or 14) hp.TextXAlignment=Enum.TextXAlignment.Right hp.TextColor3=Color3.fromRGB(33,92,14) hp.ZIndex=3
  local function humanoid() local char=player.Character return char and char:FindFirstChildOfClass(&quot;Humanoid&quot;) end
  local function rifle()
   local char=player.Character local bag=player:FindFirstChild(&quot;Backpack&quot;)
@@ -574,7 +594,7 @@ function L.init()
   name.Text=tool and C.Name or &quot;AGUARDANDO&quot; caption.Text=equipped and &quot;EQUIPADO&quot; or &quot;EQUIPAR&quot;
   local h=humanoid() local value=h and math.max(0,h.Health) or 0 local max=h and math.max(1,h.MaxHealth) or 100
   hp.Text=tostring(math.ceil(value)) fill.Size=UDim2.fromScale(math.clamp(value/max,0,1),1)
-  fill.BackgroundColor3=value&lt;=max*.3 and Color3.fromRGB(255,112,100) or Color3.fromRGB(239,243,248)
+  fill.BackgroundColor3=value&lt;=max*.3 and Color3.fromRGB(255,112,100) or Color3.fromRGB(88,255,34)
  end
  local function toggle()
   local h=humanoid() local tool=rifle()
@@ -587,6 +607,7 @@ function L.init()
   if not processed and not Input:GetFocusedTextBox() and (i.KeyCode==Enum.KeyCode.One or i.KeyCode==Enum.KeyCode.ButtonR1) then toggle() end
  end)
  local function bindCharacter(char)
+  lockCamera()
   disconnect(charLinks)
   if not char then refresh() return end
   connect(charLinks,char.ChildAdded,function() task.defer(refresh) end)
@@ -604,6 +625,7 @@ function L.init()
  local function cleanup()
   if not alive then return end alive=false disconnect(links) disconnect(charLinks) gui:Destroy()
   for kind,value in pairs(saved) do pcall(function() StarterGui:SetCoreGuiEnabled(kind,value) end) end
+  player.CameraMode=oldMode or Enum.CameraMode.Classic if oldMin then player.CameraMinZoomDistance=oldMin end if oldMax then player.CameraMaxZoomDistance=oldMax end
  end
  previousCleanup=cleanup return cleanup
 end
@@ -611,7 +633,164 @@ return L
 </ProtectedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="FPS24">
+				<Item class="ModuleScript" referent="FPS25">
+					<Properties>
+						<string name="Name">MatchHUD</string>
+						<ProtectedString name="Source">local Players=game:GetService(&quot;Players&quot;) local Run=game:GetService(&quot;RunService&quot;) local Input=game:GetService(&quot;UserInputService&quot;)
+local system=game:GetService(&quot;ReplicatedStorage&quot;):WaitForChild(&quot;FPSSystem&quot;)
+local U={} local cleanupPrevious
+function U.init()
+ if cleanupPrevious then cleanupPrevious() end
+ local player=Players.LocalPlayer local pg=player:WaitForChild(&quot;PlayerGui&quot;) local links={} local alive=true
+ local gui=Instance.new(&quot;ScreenGui&quot;) gui.Name=&quot;FPSMatchHUD&quot; gui.IgnoreGuiInset=true gui.ResetOnSpawn=false gui.DisplayOrder=18 gui.Parent=pg
+ local function connect(event,fn) table.insert(links,event:Connect(fn)) end
+ local function frame(parent,name,size,pos,alpha)
+  local f=Instance.new(&quot;Frame&quot;) f.Name=name f.Size=size f.Position=pos f.BackgroundColor3=Color3.fromRGB(24,26,33) f.BackgroundTransparency=alpha or .3 f.BorderSizePixel=0 f.Parent=parent return f
+ end
+ local function text(parent,name,value,size,pos,fontSize)
+  local t=Instance.new(&quot;TextLabel&quot;) t.Name=name t.Text=value t.Size=size t.Position=pos t.BackgroundTransparency=1 t.TextColor3=Color3.fromRGB(255,255,255) t.Font=Enum.Font.GothamBold t.TextSize=fontSize t.TextStrokeTransparency=.6 t.TextStrokeColor3=Color3.fromRGB(0,0,0) t.TextXAlignment=Enum.TextXAlignment.Left t.Parent=parent return t
+ end
+ local function round(f,r) local c=Instance.new(&quot;UICorner&quot;) c.CornerRadius=UDim.new(0,r) c.Parent=f end
+ local compact=Input.TouchEnabled or workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize and workspace.CurrentCamera.ViewportSize.X&lt;1000
+ local timer=frame(gui,&quot;RoundClock&quot;,UDim2.fromOffset(86,42),UDim2.new(.5,-43,0,8),.22) round(timer,6)
+ local clock=text(timer,&quot;Time&quot;,&quot;4:00&quot;,UDim2.fromScale(1,1),UDim2.fromScale(0,0),26) clock.TextXAlignment=Enum.TextXAlignment.Center
+ local ranking=frame(gui,&quot;Ranking&quot;,UDim2.fromOffset(500,94),UDim2.new(.5,-250,0,58),1)
+ local tasks=frame(gui,&quot;Tasks&quot;,UDim2.fromOffset(compact and 180 or 260,190),UDim2.new(0,16,.35,0),1)
+ local heading=text(tasks,&quot;Heading&quot;,&quot;Objetivos [0/3]&quot;,UDim2.new(1,0,0,30),UDim2.fromOffset(0,0),compact and 14 or 19)
+ local rows={}
+ for i,d in ipairs({{&quot;Equipe uma arma&quot;,1,25},{&quot;Elimine alvos&quot;,5,75},{&quot;Conclua uma rodada&quot;,1,50}}) do
+  local row=frame(tasks,&quot;Task&quot;..i,UDim2.new(1,0,0,43),UDim2.fromOffset(0,31+(i-1)*46),1)
+  text(row,&quot;Title&quot;,&quot;&gt; &quot;..d[1],UDim2.new(1,-48,0,20),UDim2.fromOffset(0,0),compact and 10 or 13)
+  local track=frame(row,&quot;Track&quot;,UDim2.new(1,-60,0,3),UDim2.fromOffset(14,24),.4)
+  local fill=frame(track,&quot;Fill&quot;,UDim2.fromScale(0,1),UDim2.fromScale(0,0),0) fill.BackgroundColor3=Color3.fromRGB(111,255,45)
+  local count=text(row,&quot;Count&quot;,&quot;0 / &quot;..d[2],UDim2.fromOffset(66,15),UDim2.new(1,-110,0,28),10)
+  local reward=text(row,&quot;Reward&quot;,&quot;+&quot;..d[3]..&quot; XP&quot;,UDim2.fromOffset(58,20),UDim2.new(1,-58,0,6),compact and 10 or 12) reward.TextColor3=Color3.fromRGB(255,222,54)
+  rows[i]={fill=fill,count=count,target=d[2]}
+ end
+ local xp=text(tasks,&quot;XP&quot;,&quot;XP da sessao: 0&quot;,UDim2.new(1,0,0,18),UDim2.fromOffset(14,174),10)
+ local feed=frame(gui,&quot;KillFeed&quot;,UDim2.fromOffset(compact and 210 or 360,94),UDim2.new(1,compact and -220 or -372,0,10),1)
+ local board=frame(gui,&quot;Scoreboard&quot;,UDim2.new(.7,0,.6,0),UDim2.new(.15,0,.2,0),.08) round(board,8) board.Visible=false
+ text(board,&quot;Title&quot;,&quot;PLACAR DA RODADA&quot;,UDim2.new(1,-32,0,38),UDim2.fromOffset(16,10),20)
+ local boardRows=frame(board,&quot;Players&quot;,UDim2.new(1,-32,1,-64),UDim2.fromOffset(16,58),1)
+ local settings=frame(gui,&quot;Settings&quot;,UDim2.fromOffset(300,190),UDim2.new(.5,-150,.5,-95),.05) round(settings,8) settings.Visible=false
+ text(settings,&quot;Title&quot;,&quot;AJUSTES&quot;,UDim2.new(1,-32,0,30),UDim2.fromOffset(16,10),20)
+ local function button(y,fn)
+  local b=Instance.new(&quot;TextButton&quot;) b.Size=UDim2.fromOffset(268,34) b.Position=UDim2.fromOffset(16,y) b.BackgroundColor3=Color3.fromRGB(48,52,63) b.TextColor3=Color3.fromRGB(255,255,255) b.Font=Enum.Font.GothamBold b.TextSize=12 b.Parent=settings round(b,4) connect(b.Activated,function() fn(b) end) return b
+ end
+ local vfx=button(54,function(b) player:SetAttribute(&quot;FPSVFXEnabled&quot;,player:GetAttribute(&quot;FPSVFXEnabled&quot;)==false) b.Text=&quot;EFEITOS: &quot;..(player:GetAttribute(&quot;FPSVFXEnabled&quot;)==false and &quot;DESLIGADOS&quot; or &quot;LIGADOS&quot;) end) vfx.Text=&quot;EFEITOS: &quot;..(player:GetAttribute(&quot;FPSVFXEnabled&quot;)==false and &quot;DESLIGADOS&quot; or &quot;LIGADOS&quot;)
+ local fov=button(96,function(b) player:SetAttribute(&quot;FPSRunFOV&quot;,player:GetAttribute(&quot;FPSRunFOV&quot;)==false) b.Text=&quot;FOV NA CORRIDA: &quot;..(player:GetAttribute(&quot;FPSRunFOV&quot;)==false and &quot;DESLIGADO&quot; or &quot;LIGADO&quot;) end) fov.Text=&quot;FOV NA CORRIDA: &quot;..(player:GetAttribute(&quot;FPSRunFOV&quot;)==false and &quot;DESLIGADO&quot; or &quot;LIGADO&quot;)
+ local close=button(138,function() settings.Visible=false end) close.Text=&quot;FECHAR&quot; close.Modal=true
+ local function menu(value)
+  settings.Visible=value player:SetAttribute(&quot;FPSMenuOpen&quot;,value) Input.MouseIconEnabled=value
+ end
+ connect(close.Activated,function() menu(false) end)
+ if compact then
+  local menus=frame(gui,&quot;Menus&quot;,UDim2.fromOffset(150,28),UDim2.new(0,16,.29,0),1)
+  for i,d in ipairs({{&quot;PLACAR&quot;,function() board.Visible=not board.Visible end},{&quot;AJUSTES&quot;,function() menu(not settings.Visible) end}}) do
+   local b=Instance.new(&quot;TextButton&quot;) b.Text=d[1] b.Size=UDim2.fromOffset(70,26) b.Position=UDim2.fromOffset((i-1)*76,0) b.BackgroundTransparency=.4 b.BackgroundColor3=Color3.fromRGB(24,26,33) b.TextColor3=Color3.fromRGB(255,255,255) b.Font=Enum.Font.GothamBold b.TextSize=10 b.Parent=menus connect(b.Activated,d[2])
+  end
+ end
+ connect(Input.InputBegan,function(i,processed)
+  if processed or Input:GetFocusedTextBox() then return end
+  if i.KeyCode==Enum.KeyCode.Tab then board.Visible=true elseif i.KeyCode==Enum.KeyCode.V then tasks.Visible=not tasks.Visible elseif i.KeyCode==Enum.KeyCode.M then menu(not settings.Visible) end
+ end)
+ connect(Input.InputEnded,function(i) if i.KeyCode==Enum.KeyCode.Tab then board.Visible=false end end)
+ local messages={} local thumbs={} local signature=&quot;&quot; local accumulated=1
+ local function sorted()
+  local list=Players:GetPlayers()
+  table.sort(list,function(a,b) local x,y=a:GetAttribute(&quot;FPSRoundKills&quot;) or 0,b:GetAttribute(&quot;FPSRoundKills&quot;) or 0 if x==y then return a.UserId&lt;b.UserId end return x&gt;y end)
+  return list
+ end
+ local function refresh()
+  if not alive then return end
+  local left=math.max(0,math.ceil((system:GetAttribute(&quot;FPSRoundEnd&quot;) or workspace:GetServerTimeNow())-workspace:GetServerTimeNow()))
+  clock.Text=string.format(&quot;%d:%02d&quot;,math.floor(left/60),left%60)
+  local progress={player:GetAttribute(&quot;FPSHasEquipped&quot;) and 1 or 0,player:GetAttribute(&quot;FPSKills&quot;) or 0,player:GetAttribute(&quot;FPSRounds&quot;) or 0} local done=0
+  for i,row in ipairs(rows) do local n=math.min(progress[i],row.target) row.count.Text=n..&quot; / &quot;..row.target row.fill.Size=UDim2.fromScale(n/row.target,1) if n&gt;=row.target then done+=1 end end
+  heading.Text=&quot;Objetivos [&quot;..done..&quot;/3]&quot; xp.Text=&quot;XP da sessao: &quot;..(player:GetAttribute(&quot;FPSXP&quot;) or 0)
+  local list=sorted() local ids={} for _,p in ipairs(list) do table.insert(ids,p.UserId..&quot;:&quot;..(p:GetAttribute(&quot;FPSRoundKills&quot;) or 0)) end
+  local key=table.concat(ids,&quot;,&quot;)
+  if key~=signature then
+   signature=key ranking:ClearAllChildren() boardRows:ClearAllChildren()
+   local max=compact and 5 or 10 local width=compact and 40 or 56 local gap=compact and 6 or 10 local count=math.min(max,#list)
+   ranking.Size=UDim2.fromOffset(count*(width+gap),94) ranking.Position=UDim2.new(.5,-count*(width+gap)/2,0,58)
+   for i,p in ipairs(list) do
+    if i&lt;=max then
+     local card=frame(ranking,&quot;Rank&quot;..i,UDim2.fromOffset(width,64),UDim2.fromOffset((i-1)*(width+gap),15),0) card.BackgroundColor3=i==1 and Color3.fromRGB(119,82,21) or Color3.fromRGB(91,40,149) round(card,9)
+     local rank=text(card,&quot;Rank&quot;,&quot;#&quot;..i,UDim2.new(1,0,0,20),UDim2.fromOffset(0,-20),16) rank.TextXAlignment=Enum.TextXAlignment.Center
+     local initial=text(card,&quot;Initial&quot;,string.sub(p.DisplayName or p.Name,1,1),UDim2.fromScale(1,1),UDim2.fromScale(0,0),24) initial.TextXAlignment=Enum.TextXAlignment.Center
+     local pic=Instance.new(&quot;ImageLabel&quot;) pic.Name=&quot;Avatar&quot; pic.Size=UDim2.fromScale(1,1) pic.BackgroundTransparency=1 pic.Parent=card
+     if thumbs[p.UserId] then pic.Image=thumbs[p.UserId] initial.Visible=false else
+      task.spawn(function() local ok,url=pcall(function() return Players:GetUserThumbnailAsync(p.UserId,Enum.ThumbnailType.HeadShot,Enum.ThumbnailSize.Size100x100) end) if ok then thumbs[p.UserId]=url if alive and pic.Parent then pic.Image=url initial.Visible=false end end end)
+     end
+     local score=text(card,&quot;Score&quot;,tostring(p:GetAttribute(&quot;FPSRoundKills&quot;) or 0),UDim2.new(1,0,0,32),UDim2.fromOffset(0,48),compact and 24 or 32) score.TextXAlignment=Enum.TextXAlignment.Center score.ZIndex=3
+    end
+    if i&lt;=12 then text(boardRows,&quot;Player&quot;..i,string.format(&quot;%d.  %s    %d&quot;,i,p.DisplayName or p.Name,p:GetAttribute(&quot;FPSRoundKills&quot;) or 0),UDim2.new(1,0,0,26),UDim2.fromOffset(0,(i-1)*28),16) end
+   end
+  end
+  for i=#messages,1,-1 do if workspace:GetServerTimeNow()-messages[i].at&gt;5 then messages[i].frame:Destroy() table.remove(messages,i) end end
+  for i,m in ipairs(messages) do m.frame.Position=UDim2.fromOffset(0,(i-1)*29) end
+ end
+ connect(system.Remotes:WaitForChild(&quot;MatchFeed&quot;).OnClientEvent,function(attacker,victim,critical)
+  if type(attacker)~=&quot;string&quot; or type(victim)~=&quot;string&quot; then return end
+  local row=frame(feed,&quot;Elimination&quot;,UDim2.new(1,0,0,25),UDim2.fromOffset(0,0),.18) round(row,4)
+  local label=text(row,&quot;Names&quot;,attacker..&quot;   [VETOR] &quot;..(critical and &quot;* &quot; or &quot;&quot;)..victim,UDim2.new(1,-12,1,0),UDim2.fromOffset(6,0),compact and 10 or 13) label.TextTruncate=Enum.TextTruncate.AtEnd
+  table.insert(messages,1,{frame=row,at=workspace:GetServerTimeNow()}) if #messages&gt;3 then messages[#messages].frame:Destroy() table.remove(messages) end refresh()
+ end)
+ connect(Run.Heartbeat,function(dt) accumulated+=dt if accumulated&gt;=.25 then accumulated=0 refresh() end end)
+ refresh()
+ local function cleanup() alive=false player:SetAttribute(&quot;FPSMenuOpen&quot;,false) for _,c in ipairs(links) do c:Disconnect() end gui:Destroy() end
+ cleanupPrevious=cleanup return cleanup
+end
+return U
+</ProtectedString>
+					</Properties>
+				</Item>
+				<Item class="ModuleScript" referent="FPS26">
+					<Properties>
+						<string name="Name">MatchState</string>
+						<ProtectedString name="Source">-- Server-owned session statistics and a real four-minute round clock.
+local Players=game:GetService(&quot;Players&quot;) local Run=game:GetService(&quot;RunService&quot;)
+local system=game:GetService(&quot;ReplicatedStorage&quot;):WaitForChild(&quot;FPSSystem&quot;)
+local M={} local started=false local duration=240
+local function add(p,key,n) p:SetAttribute(key,(p:GetAttribute(key) or 0)+n) end
+local function rewards(p)
+ for _,d in ipairs({{&quot;Equip&quot;,p:GetAttribute(&quot;FPSHasEquipped&quot;) and 1 or 0,1,25},{&quot;Kills&quot;,p:GetAttribute(&quot;FPSKills&quot;) or 0,5,75},{&quot;Rounds&quot;,p:GetAttribute(&quot;FPSRounds&quot;) or 0,1,50}}) do
+  if d[2]&gt;=d[3] and not p:GetAttribute(&quot;FPSReward&quot;..d[1]) then p:SetAttribute(&quot;FPSReward&quot;..d[1],true) add(p,&quot;FPSXP&quot;,d[4]) end
+ end
+end
+local function bind(p)
+ for _,key in ipairs({&quot;FPSKills&quot;,&quot;FPSRoundKills&quot;,&quot;FPSDeaths&quot;,&quot;FPSRounds&quot;,&quot;FPSWins&quot;,&quot;FPSXP&quot;}) do if p:GetAttribute(key)==nil then p:SetAttribute(key,0) end end
+ rewards(p)
+end
+function M.Init()
+ if started then return end started=true
+ system:SetAttribute(&quot;FPSRoundEnd&quot;,workspace:GetServerTimeNow()+duration) system:SetAttribute(&quot;FPSRound&quot;,1)
+ Players.PlayerAdded:Connect(bind) for _,p in ipairs(Players:GetPlayers()) do bind(p) end
+ Run.Heartbeat:Connect(function()
+  if workspace:GetServerTimeNow()&lt;(system:GetAttribute(&quot;FPSRoundEnd&quot;) or math.huge) then return end
+  local best=0 local winners={}
+  for _,p in ipairs(Players:GetPlayers()) do
+   local score=p:GetAttribute(&quot;FPSRoundKills&quot;) or 0
+   if score&gt;best then best=score winners={p} elseif score==best and score&gt;0 then table.insert(winners,p) end
+  end
+  if #winners==1 then add(winners[1],&quot;FPSWins&quot;,1) end
+  for _,p in ipairs(Players:GetPlayers()) do add(p,&quot;FPSRounds&quot;,1) p:SetAttribute(&quot;FPSRoundKills&quot;,0) rewards(p) end
+  system:SetAttribute(&quot;FPSRound&quot;,(system:GetAttribute(&quot;FPSRound&quot;) or 1)+1)
+  system:SetAttribute(&quot;FPSRoundEnd&quot;,workspace:GetServerTimeNow()+duration)
+ end)
+end
+function M.Equip(p) M.Init() p:SetAttribute(&quot;FPSHasEquipped&quot;,true) rewards(p) end
+function M.Kill(p,model,critical)
+ M.Init() add(p,&quot;FPSKills&quot;,1) add(p,&quot;FPSRoundKills&quot;,1) add(p,&quot;FPSXP&quot;,10) rewards(p)
+ local victim=Players:GetPlayerFromCharacter(model) if victim then add(victim,&quot;FPSDeaths&quot;,1) end
+ system.Remotes.MatchFeed:FireAllClients(p.DisplayName or p.Name,victim and (victim.DisplayName or victim.Name) or model.Name,critical==true)
+end
+return M
+</ProtectedString>
+					</Properties>
+				</Item>
+				<Item class="ModuleScript" referent="FPS27">
 					<Properties>
 						<string name="Name">Recoil</string>
 						<ProtectedString name="Source">local Spring=require(script.Parent.Spring)
@@ -623,7 +802,7 @@ return R
 </ProtectedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="FPS25">
+				<Item class="ModuleScript" referent="FPS28">
 					<Properties>
 						<string name="Name">Spring</string>
 						<ProtectedString name="Source">-- Solucao analitica criticamente amortecida: independente da taxa de quadros.
@@ -640,7 +819,7 @@ return S
 </ProtectedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="FPS26">
+				<Item class="ModuleScript" referent="FPS29">
 					<Properties>
 						<string name="Name">ThirdPersonController</string>
 						<ProtectedString name="Source">local Players=game:GetService(&quot;Players&quot;) local Run=game:GetService(&quot;RunService&quot;) local RS=game:GetService(&quot;ReplicatedStorage&quot;)
@@ -779,7 +958,7 @@ return T
 </ProtectedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="FPS27">
+				<Item class="ModuleScript" referent="FPS30">
 					<Properties>
 						<string name="Name">ViewModelController</string>
 						<ProtectedString name="Source">local Factory=require(script.Parent.WeaponFactory)
@@ -864,12 +1043,12 @@ return V
 </ProtectedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="FPS28">
+				<Item class="ModuleScript" referent="FPS31">
 					<Properties>
 						<string name="Name">WeaponConfig</string>
 						<ProtectedString name="Source">--!strict
 return table.freeze({
- Name=&quot;VETOR-30&quot;, DebugHUD=false, Magazine=30, Reserve=90, Damage=20, Critical=1.5,
+ Name=&quot;VETOR-30&quot;, AlwaysFirstPerson=true, DebugHUD=false, Magazine=30, Reserve=90, Damage=20, Critical=1.5,
  FireInterval=.11, ReloadTime=1.65, EquipTime=.45, UnequipTime=.3, InspectTime=2.5,
  Range=500, FOV=70, ADSFOV=55, ADSTime=.22, WalkSpeed=16, RunSpeed=22,
  LOBBY={ORIGIN=Vector3.new(0,4,16)},RUNNER={WALKSPEED=16,JUMPPOWER=50},
@@ -878,7 +1057,7 @@ return table.freeze({
 </ProtectedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="FPS29">
+				<Item class="ModuleScript" referent="FPS32">
 					<Properties>
 						<string name="Name">WeaponEffects</string>
 						<ProtectedString name="Source">-- Local, short-lived effects. No physical forces or external texture assets.
@@ -894,6 +1073,7 @@ local function fade(p,duration,goal)
  Tween:Create(p,TweenInfo.new(duration),goal):Play() Debris:AddItem(p,duration+.03)
 end
 function E.Shot(a,b,normal)
+ local player=game:GetService(&quot;Players&quot;).LocalPlayer if player and player:GetAttribute(&quot;FPSVFXEnabled&quot;)==false then return end
  local delta=b-a if delta.Magnitude&lt;.01 then return end
  local forward=CFrame.lookAt(a,b)
  local tracer=part(&quot;TracerVirtual&quot;,Vector3.new(.018,.018,math.min(delta.Magnitude,500)),CFrame.lookAt((a+b)/2,b),warm,Enum.Material.Neon,.25)
@@ -930,7 +1110,7 @@ return E
 </ProtectedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="FPS30">
+				<Item class="ModuleScript" referent="FPS33">
 					<Properties>
 						<string name="Name">WeaponFactory</string>
 						<ProtectedString name="Source">-- Rifle virtual original em pecas nativas, sem assets externos.
@@ -972,7 +1152,7 @@ return F
 </ProtectedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="FPS31">
+				<Item class="ModuleScript" referent="FPS34">
 					<Properties>
 						<string name="Name">WeaponGeometry</string>
 						<ProtectedString name="Source">-- Exportado da modelagem original no Blender.
@@ -980,7 +1160,7 @@ return {{[&quot;name&quot;]=&quot;Receiver&quot;,[&quot;size&quot;]={0.57,0.46,1
 </ProtectedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="FPS32">
+				<Item class="ModuleScript" referent="FPS35">
 					<Properties>
 						<string name="Name">WeaponState</string>
 						<ProtectedString name="Source">local C=require(script.Parent.WeaponConfig)
@@ -1045,6 +1225,11 @@ return S
 				<Item class="RemoteEvent" referent="FPS18">
 					<Properties>
 						<string name="Name">Hit</string>
+					</Properties>
+				</Item>
+				<Item class="RemoteEvent" referent="FPS19">
+					<Properties>
+						<string name="Name">MatchFeed</string>
 					</Properties>
 				</Item>
 			</Item>
@@ -9536,11 +9721,11 @@ return S
 						</Item>
 					</Item>
 				</Item>
-				<Item class="Folder" referent="FPS346">
+				<Item class="Folder" referent="FPS349">
 					<Properties>
 						<string name="Name">Animations</string>
 					</Properties>
-					<Item class="StringValue" referent="FPS347">
+					<Item class="StringValue" referent="FPS350">
 						<Properties>
 							<string name="Name">Procedural</string>
 							<string name="Value">Timelines em Modules.AnimationController; tiro e recoil em Modules.Recoil. Sem IDs externos.</string>
@@ -9550,26 +9735,30 @@ return S
 			</Item>
 		</Item>
 	</Item>
-	<Item class="StarterPlayer" referent="FPS348">
+	<Item class="StarterPlayer" referent="FPS351">
 		<Properties>
+			<float name="CameraMaxZoomDistance">0.5</float>
+			<float name="CameraMinZoomDistance">0.5</float>
+			<token name="CameraMode">1</token>
 			<float name="CharacterJumpPower">50</float>
 			<bool name="CharacterUseJumpPower">true</bool>
 			<float name="CharacterWalkSpeed">16</float>
 			<bool name="EnableMouseLockOption">false</bool>
 			<string name="Name">StarterPlayer</string>
 		</Properties>
-		<Item class="StarterPlayerScripts" referent="FPS349">
+		<Item class="StarterPlayerScripts" referent="FPS352">
 			<Properties>
 				<string name="Name">StarterPlayerScripts</string>
 			</Properties>
-			<Item class="LocalScript" referent="FPS350">
+			<Item class="LocalScript" referent="FPS353">
 				<Properties>
 					<bool name="Disabled">false</bool>
 					<string name="Name">FPSObserver</string>
 					<ProtectedString name="Source">local system=game:GetService(&quot;ReplicatedStorage&quot;):WaitForChild(&quot;FPSSystem&quot;)
 local modules=system:WaitForChild(&quot;Modules&quot;)
 local cleanup=require(modules:WaitForChild(&quot;LoadoutController&quot;)).init()
-script.Destroying:Connect(cleanup)
+local matchCleanup=require(modules:WaitForChild(&quot;MatchHUD&quot;)).init()
+script.Destroying:Connect(function() cleanup() matchCleanup() end)
 system:WaitForChild(&quot;Remotes&quot;):WaitForChild(&quot;WeaponFX&quot;)
 require(modules:WaitForChild(&quot;ThirdPersonController&quot;)).init(false)
 </ProtectedString>
@@ -9577,18 +9766,18 @@ require(modules:WaitForChild(&quot;ThirdPersonController&quot;)).init(false)
 			</Item>
 		</Item>
 	</Item>
-	<Item class="StarterPack" referent="FPS351">
+	<Item class="StarterPack" referent="FPS354">
 		<Properties>
 			<string name="Name">StarterPack</string>
 		</Properties>
-		<Item class="Tool" referent="FPS352">
+		<Item class="Tool" referent="FPS355">
 			<Properties>
 				<bool name="CanBeDropped">false</bool>
 				<string name="Name">Rifle</string>
 				<bool name="RequiresHandle">true</bool>
 				<string name="ToolTip">Vetor-30 &#194;&#183; R recarga &#194;&#183; H inspecao &#194;&#183; Shift corrida</string>
 			</Properties>
-			<Item class="Part" referent="FPS353">
+			<Item class="Part" referent="FPS356">
 				<Properties>
 					<bool name="Anchored">false</bool>
 					<token name="BottomSurface">0</token>
@@ -9620,7 +9809,7 @@ require(modules:WaitForChild(&quot;ThirdPersonController&quot;)).init(false)
 					</Vector3>
 				</Properties>
 			</Item>
-			<Item class="LocalScript" referent="FPS354">
+			<Item class="LocalScript" referent="FPS357">
 				<Properties>
 					<bool name="Disabled">false</bool>
 					<string name="Name">Controller</string>
@@ -9631,11 +9820,11 @@ require(system.Modules.ClientController).attach(script.Parent)
 			</Item>
 		</Item>
 	</Item>
-	<Item class="ServerScriptService" referent="FPS355">
+	<Item class="ServerScriptService" referent="FPS358">
 		<Properties>
 			<string name="Name">ServerScriptService</string>
 		</Properties>
-		<Item class="Script" referent="FPS356">
+		<Item class="Script" referent="FPS359">
 			<Properties>
 				<bool name="Disabled">false</bool>
 				<string name="Name">Demo</string>
@@ -9662,7 +9851,7 @@ Players.PlayerAdded:Connect(start) local first=Players:GetPlayers()[1] if first 
 </ProtectedString>
 			</Properties>
 		</Item>
-		<Item class="Script" referent="FPS357">
+		<Item class="Script" referent="FPS360">
 			<Properties>
 				<bool name="Disabled">false</bool>
 				<string name="Name">GunServer</string>
@@ -9673,7 +9862,7 @@ pcall(function() Physics:RegisterCollisionGroup(&quot;FPSViewModel&quot;) end)
 for _,g in ipairs(Physics:GetRegisteredCollisionGroups()) do Physics:CollisionGroupSetCollidable(&quot;FPSViewModel&quot;,g.name,false) end
 local System=RS:WaitForChild(&quot;FPSSystem&quot;) local Modules=System.Modules
 local C=require(Modules.WeaponConfig) local Logic=require(Modules.WeaponState) local Factory=require(Modules.WeaponFactory)
-local Anim=require(Modules.AnimationController)
+local Anim=require(Modules.AnimationController) local Match=require(Modules.MatchState)
 local Remotes=System:WaitForChild(&quot;Remotes&quot;)
 local states={} local lives={} local windows={}
 local function now() return workspace:GetServerTimeNow() end
@@ -9721,7 +9910,7 @@ Remotes.Fire.OnServerEvent:Connect(function(p,life,seq,origin,direction)
   local friendly=victim and not p.Neutral and not victim.Neutral and p.Team==victim.Team
   if humanoid and humanoid.Health&gt;0 and model~=p.Character and not friendly and not model:FindFirstChildOfClass(&quot;ForceField&quot;) then
    local critical=hit.Instance.Name==&quot;Head&quot; local before=humanoid.Health humanoid:TakeDamage(C.Damage*(critical and C.Critical or 1))
-   if humanoid.Health&lt;before then Remotes.Hit:FireClient(p,critical,before-humanoid.Health,humanoid.Health&lt;=0) end
+   if humanoid.Health&lt;before then Remotes.Hit:FireClient(p,critical,before-humanoid.Health,humanoid.Health&lt;=0) if humanoid.Health&lt;=0 then Match.Kill(p,model,critical) end end
   end
  end
  p.Character:SetAttribute(&quot;FPSLastShotAt&quot;,now())
@@ -9777,7 +9966,7 @@ local function character(p,char)
    tool.Grip=joint.C0:Inverse()*CFrame.new(0,-right.Size.Y*.5,0)
   else joint.Part0=torso joint.C0=Anim.WorldBase(torso) end
   joint.Parent=tool.Handle
-  Logic.Equip(s,true,now()) snapshot(p,s)
+  Logic.Equip(s,true,now()) Match.Equip(p) snapshot(p,s)
  end)
  local rightArm=char:FindFirstChild(&quot;Right Arm&quot;)
  if rightArm then connect(rightArm.ChildAdded,function(j)
@@ -9796,7 +9985,16 @@ for _,p in ipairs(Players:GetPlayers()) do added(p) end
 </ProtectedString>
 			</Properties>
 		</Item>
-		<Item class="Script" referent="FPS358">
+		<Item class="Script" referent="FPS361">
+			<Properties>
+				<bool name="Disabled">false</bool>
+				<string name="Name">MatchServer</string>
+				<ProtectedString name="Source">local modules=game:GetService(&quot;ReplicatedStorage&quot;):WaitForChild(&quot;FPSSystem&quot;):WaitForChild(&quot;Modules&quot;)
+require(modules:WaitForChild(&quot;MatchState&quot;)).Init()
+</ProtectedString>
+			</Properties>
+		</Item>
+		<Item class="Script" referent="FPS362">
 			<Properties>
 				<bool name="Disabled">false</bool>
 				<string name="Name">R6Characters</string>
@@ -9831,14 +10029,14 @@ Physics:CollisionGroupSetCollidable(&quot;FPSViewModel&quot;,&quot;Characters&qu
 Physics:CollisionGroupSetCollidable(&quot;FPSViewModel&quot;,&quot;Default&quot;,false)
 Physics:CollisionGroupSetCollidable(&quot;FPSViewModel&quot;,&quot;FPSViewModel&quot;,false)
 Players.CharacterAutoLoads=false
-local function add(p) if bound[p] then return end bound[p]=true task.spawn(spawn,p) end
+local function add(p) p.CameraMode=Enum.CameraMode.LockFirstPerson p.CameraMinZoomDistance=.5 p.CameraMaxZoomDistance=.5 if bound[p] then return end bound[p]=true task.spawn(spawn,p) end
 Players.PlayerAdded:Connect(add)
 Players.PlayerRemoving:Connect(function(p) spawning[p]=nil bound[p]=nil Avatar.Clear(p.UserId) end)
 for _,p in ipairs(Players:GetPlayers()) do add(p) end
 </ProtectedString>
 			</Properties>
 		</Item>
-		<Item class="Script" referent="FPS359">
+		<Item class="Script" referent="FPS363">
 			<Properties>
 				<bool name="Disabled">false</bool>
 				<string name="Name">ReplicateAnimations</string>
@@ -9849,11 +10047,11 @@ require(system:WaitForChild(&quot;Modules&quot;):WaitForChild(&quot;ThirdPersonC
 			</Properties>
 		</Item>
 	</Item>
-	<Item class="StarterGui" referent="FPS360">
+	<Item class="StarterGui" referent="FPS364">
 		<Properties>
 			<string name="Name">StarterGui</string>
 		</Properties>
-		<Item class="ScreenGui" referent="FPS361">
+		<Item class="ScreenGui" referent="FPS365">
 			<Properties>
 				<bool name="Enabled">false</bool>
 				<string name="Name">GunHUD</string>
@@ -9861,7 +10059,7 @@ require(system:WaitForChild(&quot;Modules&quot;):WaitForChild(&quot;ThirdPersonC
 			</Properties>
 		</Item>
 	</Item>
-	<Item class="Lighting" referent="FPS362">
+	<Item class="Lighting" referent="FPS366">
 		<Properties>
 			<Color3 name="Ambient">
 				<R>0.5</R>
@@ -9873,7 +10071,7 @@ require(system:WaitForChild(&quot;Modules&quot;):WaitForChild(&quot;ThirdPersonC
 			<string name="Name">Lighting</string>
 		</Properties>
 	</Item>
-	<Item class="SoundService" referent="FPS363">
+	<Item class="SoundService" referent="FPS367">
 		<Properties>
 			<string name="Name">SoundService</string>
 		</Properties>

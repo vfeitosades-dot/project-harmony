@@ -5,7 +5,7 @@ local RS=game:GetService('ReplicatedStorage') local SS=game:GetService('ServerSc
 assert(not RS:FindFirstChild('FPSSystem') and not SS:FindFirstChild('GunServer') and not Pack:FindFirstChild('Rifle') and not SP:FindFirstChild('FPSObserver'),'Ja existe um sistema com esses nomes; nada foi sobrescrito.')
 local function node(parent,kind,name) local x=Instance.new(kind) x.Name=name x.Parent=parent return x end
 local sys=node(RS,'Folder','FPSSystem') local mods=node(sys,'Folder','Modules') local rem=node(sys,'Folder','Remotes') local assets=node(sys,'Folder','Assets')
-for _,name in ipairs({'Fire','Reload','WeaponFX','State','Action','Hit'}) do node(rem,'RemoteEvent',name) end
+for _,name in ipairs({'Fire','Reload','WeaponFX','State','Action','Hit','MatchFeed'}) do node(rem,'RemoteEvent',name) end
 do local x=node(mods,'ModuleScript',"AnimationController") x.Source=[=[-- Timelines autorais. Campos: tempo, transformacao da arma, mao esquerda, carregador.
 local A={}
 local I=CFrame.new()
@@ -107,7 +107,7 @@ function Controller:Cleanup()
  if active==self then
   Run:UnbindFromRenderStep("VetorFPSPre") Run:UnbindFromRenderStep("VetorFPSPost")
   local camera=workspace.CurrentCamera if camera then camera.CFrame=camera.CFrame*self.lastKick:Inverse() camera.FieldOfView=self.oldFOV or C.FOV end self.lastKick=CFrame.new()
-  Players.LocalPlayer.CameraMode=self.oldMode or Enum.CameraMode.Classic Input.MouseDeltaSensitivity=self.oldSensitivity or 1 Input.MouseIconEnabled=self.oldIcon~=false Input.MouseBehavior=self.oldMouse or Enum.MouseBehavior.Default
+  Players.LocalPlayer.CameraMode=C.AlwaysFirstPerson and Enum.CameraMode.LockFirstPerson or self.oldMode or Enum.CameraMode.Classic Input.MouseDeltaSensitivity=self.oldSensitivity or 1 Input.MouseIconEnabled=self.oldIcon~=false Input.MouseBehavior=self.oldMouse or Enum.MouseBehavior.Default
   self.hud:SetVisible(false) active=nil
  end
 end
@@ -160,8 +160,8 @@ function Controller:Step(dt)
  if active~=self or not self.vm then return end
  local char=Players.LocalPlayer.Character local h=char and char:FindFirstChildOfClass("Humanoid")
  if char~=self.character or not h or h.Health<=0 then self:Cleanup() return end
- if Input:GetFocusedTextBox() then self.holding=false self.wantAim=false self.wantRun=false end
- if self.equipped and not Input.TouchEnabled and not Input:GetFocusedTextBox() then
+ if Input:GetFocusedTextBox() or Players.LocalPlayer:GetAttribute("FPSMenuOpen")==true then self.holding=false self.wantAim=false self.wantRun=false end
+ if self.equipped and not Input.TouchEnabled and not Input:GetFocusedTextBox() and Players.LocalPlayer:GetAttribute("FPSMenuOpen")~=true then
   if Input.IsKeyDown then self.wantRun=Input:IsKeyDown(Enum.KeyCode.LeftShift) or Input:IsKeyDown(Enum.KeyCode.RightShift) end
   if self.holding and Input.IsMouseButtonPressed and not Input:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then self.holding=false end
  end
@@ -182,7 +182,7 @@ function Controller:Step(dt)
  local root=char:FindFirstChild("HumanoidRootPart") local speed=root and h.MoveDirection.Magnitude>.05 and h.FloorMaterial~=Enum.Material.Air and Vector3.new(root.AssemblyLinearVelocity.X,0,root.AssemblyLinearVelocity.Z).Magnitude or 0
  local camera=workspace.CurrentCamera local kick,alpha=self.vm:Step(dt,camera,{state=state,time=math.max(0,phase),speed=speed,running=running,aim=aim,grounded=h.FloorMaterial~=Enum.Material.Air},Input:GetMouseDelta())
  camera.CFrame=camera.CFrame*kick self.lastKick=kick self.vm.root.CFrame=camera.CFrame
- camera.FieldOfView=self.oldFOV+(C.ADSFOV-self.oldFOV)*alpha+4*self.vm.run*(1-alpha)
+ camera.FieldOfView=self.oldFOV+(C.ADSFOV-self.oldFOV)*alpha+(Players.LocalPlayer:GetAttribute("FPSRunFOV")==false and 0 or 4)*self.vm.run*(1-alpha)
  Input.MouseDeltaSensitivity=self.oldSensitivity*(1-.42*alpha)
  self.hud:Tick(alpha,dt,speed,running) self.hud:Update(self:Ammo(),self.reserve,state,self.reloading and math.clamp(phase/C.ReloadTime,0,1) or 0,phase)
 end
@@ -193,7 +193,7 @@ function Controller.attach(tool)
  connect(tool.Equipped,function() self:Equip() end) connect(tool.Unequipped,function() self:Unequip() end)
  connect(tool.Activated,function() if self.equipped then self.holding=true end end) connect(tool.Deactivated,function() self.holding=false end)
  connect(Input.InputBegan,function(i,processed)
-  if not self.equipped or processed or Input:GetFocusedTextBox() then return end
+  if not self.equipped or processed or Input:GetFocusedTextBox() or Players.LocalPlayer:GetAttribute("FPSMenuOpen")==true then return end
   if i.UserInputType==Enum.UserInputType.MouseButton1 then self.holding=true elseif i.UserInputType==Enum.UserInputType.MouseButton2 then self.wantAim=true
   elseif i.KeyCode==Enum.KeyCode.R then self:Reload() elseif i.KeyCode==Enum.KeyCode.H then self:Inspect() elseif (i.KeyCode==Enum.KeyCode.LeftShift or i.KeyCode==Enum.KeyCode.RightShift) then self.wantRun=true end
  end)
@@ -228,12 +228,14 @@ function H.new(actions)
  local function label(text,size,pos,fs)
   local t=Instance.new("TextLabel") t.Text=text t.Size=size t.Position=pos t.BackgroundTransparency=1 t.TextColor3=Color3.fromRGB(235,242,248) t.Font=Enum.Font.GothamMedium t.TextSize=fs t.Parent=root return t
  end
- local ammo=label(tostring(C.Magazine),UDim2.fromOffset(80,44),UDim2.new(1,-154,1,-137),34) ammo.TextXAlignment=Enum.TextXAlignment.Right
- local reserveText=label("/ "..C.Reserve,UDim2.fromOffset(55,24),UDim2.new(1,-68,1,-121),15) reserveText.TextColor3=Color3.fromRGB(148,160,177)
- local weapon=label("AUTO",UDim2.fromOffset(100,18),UDim2.new(1,-118,1,-153),10) weapon.TextXAlignment=Enum.TextXAlignment.Right weapon.TextColor3=Color3.fromRGB(146,160,178)
+ local viewport=workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize
+ local compact=Input.TouchEnabled or viewport and viewport.X<1000
+ local ammo=label(tostring(C.Magazine),UDim2.fromOffset(90,60),UDim2.new(1,compact and -145 or -516,1,compact and -158 or -130),compact and 36 or 52) ammo.TextXAlignment=Enum.TextXAlignment.Left ammo.Font=Enum.Font.GothamBlack
+ local reserveText=label(tostring(C.Reserve).." III",UDim2.fromOffset(88,28),UDim2.new(1,compact and -64 or -426,1,compact and -133 or -103),compact and 14 or 20) reserveText.TextColor3=Color3.fromRGB(242,244,240) reserveText.Font=Enum.Font.GothamBold
+ local weapon=label(C.Name,UDim2.fromOffset(210,28),UDim2.new(1,compact and -210 or -516,1,compact and -106 or -76),compact and 15 or 23) weapon.TextXAlignment=Enum.TextXAlignment.Left weapon.Font=Enum.Font.GothamBold
  local debugLabel=label("",UDim2.fromOffset(240,24),UDim2.fromOffset(12,12),12) debugLabel.Visible=C.DebugHUD
  local status=label("",UDim2.new(.8,0,0,24),UDim2.new(.1,0,.6,0),13)
- local hint=label("R  recarregar    H  inspecionar    Shift  correr",UDim2.new(.9,0,0,22),UDim2.new(.05,0,1,-30),11) hint.TextColor3=Color3.fromRGB(151,168,187) hint.Visible=not Input.TouchEnabled
+ local hint=label("Placar [TAB]   Objetivos [V]   Ajustes [M]",UDim2.new(.9,0,0,22),UDim2.new(.05,0,1,-30),11) hint.TextColor3=Color3.fromRGB(151,168,187) hint.Visible=not Input.TouchEnabled
  local cross={}
  for _,v in ipairs({{-7,0,4,1},{4,0,4,1},{0,-7,1,4},{0,4,1,4}}) do local f=Instance.new("Frame") f.Size=UDim2.fromOffset(v[3],v[4]) f.Position=UDim2.new(.5,v[1],.5,v[2]) f.BackgroundColor3=Color3.fromRGB(225,240,248) f.BorderSizePixel=0 f.Parent=root table.insert(cross,f) end
  local dot=Instance.new("Frame") dot.Name="CenterDot" dot.Size=UDim2.fromOffset(2,2) dot.Position=UDim2.new(.5,-1,.5,-1) dot.BorderSizePixel=0 dot.BackgroundColor3=Color3.fromRGB(255,207,109) dot.Parent=root
@@ -261,12 +263,12 @@ function H.new(actions)
  button("RELOAD",UDim2.new(1,-84,.5,90),actions.reload)
  button("CORRER",UDim2.new(0,20,.5,90),actions.run)
  button("INSPECT",UDim2.new(0,20,.5,30),actions.inspect)
- return setmetatable({gui=gui,root=root,ammo=ammo,status=status,debugLabel=debugLabel,reserveText=reserveText,damage=damage,kill=kill,speedLines=speedLines,sprintWeight=0,hit=hit,cross=cross,dot=dot,bloom=0,track=track,fill=fill,connections=connections},H)
+ return setmetatable({gui=gui,root=root,ammo=ammo,status=status,debugLabel=debugLabel,ammoBase=compact and 36 or 52,reserveText=reserveText,damage=damage,kill=kill,speedLines=speedLines,sprintWeight=0,hit=hit,cross=cross,dot=dot,bloom=0,track=track,fill=fill,connections=connections},H)
 end
 function H:SetVisible(v) self.gui.Enabled=v end
 function H:Update(ammo,reserve,state,progress,phase)
  if C.DebugHUD then self.debugLabel.Text=string.format("%s · %.2fs",state,phase or 0) end
- self.ammo.Text=string.format("%02d",math.max(0,ammo)) self.reserveText.Text="/ "..reserve
+ self.ammo.Text=string.format("%02d",math.max(0,ammo)) self.reserveText.Text=tostring(reserve).." III"
  self.ammo.TextColor3=ammo<=5 and Color3.fromRGB(255,151,133) or Color3.fromRGB(235,242,248)
  self.status.Text=state=="Reloading" and "Recarregando" or state=="Equipping" and "Equipando" or state=="Inspecting" and "Inspecionando" or ""
  self.track.Visible=state=="Reloading" self.fill.Size=UDim2.fromScale(math.clamp(progress or 0,0,1),1)
@@ -287,7 +289,7 @@ function H:Tick(aim,dt,speed,running)
   f.Position=UDim2.new(.5,offsets[i][1],.5,offsets[i][2]) f.BackgroundTransparency=aim f.Visible=aim<.98
  end
  self.dot.BackgroundTransparency=aim self.dot.Visible=aim<.98
- self.ammo.TextSize=34+math.min(self.bloom,4)*.35
+ self.ammo.TextSize=self.ammoBase+math.min(self.bloom,4)*.35
  self.sprintWeight+=((running and 1 or 0)-self.sprintWeight)*(1-math.exp(-dt*9))
  for _,f in ipairs(self.speedLines) do f.BackgroundTransparency=1-self.sprintWeight*.2 end
  local damageLeft=(self.damageAt or 0)-os.clock() self.damage.Visible=damageLeft>0 self.damage.TextTransparency=1-math.clamp(damageLeft/.3,0,1)
@@ -311,7 +313,7 @@ function L.init()
  local function disable(attempt)
   if not alive then return end
   local ok=pcall(function()
-   for _,kind in ipairs({Enum.CoreGuiType.Backpack,Enum.CoreGuiType.Health}) do
+   for _,kind in ipairs({Enum.CoreGuiType.Backpack,Enum.CoreGuiType.Health,Enum.CoreGuiType.PlayerList}) do
     if saved[kind]==nil then saved[kind]=StarterGui:GetCoreGuiEnabled(kind) end
     StarterGui:SetCoreGuiEnabled(kind,false)
    end
@@ -319,6 +321,11 @@ function L.init()
   if not ok and attempt<24 then task.delay(.25,function() disable(attempt+1) end) end
  end
  disable(0)
+ local oldMode,oldMin,oldMax=player.CameraMode,player.CameraMinZoomDistance,player.CameraMaxZoomDistance
+ local function lockCamera()
+  if C.AlwaysFirstPerson and alive then player.CameraMode=Enum.CameraMode.LockFirstPerson player.CameraMinZoomDistance=.5 player.CameraMaxZoomDistance=.5 Input.MouseIconEnabled=player:GetAttribute("FPSMenuOpen")==true end
+ end
+ lockCamera() connect(links,game:GetService("RunService").Heartbeat,lockCamera)
  local old=pg:FindFirstChild("FPSLoadout") if old then old:Destroy() end
  local gui=Instance.new("ScreenGui") gui.Name="FPSLoadout" gui.ResetOnSpawn=false gui.IgnoreGuiInset=true gui.DisplayOrder=19 gui.Parent=pg
  local function frame(parent,name,size,pos,color,alpha)
@@ -327,25 +334,38 @@ function L.init()
  local function label(parent,name,text,size,pos,fontSize)
   local t=Instance.new("TextLabel") t.Name=name t.Text=text t.Size=size t.Position=pos t.BackgroundTransparency=1 t.Font=Enum.Font.GothamMedium t.TextSize=fontSize t.TextColor3=Color3.fromRGB(241,245,250) t.TextXAlignment=Enum.TextXAlignment.Left t.Parent=parent return t
  end
- local width=Input.TouchEnabled and 150 or 186
- local slot=Instance.new("TextButton") slot.Name="PrimarySlot" slot.Text="" slot.Size=UDim2.fromOffset(width,56) slot.Position=UDim2.new(1,-width-18,1,-74) slot.BackgroundColor3=Color3.fromRGB(17,22,29) slot.BackgroundTransparency=.22 slot.BorderSizePixel=0 slot.Parent=gui
+ local viewport=workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize
+ local compact=Input.TouchEnabled or viewport and viewport.X<1000
+ local width=compact and 46 or 66 local gap=compact and 5 or 6 local slotHeight=compact and 56 or 72
+ local first=18+width*4+gap*3
+ local slot=Instance.new("TextButton") slot.Name="PrimarySlot" slot.Text="" slot.Size=UDim2.fromOffset(width,slotHeight) slot.Position=UDim2.new(1,-first,1,-slotHeight-28) slot.BackgroundColor3=Color3.fromRGB(20,24,30) slot.BackgroundTransparency=.4 slot.BorderSizePixel=0 slot.Parent=gui
  local corner=Instance.new("UICorner") corner.CornerRadius=UDim.new(0,5) corner.Parent=slot
  local border=Instance.new("UIStroke") border.Thickness=1 border.Transparency=.65 border.Color=Color3.fromRGB(220,230,240) border.Parent=slot
- local selected=frame(slot,"Selection",UDim2.new(1,0,0,2),UDim2.new(0,0,1,-2),Color3.fromRGB(255,207,104))
- label(slot,"Key","1",UDim2.fromOffset(16,18),UDim2.fromOffset(9,31),12)
- local name=label(slot,"Weapon",C.Name,UDim2.new(1,-18,0,16),UDim2.fromOffset(9,5),10)
- local caption=label(slot,"State","EQUIPAR",UDim2.fromOffset(68,14),UDim2.fromOffset(28,33),9) caption.TextColor3=Color3.fromRGB(152,166,180) caption.Visible=not Input.TouchEnabled
+ local selected=frame(slot,"Selection",UDim2.new(1,0,0,2),UDim2.new(0,0,1,-2),Color3.fromRGB(245,248,255))
+ label(slot,"Key","1",UDim2.fromOffset(16,18),UDim2.new(0,5,1,-20),12)
+ local name=label(slot,"Weapon",C.Name,UDim2.new(1,-8,0,16),UDim2.fromOffset(4,2),9) name.Visible=false
+ local caption=label(slot,"State","EQUIPAR",UDim2.fromOffset(68,14),UDim2.fromOffset(28,33),9) caption.TextColor3=Color3.fromRGB(152,166,180) caption.Visible=false
  -- Original vector silhouette of this rifle, no external icon assets.
- local icon=frame(slot,"RifleIcon",UDim2.fromOffset(70,24),UDim2.new(1,-79,0,23),Color3.fromRGB(255,255,255),1)
+ local icon=frame(slot,"RifleIcon",UDim2.fromOffset(70,24),UDim2.new(.5,compact and -20 or -30,.5,-10),Color3.fromRGB(255,255,255),1)
  for i,d in ipairs({{17,7,30,8},{46,8,19,3},{63,7,5,5},{8,9,10,7},{2,8,7,12},{21,15,5,7},{32,15,7,8},{23,4,17,2}}) do
   frame(icon,"Piece"..i,UDim2.fromOffset(d[3],d[4]),UDim2.fromOffset(d[1],d[2]),Color3.fromRGB(226,234,242))
  end
- local healthWidth=Input.TouchEnabled and 108 or 140
- local health=frame(gui,"Health",UDim2.fromOffset(healthWidth,44),UDim2.new(0,18,1,-62),Color3.fromRGB(15,20,27),1)
- local hp=label(health,"Value","100",UDim2.fromOffset(80,30),UDim2.fromOffset(0,0),28)
- label(health,"Unit","HP",UDim2.fromOffset(22,18),UDim2.fromOffset(67,10),10)
- local track=frame(health,"Track",UDim2.new(1,0,0,3),UDim2.fromOffset(0,37),Color3.fromRGB(64,72,84),.35)
- local fill=frame(track,"Fill",UDim2.fromScale(1,1),UDim2.fromScale(0,0),Color3.fromRGB(239,243,248))
+ local scale=Instance.new("UIScale") scale.Scale=compact and .58 or .85 scale.Parent=icon
+ for i=2,4 do
+  local empty=Instance.new("Frame") empty.Name="EmptySlot"..i empty.Size=UDim2.fromOffset(width,slotHeight) empty.Position=UDim2.new(1,-first+(i-1)*(width+gap),1,-slotHeight-28) empty.BackgroundColor3=Color3.fromRGB(20,24,30) empty.BackgroundTransparency=.65 empty.BorderSizePixel=0 empty.Parent=gui
+  local c=Instance.new("UICorner") c.CornerRadius=UDim.new(0,5) c.Parent=empty
+  local key=label(empty,"Key",tostring(i),UDim2.fromOffset(16,18),UDim2.new(0,5,1,-20),12) key.TextTransparency=.4
+  local dash=label(empty,"Empty","-",UDim2.new(1,0,1,-20),UDim2.fromOffset(0,0),18) dash.TextXAlignment=Enum.TextXAlignment.Center dash.TextTransparency=.75
+ end
+ local healthWidth=compact and 130 or 290
+ local health=frame(gui,"Health",UDim2.fromOffset(healthWidth,compact and 24 or 30),UDim2.new(0,compact and 18 or 32,1,compact and -132 or -76),Color3.fromRGB(16,19,20),.05)
+ local hc=Instance.new("UICorner") hc.CornerRadius=UDim.new(1,0) hc.Parent=health
+ local outline=Instance.new("UIStroke") outline.Thickness=2 outline.Transparency=.15 outline.Color=Color3.fromRGB(0,0,0) outline.Parent=health
+ local track=frame(health,"Track",UDim2.new(1,-10,1,-10),UDim2.fromOffset(5,5),Color3.fromRGB(42,70,27),0)
+ local tc=Instance.new("UICorner") tc.CornerRadius=UDim.new(1,0) tc.Parent=track
+ local fill=frame(track,"Fill",UDim2.fromScale(1,1),UDim2.fromScale(0,0),Color3.fromRGB(88,255,34))
+ local fc=Instance.new("UICorner") fc.CornerRadius=UDim.new(1,0) fc.Parent=fill
+ local hp=label(health,"Value","100",UDim2.new(1,-15,1,0),UDim2.fromOffset(0,0),compact and 11 or 14) hp.TextXAlignment=Enum.TextXAlignment.Right hp.TextColor3=Color3.fromRGB(33,92,14) hp.ZIndex=3
  local function humanoid() local char=player.Character return char and char:FindFirstChildOfClass("Humanoid") end
  local function rifle()
   local char=player.Character local bag=player:FindFirstChild("Backpack")
@@ -359,7 +379,7 @@ function L.init()
   name.Text=tool and C.Name or "AGUARDANDO" caption.Text=equipped and "EQUIPADO" or "EQUIPAR"
   local h=humanoid() local value=h and math.max(0,h.Health) or 0 local max=h and math.max(1,h.MaxHealth) or 100
   hp.Text=tostring(math.ceil(value)) fill.Size=UDim2.fromScale(math.clamp(value/max,0,1),1)
-  fill.BackgroundColor3=value<=max*.3 and Color3.fromRGB(255,112,100) or Color3.fromRGB(239,243,248)
+  fill.BackgroundColor3=value<=max*.3 and Color3.fromRGB(255,112,100) or Color3.fromRGB(88,255,34)
  end
  local function toggle()
   local h=humanoid() local tool=rifle()
@@ -372,6 +392,7 @@ function L.init()
   if not processed and not Input:GetFocusedTextBox() and (i.KeyCode==Enum.KeyCode.One or i.KeyCode==Enum.KeyCode.ButtonR1) then toggle() end
  end)
  local function bindCharacter(char)
+  lockCamera()
   disconnect(charLinks)
   if not char then refresh() return end
   connect(charLinks,char.ChildAdded,function() task.defer(refresh) end)
@@ -389,10 +410,158 @@ function L.init()
  local function cleanup()
   if not alive then return end alive=false disconnect(links) disconnect(charLinks) gui:Destroy()
   for kind,value in pairs(saved) do pcall(function() StarterGui:SetCoreGuiEnabled(kind,value) end) end
+  player.CameraMode=oldMode or Enum.CameraMode.Classic if oldMin then player.CameraMinZoomDistance=oldMin end if oldMax then player.CameraMaxZoomDistance=oldMax end
  end
  previousCleanup=cleanup return cleanup
 end
 return L
+]=] end
+do local x=node(mods,'ModuleScript',"MatchHUD") x.Source=[=[local Players=game:GetService("Players") local Run=game:GetService("RunService") local Input=game:GetService("UserInputService")
+local system=game:GetService("ReplicatedStorage"):WaitForChild("FPSSystem")
+local U={} local cleanupPrevious
+function U.init()
+ if cleanupPrevious then cleanupPrevious() end
+ local player=Players.LocalPlayer local pg=player:WaitForChild("PlayerGui") local links={} local alive=true
+ local gui=Instance.new("ScreenGui") gui.Name="FPSMatchHUD" gui.IgnoreGuiInset=true gui.ResetOnSpawn=false gui.DisplayOrder=18 gui.Parent=pg
+ local function connect(event,fn) table.insert(links,event:Connect(fn)) end
+ local function frame(parent,name,size,pos,alpha)
+  local f=Instance.new("Frame") f.Name=name f.Size=size f.Position=pos f.BackgroundColor3=Color3.fromRGB(24,26,33) f.BackgroundTransparency=alpha or .3 f.BorderSizePixel=0 f.Parent=parent return f
+ end
+ local function text(parent,name,value,size,pos,fontSize)
+  local t=Instance.new("TextLabel") t.Name=name t.Text=value t.Size=size t.Position=pos t.BackgroundTransparency=1 t.TextColor3=Color3.fromRGB(255,255,255) t.Font=Enum.Font.GothamBold t.TextSize=fontSize t.TextStrokeTransparency=.6 t.TextStrokeColor3=Color3.fromRGB(0,0,0) t.TextXAlignment=Enum.TextXAlignment.Left t.Parent=parent return t
+ end
+ local function round(f,r) local c=Instance.new("UICorner") c.CornerRadius=UDim.new(0,r) c.Parent=f end
+ local compact=Input.TouchEnabled or workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize and workspace.CurrentCamera.ViewportSize.X<1000
+ local timer=frame(gui,"RoundClock",UDim2.fromOffset(86,42),UDim2.new(.5,-43,0,8),.22) round(timer,6)
+ local clock=text(timer,"Time","4:00",UDim2.fromScale(1,1),UDim2.fromScale(0,0),26) clock.TextXAlignment=Enum.TextXAlignment.Center
+ local ranking=frame(gui,"Ranking",UDim2.fromOffset(500,94),UDim2.new(.5,-250,0,58),1)
+ local tasks=frame(gui,"Tasks",UDim2.fromOffset(compact and 180 or 260,190),UDim2.new(0,16,.35,0),1)
+ local heading=text(tasks,"Heading","Objetivos [0/3]",UDim2.new(1,0,0,30),UDim2.fromOffset(0,0),compact and 14 or 19)
+ local rows={}
+ for i,d in ipairs({{"Equipe uma arma",1,25},{"Elimine alvos",5,75},{"Conclua uma rodada",1,50}}) do
+  local row=frame(tasks,"Task"..i,UDim2.new(1,0,0,43),UDim2.fromOffset(0,31+(i-1)*46),1)
+  text(row,"Title","> "..d[1],UDim2.new(1,-48,0,20),UDim2.fromOffset(0,0),compact and 10 or 13)
+  local track=frame(row,"Track",UDim2.new(1,-60,0,3),UDim2.fromOffset(14,24),.4)
+  local fill=frame(track,"Fill",UDim2.fromScale(0,1),UDim2.fromScale(0,0),0) fill.BackgroundColor3=Color3.fromRGB(111,255,45)
+  local count=text(row,"Count","0 / "..d[2],UDim2.fromOffset(66,15),UDim2.new(1,-110,0,28),10)
+  local reward=text(row,"Reward","+"..d[3].." XP",UDim2.fromOffset(58,20),UDim2.new(1,-58,0,6),compact and 10 or 12) reward.TextColor3=Color3.fromRGB(255,222,54)
+  rows[i]={fill=fill,count=count,target=d[2]}
+ end
+ local xp=text(tasks,"XP","XP da sessao: 0",UDim2.new(1,0,0,18),UDim2.fromOffset(14,174),10)
+ local feed=frame(gui,"KillFeed",UDim2.fromOffset(compact and 210 or 360,94),UDim2.new(1,compact and -220 or -372,0,10),1)
+ local board=frame(gui,"Scoreboard",UDim2.new(.7,0,.6,0),UDim2.new(.15,0,.2,0),.08) round(board,8) board.Visible=false
+ text(board,"Title","PLACAR DA RODADA",UDim2.new(1,-32,0,38),UDim2.fromOffset(16,10),20)
+ local boardRows=frame(board,"Players",UDim2.new(1,-32,1,-64),UDim2.fromOffset(16,58),1)
+ local settings=frame(gui,"Settings",UDim2.fromOffset(300,190),UDim2.new(.5,-150,.5,-95),.05) round(settings,8) settings.Visible=false
+ text(settings,"Title","AJUSTES",UDim2.new(1,-32,0,30),UDim2.fromOffset(16,10),20)
+ local function button(y,fn)
+  local b=Instance.new("TextButton") b.Size=UDim2.fromOffset(268,34) b.Position=UDim2.fromOffset(16,y) b.BackgroundColor3=Color3.fromRGB(48,52,63) b.TextColor3=Color3.fromRGB(255,255,255) b.Font=Enum.Font.GothamBold b.TextSize=12 b.Parent=settings round(b,4) connect(b.Activated,function() fn(b) end) return b
+ end
+ local vfx=button(54,function(b) player:SetAttribute("FPSVFXEnabled",player:GetAttribute("FPSVFXEnabled")==false) b.Text="EFEITOS: "..(player:GetAttribute("FPSVFXEnabled")==false and "DESLIGADOS" or "LIGADOS") end) vfx.Text="EFEITOS: "..(player:GetAttribute("FPSVFXEnabled")==false and "DESLIGADOS" or "LIGADOS")
+ local fov=button(96,function(b) player:SetAttribute("FPSRunFOV",player:GetAttribute("FPSRunFOV")==false) b.Text="FOV NA CORRIDA: "..(player:GetAttribute("FPSRunFOV")==false and "DESLIGADO" or "LIGADO") end) fov.Text="FOV NA CORRIDA: "..(player:GetAttribute("FPSRunFOV")==false and "DESLIGADO" or "LIGADO")
+ local close=button(138,function() settings.Visible=false end) close.Text="FECHAR" close.Modal=true
+ local function menu(value)
+  settings.Visible=value player:SetAttribute("FPSMenuOpen",value) Input.MouseIconEnabled=value
+ end
+ connect(close.Activated,function() menu(false) end)
+ if compact then
+  local menus=frame(gui,"Menus",UDim2.fromOffset(150,28),UDim2.new(0,16,.29,0),1)
+  for i,d in ipairs({{"PLACAR",function() board.Visible=not board.Visible end},{"AJUSTES",function() menu(not settings.Visible) end}}) do
+   local b=Instance.new("TextButton") b.Text=d[1] b.Size=UDim2.fromOffset(70,26) b.Position=UDim2.fromOffset((i-1)*76,0) b.BackgroundTransparency=.4 b.BackgroundColor3=Color3.fromRGB(24,26,33) b.TextColor3=Color3.fromRGB(255,255,255) b.Font=Enum.Font.GothamBold b.TextSize=10 b.Parent=menus connect(b.Activated,d[2])
+  end
+ end
+ connect(Input.InputBegan,function(i,processed)
+  if processed or Input:GetFocusedTextBox() then return end
+  if i.KeyCode==Enum.KeyCode.Tab then board.Visible=true elseif i.KeyCode==Enum.KeyCode.V then tasks.Visible=not tasks.Visible elseif i.KeyCode==Enum.KeyCode.M then menu(not settings.Visible) end
+ end)
+ connect(Input.InputEnded,function(i) if i.KeyCode==Enum.KeyCode.Tab then board.Visible=false end end)
+ local messages={} local thumbs={} local signature="" local accumulated=1
+ local function sorted()
+  local list=Players:GetPlayers()
+  table.sort(list,function(a,b) local x,y=a:GetAttribute("FPSRoundKills") or 0,b:GetAttribute("FPSRoundKills") or 0 if x==y then return a.UserId<b.UserId end return x>y end)
+  return list
+ end
+ local function refresh()
+  if not alive then return end
+  local left=math.max(0,math.ceil((system:GetAttribute("FPSRoundEnd") or workspace:GetServerTimeNow())-workspace:GetServerTimeNow()))
+  clock.Text=string.format("%d:%02d",math.floor(left/60),left%60)
+  local progress={player:GetAttribute("FPSHasEquipped") and 1 or 0,player:GetAttribute("FPSKills") or 0,player:GetAttribute("FPSRounds") or 0} local done=0
+  for i,row in ipairs(rows) do local n=math.min(progress[i],row.target) row.count.Text=n.." / "..row.target row.fill.Size=UDim2.fromScale(n/row.target,1) if n>=row.target then done+=1 end end
+  heading.Text="Objetivos ["..done.."/3]" xp.Text="XP da sessao: "..(player:GetAttribute("FPSXP") or 0)
+  local list=sorted() local ids={} for _,p in ipairs(list) do table.insert(ids,p.UserId..":"..(p:GetAttribute("FPSRoundKills") or 0)) end
+  local key=table.concat(ids,",")
+  if key~=signature then
+   signature=key ranking:ClearAllChildren() boardRows:ClearAllChildren()
+   local max=compact and 5 or 10 local width=compact and 40 or 56 local gap=compact and 6 or 10 local count=math.min(max,#list)
+   ranking.Size=UDim2.fromOffset(count*(width+gap),94) ranking.Position=UDim2.new(.5,-count*(width+gap)/2,0,58)
+   for i,p in ipairs(list) do
+    if i<=max then
+     local card=frame(ranking,"Rank"..i,UDim2.fromOffset(width,64),UDim2.fromOffset((i-1)*(width+gap),15),0) card.BackgroundColor3=i==1 and Color3.fromRGB(119,82,21) or Color3.fromRGB(91,40,149) round(card,9)
+     local rank=text(card,"Rank","#"..i,UDim2.new(1,0,0,20),UDim2.fromOffset(0,-20),16) rank.TextXAlignment=Enum.TextXAlignment.Center
+     local initial=text(card,"Initial",string.sub(p.DisplayName or p.Name,1,1),UDim2.fromScale(1,1),UDim2.fromScale(0,0),24) initial.TextXAlignment=Enum.TextXAlignment.Center
+     local pic=Instance.new("ImageLabel") pic.Name="Avatar" pic.Size=UDim2.fromScale(1,1) pic.BackgroundTransparency=1 pic.Parent=card
+     if thumbs[p.UserId] then pic.Image=thumbs[p.UserId] initial.Visible=false else
+      task.spawn(function() local ok,url=pcall(function() return Players:GetUserThumbnailAsync(p.UserId,Enum.ThumbnailType.HeadShot,Enum.ThumbnailSize.Size100x100) end) if ok then thumbs[p.UserId]=url if alive and pic.Parent then pic.Image=url initial.Visible=false end end end)
+     end
+     local score=text(card,"Score",tostring(p:GetAttribute("FPSRoundKills") or 0),UDim2.new(1,0,0,32),UDim2.fromOffset(0,48),compact and 24 or 32) score.TextXAlignment=Enum.TextXAlignment.Center score.ZIndex=3
+    end
+    if i<=12 then text(boardRows,"Player"..i,string.format("%d.  %s    %d",i,p.DisplayName or p.Name,p:GetAttribute("FPSRoundKills") or 0),UDim2.new(1,0,0,26),UDim2.fromOffset(0,(i-1)*28),16) end
+   end
+  end
+  for i=#messages,1,-1 do if workspace:GetServerTimeNow()-messages[i].at>5 then messages[i].frame:Destroy() table.remove(messages,i) end end
+  for i,m in ipairs(messages) do m.frame.Position=UDim2.fromOffset(0,(i-1)*29) end
+ end
+ connect(system.Remotes:WaitForChild("MatchFeed").OnClientEvent,function(attacker,victim,critical)
+  if type(attacker)~="string" or type(victim)~="string" then return end
+  local row=frame(feed,"Elimination",UDim2.new(1,0,0,25),UDim2.fromOffset(0,0),.18) round(row,4)
+  local label=text(row,"Names",attacker.."   [VETOR] "..(critical and "* " or "")..victim,UDim2.new(1,-12,1,0),UDim2.fromOffset(6,0),compact and 10 or 13) label.TextTruncate=Enum.TextTruncate.AtEnd
+  table.insert(messages,1,{frame=row,at=workspace:GetServerTimeNow()}) if #messages>3 then messages[#messages].frame:Destroy() table.remove(messages) end refresh()
+ end)
+ connect(Run.Heartbeat,function(dt) accumulated+=dt if accumulated>=.25 then accumulated=0 refresh() end end)
+ refresh()
+ local function cleanup() alive=false player:SetAttribute("FPSMenuOpen",false) for _,c in ipairs(links) do c:Disconnect() end gui:Destroy() end
+ cleanupPrevious=cleanup return cleanup
+end
+return U
+]=] end
+do local x=node(mods,'ModuleScript',"MatchState") x.Source=[=[-- Server-owned session statistics and a real four-minute round clock.
+local Players=game:GetService("Players") local Run=game:GetService("RunService")
+local system=game:GetService("ReplicatedStorage"):WaitForChild("FPSSystem")
+local M={} local started=false local duration=240
+local function add(p,key,n) p:SetAttribute(key,(p:GetAttribute(key) or 0)+n) end
+local function rewards(p)
+ for _,d in ipairs({{"Equip",p:GetAttribute("FPSHasEquipped") and 1 or 0,1,25},{"Kills",p:GetAttribute("FPSKills") or 0,5,75},{"Rounds",p:GetAttribute("FPSRounds") or 0,1,50}}) do
+  if d[2]>=d[3] and not p:GetAttribute("FPSReward"..d[1]) then p:SetAttribute("FPSReward"..d[1],true) add(p,"FPSXP",d[4]) end
+ end
+end
+local function bind(p)
+ for _,key in ipairs({"FPSKills","FPSRoundKills","FPSDeaths","FPSRounds","FPSWins","FPSXP"}) do if p:GetAttribute(key)==nil then p:SetAttribute(key,0) end end
+ rewards(p)
+end
+function M.Init()
+ if started then return end started=true
+ system:SetAttribute("FPSRoundEnd",workspace:GetServerTimeNow()+duration) system:SetAttribute("FPSRound",1)
+ Players.PlayerAdded:Connect(bind) for _,p in ipairs(Players:GetPlayers()) do bind(p) end
+ Run.Heartbeat:Connect(function()
+  if workspace:GetServerTimeNow()<(system:GetAttribute("FPSRoundEnd") or math.huge) then return end
+  local best=0 local winners={}
+  for _,p in ipairs(Players:GetPlayers()) do
+   local score=p:GetAttribute("FPSRoundKills") or 0
+   if score>best then best=score winners={p} elseif score==best and score>0 then table.insert(winners,p) end
+  end
+  if #winners==1 then add(winners[1],"FPSWins",1) end
+  for _,p in ipairs(Players:GetPlayers()) do add(p,"FPSRounds",1) p:SetAttribute("FPSRoundKills",0) rewards(p) end
+  system:SetAttribute("FPSRound",(system:GetAttribute("FPSRound") or 1)+1)
+  system:SetAttribute("FPSRoundEnd",workspace:GetServerTimeNow()+duration)
+ end)
+end
+function M.Equip(p) M.Init() p:SetAttribute("FPSHasEquipped",true) rewards(p) end
+function M.Kill(p,model,critical)
+ M.Init() add(p,"FPSKills",1) add(p,"FPSRoundKills",1) add(p,"FPSXP",10) rewards(p)
+ local victim=Players:GetPlayerFromCharacter(model) if victim then add(victim,"FPSDeaths",1) end
+ system.Remotes.MatchFeed:FireAllClients(p.DisplayName or p.Name,victim and (victim.DisplayName or victim.Name) or model.Name,critical==true)
+end
+return M
 ]=] end
 do local x=node(mods,'ModuleScript',"Recoil") x.Source=[=[local Spring=require(script.Parent.Spring)
 local R={} R.__index=R
@@ -629,7 +798,7 @@ return V
 ]=] end
 do local x=node(mods,'ModuleScript',"WeaponConfig") x.Source=[=[--!strict
 return table.freeze({
- Name="VETOR-30", DebugHUD=false, Magazine=30, Reserve=90, Damage=20, Critical=1.5,
+ Name="VETOR-30", AlwaysFirstPerson=true, DebugHUD=false, Magazine=30, Reserve=90, Damage=20, Critical=1.5,
  FireInterval=.11, ReloadTime=1.65, EquipTime=.45, UnequipTime=.3, InspectTime=2.5,
  Range=500, FOV=70, ADSFOV=55, ADSTime=.22, WalkSpeed=16, RunSpeed=22,
  LOBBY={ORIGIN=Vector3.new(0,4,16)},RUNNER={WALKSPEED=16,JUMPPOWER=50},
@@ -649,6 +818,7 @@ local function fade(p,duration,goal)
  Tween:Create(p,TweenInfo.new(duration),goal):Play() Debris:AddItem(p,duration+.03)
 end
 function E.Shot(a,b,normal)
+ local player=game:GetService("Players").LocalPlayer if player and player:GetAttribute("FPSVFXEnabled")==false then return end
  local delta=b-a if delta.Magnitude<.01 then return end
  local forward=CFrame.lookAt(a,b)
  local tracer=part("TracerVirtual",Vector3.new(.018,.018,math.min(delta.Magnitude,500)),CFrame.lookAt((a+b)/2,b),warm,Enum.Material.Neon,.25)
@@ -757,7 +927,8 @@ require(system.Modules.ClientController).attach(script.Parent)
 do local x=node(SP,'LocalScript','FPSObserver') x.Source=[=[local system=game:GetService("ReplicatedStorage"):WaitForChild("FPSSystem")
 local modules=system:WaitForChild("Modules")
 local cleanup=require(modules:WaitForChild("LoadoutController")).init()
-script.Destroying:Connect(cleanup)
+local matchCleanup=require(modules:WaitForChild("MatchHUD")).init()
+script.Destroying:Connect(function() cleanup() matchCleanup() end)
 system:WaitForChild("Remotes"):WaitForChild("WeaponFX")
 require(modules:WaitForChild("ThirdPersonController")).init(false)
 ]=] end
@@ -768,7 +939,7 @@ pcall(function() Physics:RegisterCollisionGroup("FPSViewModel") end)
 for _,g in ipairs(Physics:GetRegisteredCollisionGroups()) do Physics:CollisionGroupSetCollidable("FPSViewModel",g.name,false) end
 local System=RS:WaitForChild("FPSSystem") local Modules=System.Modules
 local C=require(Modules.WeaponConfig) local Logic=require(Modules.WeaponState) local Factory=require(Modules.WeaponFactory)
-local Anim=require(Modules.AnimationController)
+local Anim=require(Modules.AnimationController) local Match=require(Modules.MatchState)
 local Remotes=System:WaitForChild("Remotes")
 local states={} local lives={} local windows={}
 local function now() return workspace:GetServerTimeNow() end
@@ -816,7 +987,7 @@ Remotes.Fire.OnServerEvent:Connect(function(p,life,seq,origin,direction)
   local friendly=victim and not p.Neutral and not victim.Neutral and p.Team==victim.Team
   if humanoid and humanoid.Health>0 and model~=p.Character and not friendly and not model:FindFirstChildOfClass("ForceField") then
    local critical=hit.Instance.Name=="Head" local before=humanoid.Health humanoid:TakeDamage(C.Damage*(critical and C.Critical or 1))
-   if humanoid.Health<before then Remotes.Hit:FireClient(p,critical,before-humanoid.Health,humanoid.Health<=0) end
+   if humanoid.Health<before then Remotes.Hit:FireClient(p,critical,before-humanoid.Health,humanoid.Health<=0) if humanoid.Health<=0 then Match.Kill(p,model,critical) end end
   end
  end
  p.Character:SetAttribute("FPSLastShotAt",now())
@@ -872,7 +1043,7 @@ local function character(p,char)
    tool.Grip=joint.C0:Inverse()*CFrame.new(0,-right.Size.Y*.5,0)
   else joint.Part0=torso joint.C0=Anim.WorldBase(torso) end
   joint.Parent=tool.Handle
-  Logic.Equip(s,true,now()) snapshot(p,s)
+  Logic.Equip(s,true,now()) Match.Equip(p) snapshot(p,s)
  end)
  local rightArm=char:FindFirstChild("Right Arm")
  if rightArm then connect(rightArm.ChildAdded,function(j)
@@ -888,6 +1059,9 @@ end
 local function added(p) p.CharacterAdded:Connect(function(char) task.spawn(character,p,char) end) if p.Character then task.spawn(character,p,p.Character) end end
 Players.PlayerAdded:Connect(added) Players.PlayerRemoving:Connect(function(p) local s=states[p] if s then for _,c in ipairs(s.connections or {}) do c:Disconnect() end end states[p]=nil windows[p]=nil lives[p]=nil end)
 for _,p in ipairs(Players:GetPlayers()) do added(p) end
+]=] x.Parent=SS end
+do local x=Instance.new('Script') x.Name="MatchServer" x.Source=[=[local modules=game:GetService("ReplicatedStorage"):WaitForChild("FPSSystem"):WaitForChild("Modules")
+require(modules:WaitForChild("MatchState")).Init()
 ]=] x.Parent=SS end
 if USE_CUSTOM_R6 then local x=Instance.new('Script') x.Name="R6Characters" x.Source=[=[local Players=game:GetService("Players")
 local Physics=game:GetService("PhysicsService")
@@ -920,7 +1094,7 @@ Physics:CollisionGroupSetCollidable("FPSViewModel","Characters",false)
 Physics:CollisionGroupSetCollidable("FPSViewModel","Default",false)
 Physics:CollisionGroupSetCollidable("FPSViewModel","FPSViewModel",false)
 Players.CharacterAutoLoads=false
-local function add(p) if bound[p] then return end bound[p]=true task.spawn(spawn,p) end
+local function add(p) p.CameraMode=Enum.CameraMode.LockFirstPerson p.CameraMinZoomDistance=.5 p.CameraMaxZoomDistance=.5 if bound[p] then return end bound[p]=true task.spawn(spawn,p) end
 Players.PlayerAdded:Connect(add)
 Players.PlayerRemoving:Connect(function(p) spawning[p]=nil bound[p]=nil Avatar.Clear(p.UserId) end)
 for _,p in ipairs(Players:GetPlayers()) do add(p) end
