@@ -54,6 +54,8 @@ DADOS E MONETIZACAO
 Dados em memoria em Studio nao publicado. Para persistencia, use experiencia
 publicada com API Services disponivel. Falha ao carregar ativa sessao temporaria
 que nao sobrescreve dados reais. Dados usam UpdateAsync e trava de sessao.
+Falhas temporarias de salvamento permitem novas tentativas; perda da posse
+da sessao bloqueia sobrescrita e avisa o jogador.
 Passes usam MarketplaceService; beneficios sao concedidos apos verificar posse
 no servidor. Para ativar, crie os passes e preencha os IDs em
 ReplicatedStorage.Modules.PassCatalog. IDs atuais sao zero, sem compras.
