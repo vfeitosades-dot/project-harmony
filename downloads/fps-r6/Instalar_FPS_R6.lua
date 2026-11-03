@@ -138,6 +138,10 @@ function Controller:Step(dt)
  local char=Players.LocalPlayer.Character local h=char and char:FindFirstChildOfClass("Humanoid")
  if char~=self.character or not h or h.Health<=0 then self:Cleanup() return end
  if Input:GetFocusedTextBox() then self.holding=false self.wantAim=false self.wantRun=false end
+ if self.equipped and not Input.TouchEnabled and not Input:GetFocusedTextBox() then
+  if Input.IsKeyDown then self.wantRun=Input:IsKeyDown(Enum.KeyCode.LeftShift) or Input:IsKeyDown(Enum.KeyCode.RightShift) end
+  if self.holding and Input.IsMouseButtonPressed and not Input:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then self.holding=false end
+ end
  local t=now() local age=t-self.at local busy=self.reloading or age<C.EquipTime or not self.equipped
  local aim=self.wantAim and not busy
  local running=self.wantRun and not self.wantAim and not self.holding and not busy and h.MoveDirection.Magnitude>.05
@@ -152,7 +156,7 @@ function Controller:Step(dt)
  if self.holding and not Input:GetFocusedTextBox() then self:Shoot() end
  local state=Anim.State(self.equipped,age,self.reloading,self.inspectEnd>t,running,aim,t-self.lastFire<.12,h.MoveDirection.Magnitude>.05)
  local phase=state=="Reloading" and t-(self.reloadEnd-C.ReloadTime) or state=="Inspecting" and t-(self.inspectEnd-C.InspectTime) or state=="Unequipping" and t-self.exitAt or age
- local root=char:FindFirstChild("HumanoidRootPart") local speed=root and Vector3.new(root.AssemblyLinearVelocity.X,0,root.AssemblyLinearVelocity.Z).Magnitude or 0
+ local root=char:FindFirstChild("HumanoidRootPart") local speed=root and h.MoveDirection.Magnitude>.05 and h.FloorMaterial~=Enum.Material.Air and Vector3.new(root.AssemblyLinearVelocity.X,0,root.AssemblyLinearVelocity.Z).Magnitude or 0
  local camera=workspace.CurrentCamera local kick,alpha=self.vm:Step(dt,camera,{state=state,time=math.max(0,phase),speed=speed,running=running,aim=aim},Input:GetMouseDelta())
  camera.CFrame=camera.CFrame*kick self.lastKick=kick self.vm.root.CFrame=camera.CFrame
  camera.FieldOfView=self.oldFOV+(C.ADSFOV-self.oldFOV)*alpha
@@ -167,10 +171,10 @@ function Controller.attach(tool)
  connect(Input.InputBegan,function(i,processed)
   if not self.equipped or processed or Input:GetFocusedTextBox() then return end
   if i.UserInputType==Enum.UserInputType.MouseButton1 then self.holding=true elseif i.UserInputType==Enum.UserInputType.MouseButton2 then self.wantAim=true
-  elseif i.KeyCode==Enum.KeyCode.R then self:Reload() elseif i.KeyCode==Enum.KeyCode.H then self:Inspect() elseif i.KeyCode==Enum.KeyCode.LeftShift then self.wantRun=true end
+  elseif i.KeyCode==Enum.KeyCode.R then self:Reload() elseif i.KeyCode==Enum.KeyCode.H then self:Inspect() elseif (i.KeyCode==Enum.KeyCode.LeftShift or i.KeyCode==Enum.KeyCode.RightShift) then self.wantRun=true end
  end)
  connect(Input.InputEnded,function(i)
-  if i.UserInputType==Enum.UserInputType.MouseButton1 then self.holding=false elseif i.UserInputType==Enum.UserInputType.MouseButton2 then self.wantAim=false elseif i.KeyCode==Enum.KeyCode.LeftShift then self.wantRun=false end
+  if i.UserInputType==Enum.UserInputType.MouseButton1 then self.holding=false elseif i.UserInputType==Enum.UserInputType.MouseButton2 then self.wantAim=false elseif (i.KeyCode==Enum.KeyCode.LeftShift or i.KeyCode==Enum.KeyCode.RightShift) then self.wantRun=false end
  end)
  local function release() self.holding=false self.wantAim=false self.wantRun=false end
  connect(Input.WindowFocusReleased,release) connect(Gui.MenuOpened,release)
@@ -269,7 +273,7 @@ local function bind(p,char)
  local torso=char:WaitForChild("Torso",8) local h=char:FindFirstChildOfClass("Humanoid") local root=char:FindFirstChild("HumanoidRootPart") if not torso or not h or not root then return end
  if p:IsA("Player") and p.Character~=char then return end
  local j={} for _,v in ipairs(char:GetDescendants()) do if v:IsA("Motor6D") and v.Name~="WorldGrip" and v.Name~="MagazineMotor" then j[v.Name]=v end end
- rigs[p]={char=char,torso=torso,h=h,root=root,j=j,pose=CFrame.new(),magPose=CFrame.new(),phase=0,magAlpha=0}
+ rigs[p]={char=char,torso=torso,h=h,root=root,j=j,pose=CFrame.new(),magPose=CFrame.new(),phase=0,moveWeight=0,runWeight=0,magAlpha=0}
 end
 local function arm(joint,torso,target,dt)
  if not joint or not joint.Parent then return end
@@ -293,13 +297,19 @@ function T.init()
   local now=workspace:GetServerTimeNow() local alpha=1-math.exp(-dt*16)
   for p,r in pairs(rigs) do
    if not r.char.Parent then rigs[p]=nil continue end
-   local speed=Vector3.new(r.root.AssemblyLinearVelocity.X,0,r.root.AssemblyLinearVelocity.Z).Magnitude r.phase+=speed*dt*1.15 local stride=math.sin(r.phase)*math.min(speed/16,1)*.7
+   local speed=Vector3.new(r.root.AssemblyLinearVelocity.X,0,r.root.AssemblyLinearVelocity.Z).Magnitude
+   if p==Players.LocalPlayer and r.h.MoveDirection.Magnitude<.05 then speed=0 end
+   local held=r.char:FindFirstChild("Rifle") local sprint=held and held:GetAttribute("Running")==true
+   r.moveWeight+=(math.clamp(speed/C.WalkSpeed,0,1)-r.moveWeight)*alpha
+   r.runWeight+=((sprint and 1 or 0)-r.runWeight)*alpha
+   r.phase+=dt*(7.5+3.5*r.runWeight)*math.clamp(speed/C.WalkSpeed,0,1.5)
+   local stride=math.sin(r.phase)*(.5+.4*r.runWeight)*r.moveWeight
    local jump=r.h.FloorMaterial==Enum.Material.Air and not r.root.Anchored
    for name,j in pairs(r.j) do if j.Parent then
     local target=CFrame.new()
     if name=="Right Hip" then target=CFrame.Angles(jump and -.25 or stride,0,0) elseif name=="Left Hip" then target=CFrame.Angles(jump and .25 or -stride,0,0)
     elseif name=="Right Shoulder" then target=CFrame.Angles(-stride,0,.04) elseif name=="Left Shoulder" then target=CFrame.Angles(stride,0,-.04)
-    elseif name=="RootJoint" then target=CFrame.new(0,math.sin(now*2)*.02,0) end
+    elseif name=="RootJoint" then target=CFrame.new(0,math.sin(now*2)*.012,0)*CFrame.Angles(-.12*r.runWeight*r.moveWeight,0,0) end
     local basis=j.C0.Rotation j.Transform=j.Transform:Lerp(basis:Inverse()*target*basis,alpha)
    end end
    local tool=r.char:FindFirstChild("Rifle") local handle=tool and tool:FindFirstChild("Handle") local grip=handle and handle:FindFirstChild("WorldGrip")
@@ -346,7 +356,7 @@ function V.new(camera)
   local player=game:GetService("Players").LocalPlayer local character=player and player.Character
   local original=character and character:FindFirstChild(name)
   local p=original and original:Clone() or Instance.new("Part")
-  for _,v in ipairs(p:GetDescendants()) do if v:IsA("JointInstance") or v:IsA("WeldConstraint") or v:IsA("Script") or v:IsA("LocalScript") then v:Destroy() end end
+  for _,v in ipairs(p:GetDescendants()) do if v:IsA("JointInstance") or v:IsA("WeldConstraint") or v:IsA("Constraint") or v:IsA("Script") or v:IsA("LocalScript") then v:Destroy() end end
   p.Name=name p.Size=Vector3.new(.8,1.8,.8)
   if not original then p.Color=Color3.fromRGB(211,180,153) end
   p.Anchored=false p.Material=Enum.Material.SmoothPlastic p.CanCollide=false p.CanQuery=false p.CanTouch=false p.Massless=true p.CastShadow=false p.LocalTransparencyModifier=0 p.Parent=model
@@ -360,7 +370,7 @@ function V.new(camera)
  local w=Instance.new("Weld") w.Part0=root w.Part1=torso w.Parent=torso
  local hrp=Instance.new("Part") hrp.Name="HumanoidRootPart" hrp.Size=Vector3.new(.1,.1,.1) hrp.Transparency=1 hrp.CanCollide=false hrp.CanTouch=false hrp.CanQuery=false hrp.Massless=true hrp.Parent=model
  local rw=Instance.new("Weld") rw.Part0=root rw.Part1=hrp rw.Parent=hrp
- local controller=Instance.new("Humanoid") controller.RigType=Enum.HumanoidRigType.R6 controller.RequiresNeck=false controller.DisplayDistanceType=Enum.HumanoidDisplayDistanceType.None controller.PlatformStand=true controller.AutoRotate=false controller.Parent=model
+ local controller=Instance.new("Humanoid") controller.RigType=Enum.HumanoidRigType.R6 controller.RequiresNeck=false controller.DisplayDistanceType=Enum.HumanoidDisplayDistanceType.None controller.EvaluateStateMachine=false controller.PlatformStand=true controller.AutoRotate=false controller.Parent=model
  local animator=Instance.new("Animator") animator.Parent=controller
  if character then
   for _,v in ipairs(character:GetChildren()) do
@@ -368,6 +378,9 @@ function V.new(camera)
   end
  end
  local magParts={} for _,p in ipairs(gun:GetDescendants()) do if p:IsA("BasePart") and p:GetAttribute("MagazinePart") then table.insert(magParts,p) end end
+ for _,part in ipairs(model:GetDescendants()) do
+  if part:IsA("BasePart") then part.CanCollide=false part.CanTouch=false part.CanQuery=false part.Massless=true part.CollisionGroup="FPSViewModel" end
+ end
  model.Parent=camera
  return setmetatable({model=model,root=root,gun=gun,joint=joint,right=right,left=left,leftBase=left.C0,leftRotation=CFrame.Angles(1.15,0,.12),mag=handle.MagazineMotor,magBase=handle.MagazineMotor.C0,magAlpha=0,magParts=magParts,recoil=Recoil.new(),sway=Spring.new(Vector3.zero,14),aim=0,run=0,phase=0,pose=CFrame.new(),leftPose=CFrame.new(),magPose=CFrame.new()},V)
 end
@@ -389,9 +402,9 @@ function V:Step(dt,camera,info,mouse)
  local kick=self.recoil:Step(dt) self.right.Transform=CFrame.Angles(kick.X*.3,0,0)
  local rate=mouse/math.max(dt,1/300)
  self.sway.target=Vector3.new(math.clamp(-rate.Y*.000012,-.025,.025),math.clamp(-rate.X*.000012,-.025,.025),0)
- local sway=self.sway:Step(dt)*(1-self.aim) self.phase+=info.speed*dt*1.1
+ local sway=self.sway:Step(dt)*(1-self.aim) self.phase+=dt*(info.running and 11 or 7.5)*math.clamp(info.speed/16,0,1.5)
  local moving=math.clamp(info.speed/16,0,1)
- local bob=Vector3.new(math.sin(self.phase)*.018,math.cos(self.phase*2)*.025,0)*moving*(1-self.aim)
+ local bob=Vector3.new(math.sin(self.phase)*(.018+self.run*.017),math.cos(self.phase*2)*(.025+self.run*.035),0)*moving*(1-self.aim)
  local breath=Vector3.new(0,math.sin(os.clock()*3.49)*.0035,0)*(1-self.aim)
  local offset=CFrame.new(.65,-.8,-1.2):Lerp(self.gun.Handle.AimPoint.CFrame:Inverse(),self.aim)
  local visualKick=CFrame.new(0,0,kick.X*6)*CFrame.Angles(kick.X,kick.Y,0)
@@ -498,6 +511,9 @@ require(system.Modules.ThirdPersonController).init()
 ]=] end
 do local x=Instance.new('Script') x.Name="GunServer" x.Source=[=[local Players=game:GetService("Players")
 local RS=game:GetService("ReplicatedStorage")
+local Physics=game:GetService("PhysicsService")
+pcall(function() Physics:RegisterCollisionGroup("FPSViewModel") end)
+for _,g in ipairs(Physics:GetRegisteredCollisionGroups()) do Physics:CollisionGroupSetCollidable("FPSViewModel",g.name,false) end
 local System=RS:WaitForChild("FPSSystem") local Modules=System.Modules
 local C=require(Modules.WeaponConfig) local Logic=require(Modules.WeaponState) local Factory=require(Modules.WeaponFactory)
 local Remotes=System:WaitForChild("Remotes")
@@ -627,7 +643,11 @@ local function spawn(p)
  if model:GetAttribute("AppearanceFallback") then warn("[R6] Aparencia neutra temporaria; nao foi possivel carregar a conta "..id) end
 end
 pcall(function() Physics:RegisterCollisionGroup("Characters") end)
+pcall(function() Physics:RegisterCollisionGroup("FPSViewModel") end)
 Physics:CollisionGroupSetCollidable("Characters","Characters",false)
+Physics:CollisionGroupSetCollidable("FPSViewModel","Characters",false)
+Physics:CollisionGroupSetCollidable("FPSViewModel","Default",false)
+Physics:CollisionGroupSetCollidable("FPSViewModel","FPSViewModel",false)
 Players.CharacterAutoLoads=false
 local function add(p) if bound[p] then return end bound[p]=true task.spawn(spawn,p) end
 Players.PlayerAdded:Connect(add)

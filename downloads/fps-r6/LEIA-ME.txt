@@ -81,3 +81,16 @@ servidor. As juntas padrao R6 sao respeitadas; bots tambem recebem idle.
 Testes simulados de aparencia, roupa, cache, recuperacao e animacao de um
 segundo observador passaram. Ainda NAO testado no motor Roblox Studio.
 O .blend e o render estao no ZIP; o render nao e uma captura do jogo.
+
+CORRECAO DE MOVIMENTO / CORRIDA
+O Humanoid visual nao avalia estados de fisica. Todas as pecas do viewmodel
+sao sem colisao, sem toque e ficam num grupo isolado do mundo/personagens.
+Equipar nao envia comando para andar nem aplica velocidade ao avatar.
+Shift esquerdo ou direito + movimento ativa corrida (22 studs/s).
+A leitura de Shift nao depende do Shift Lock; a opcao Shift Lock foi removida
+do projeto separado. Corrida pausa durante mira, tiro, equip e recarga.
+Soltar Shift restaura caminhada a 16. No mobile use o botao CORRER.
+Walk/run recebem cadencia e amplitude diferentes, com transicao suave.
+Sem comando de movimento, a animacao local de andar para mesmo se houver
+velocidade residual de fisica. As poses continuam visiveis aos observadores.
+Regressoes verificadas com APIs simuladas; confirme a fisica no Studio.
