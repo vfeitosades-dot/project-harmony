@@ -615,7 +615,7 @@ function G.init()
  local function choose(nextPage) page=nextPage if page=="LOJA" and storeTab=="DESTAQUES" then selectedWeapon=state.Featured or "KESTREL" end render() end
  for i,name in ipairs({"INICIO","JOGAR","ARSENAL","OPERADORES","LOJA","CARREIRA"}) do
   local pos=compact and UDim2.new((i-1)/6,8,0,52) or UDim2.fromOffset(232+(i-1)*105,22)
-  local b=button(top,"Nav"..i,name,(compact and UDim2.new(1/6,-10,0,30) or UDim2.fromOffset(99,34)),pos,function() choose(name) end,false,true) b.TextSize=compact and 9 or 12 b.BackgroundTransparency=1 local stroke=b:FindFirstChildOfClass("UIStroke") if stroke then stroke.Transparency=1 end local indicator=line(b,1,UDim2.new(0,0,1,-2),coral) indicator.Name="Selected" indicator.Visible=false currentNav[name]=b
+  local b=button(top,"Nav"..i,name,(compact and UDim2.new(1/6,-10,0,30) or UDim2.fromOffset(99,34)),pos,function() choose(name) end,false,true) b.TextSize=compact and 9 or 12 b.BackgroundTransparency=1 local stroke=b:FindFirstChildOfClass("UIStroke") if stroke then stroke.Transparency=1 end local indicator=line(b,1,UDim2.new(0,0,1,-2),coral) indicator.Name="SelectionLine" indicator.Visible=false currentNav[name]=b
  end
  local function title(value,sub)
   text(pageRoot,"Title",value,UDim2.new(1,-48,0,40),UDim2.fromOffset(24,4),compact and 24 or 32)
@@ -750,7 +750,7 @@ function G.init()
  end
  render=function()
   for _,c in ipairs(pageLinks) do c:Disconnect() end table.clear(pageLinks) pageRoot:ClearAllChildren() preview=nil
-  for name,b in pairs(currentNav) do b.TextColor3=name==page and coral or white b.Selected.Visible=name==page end
+  for name,b in pairs(currentNav) do b.TextColor3=name==page and coral or white b:FindFirstChild("SelectionLine").Visible=name==page end
   if compact then local scroll=root:FindFirstChild("ContentScroll") if scroll then scroll.CanvasPosition=Vector2.new(0,0) end end
   if page=="INICIO" then home() elseif page=="JOGAR" then play() elseif page=="ARSENAL" or page=="LOJA" then weaponPage() elseif page=="OPERADORES" then agentPage() else career() end
   local pos=compact and UDim2.fromOffset(0,0) or UDim2.fromOffset(0,94)

@@ -4,6 +4,8 @@ Abra **VYREL_R6.rbxlx** no Roblox Studio e use Play. O menu, a citadela, as aren
 
 ## Atualização do menu
 
+Correção da inicialização: a linha visual agora se chama `SelectionLine` e é acessada com `FindFirstChild`, sem conflitar com a propriedade booleana nativa `GuiButton.Selected`. O teste reproduziu a falha anterior (`attempt to index boolean with Visible`) e verifica as seis abas com essa propriedade presente.
+
 Cursor liberado durante o menu e restaurado ao jogar; captura modal reduzida a 1 pixel; camadas decorativas sem captura de cliques; botões com entrada explícita. O carregamento opcional do PlayerModule não bloqueia os eventos da GUI. Sincronização sem alterações mantém os botões existentes. Nova tela inicial, prévias 3D nos cards e rolagem em telas pequenas.
 
 ## Conteúdo
