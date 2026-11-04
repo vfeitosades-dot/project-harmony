@@ -1,130 +1,51 @@
-VETOR-30 - FPS R6 / POSE DE ARMA EM TERCEIRA PESSOA
+# VYREL — FPS R6
 
-ABRIR
-Extraia o ZIP e abra FPS_R6_Vetor.rbxlx no Roblox Studio.
-Use Play; 1 equipa a Rifle. Teste multiplayer com servidor e 2 clientes.
-Abra o novo arquivo completo para substituir a versao anterior.
-Instalar_FPS_R6.lua e um instalador opcional para outro mapa, fora do Play.
-Ele aborta se ja existir FPSSystem para nao duplicar ou sobrescrever scripts.
+Abra **VYREL_R6.rbxlx** no Roblox Studio e use Play. O menu, a citadela, as arenas e os bots são criados pelos scripts ao iniciar. O avatar mantém sua aparência, convertido para R6, e a câmera fica em primeira pessoa. Não exige importar meshes ou cadastrar IDs de animação.
 
-CONTROLES
-Clique: tiro automatico. Direito: mira ADS. R: recarga. H: inspecao.
-Shift esquerdo/direito + movimento: corrida. Mobile: botoes de toque.
-Caminhada 16, corrida 22. Municao 30/90; dano 20; critico x1.5.
-Cadencia 0.11s, recarga 1.65s, alcance 500 studs.
+## Conteúdo
 
-POSE NOVA
-Idle autoral com keyframes de respiracao em AnimationController.WorldIdle.
-WorldBase apoia a arma no ombro direito, fora do centro do peito. O cano fica
-horizontal em Idle neutro; a elevacao segue a mira com suavizacao.
-WorldSample faz as transicoes de caminhada, corrida e salto sem deixar
-a arma caida para o chao. Corrida inclina apenas levemente o cano.
-Um unico WorldGrip Motor6D liga Right Arm a Handle; Tool.Grip e calculado
-a partir da mesma pose. Os ombros e as duas maos sao resolvidos juntos.
-A mao esquerda usa WorldLeftGrip, um Attachment invisivel na area de apoio.
-A recarga continua levando a mao ao carregador, que acompanha o movimento.
-O servidor atualiza C0 dos ombros/arma; todos os clientes recebem as poses.
-No cliente, PreSimulation neutraliza Transform padrao dos ombros e pescoco
-somente enquanto a Rifle esta equipada. RightGrip padrao e removido,
-inclusive se o motor do Roblox o criar depois do evento Equipped.
-Os bracos nao mudam de tamanho. R6 tem membros rigidos, sem cotovelo;
-a dobra e uma pose arcade estilizada, sem converter o personagem para R15.
-Nao usa IDs externos de animacao nem exige publicar animacoes.
+- Menu animado: Início, Jogar, Arsenal, Operadores, Loja e Carreira. Armas em prévia 3D, preços, itens possuídos, compra, equipamento e teste gratuito no treinamento.
+- Loja com créditos de jogo, destaque diário com desconto de 20% e compras determinadas pelo servidor. Sem sorteios ou cobrança de Robux. Começa com 500 CR, ION, VETOR C4 e NOMAD P9. Cada outro operador custa 220 CR.
+- 12 armas com geometrias próprias: VETOR C4, KESTREL K7, LYRA B9, FERAL S5, PULSAR V2, BASIL A1, ARGO D6, TORQ M8, MAREA P8, RUPTURA D2, VESPER H50 e NOMAD P9. Rifles, SMGs, sniper, DMR, LMG, duas escopetas e duas pistolas. Modelos estilizados com referências de construção reais; não são réplicas oficiais de fabricantes.
+- Dano maior na cabeça, cadências e recargas distintas, escopetas com vários projéteis, disparo semiautomático ou automático por arma, reserva de munição e troca entre primária/secundária.
+- Pose da arma à direita, apoio da mão esquerda, idle, caminhada, corrida, salto, aterrissagem, recarga, inspeção, recoil, dash e gestos de habilidades. As poses do corpo são aplicadas no servidor para os demais jogadores. A apresentação em primeira pessoa usa braços próprios sem colisões.
+- VFX de tiro, impacto, rastros, hitmarker, eliminação, dash e habilidades. Informação privada só é enviada para quem pode recebê-la. Sons próprios ainda não foram fornecidos: o catálogo de áudio fica vazio, sem sons externos obrigatórios.
 
-APARENCIA
-Geometria da arma, cores e arquivo Blender preservados nesta revisao.
-A skin da conta e carregada como R6; acessorios nao definem o posicionamento
-da arma e seus motores nao sao animados pelo controlador do corpo.
-Pacotes/roupas exclusivos de R15 podem nao ter equivalente R6 no Roblox.
-Primeira pessoa mantem bracos de geometria controlada, cor da pele e Shirt;
-nao copia meshes de pacote que poderiam cobrir a camera.
+## Modos
 
-SISTEMA
-Tiro, mira, recarga, inspecao, recoil, HUD, mobile e efeitos preservados.
-Servidor valida municao, cadencia, sequencia, vida, direcao, origem e equipes.
-VFX de flash, luz curta, fumaca, tracer e impactos sao locais e sem colisao.
-Nao ha sons externos configurados. Sounds em WeaponConfig fica preparado.
-Projeto FPS separado: bancada e tres bots de teste, sem matchmaking,
-economia, mapas de partida completos ou assets de RIVALS.
+**Casual:** arena PvE cooperativa com rodadas de 5 minutos; 2 bots por pessoa, até 6. Recompensa de 6 CR por eliminação e bônus ao terminar a rodada. Bots usam reação, dispersão, recarga, busca, coberturas, movimentação lateral e linha de visão; não atiram através de paredes ou fumaça.
 
-ARQUIVOS E AJUSTES
-Fontes/Modules/AnimationController.lua: WorldIdle, WorldBase e WorldSample.
-Fontes/Modules/ThirdPersonController.lua: ombros, contato, grip e replicacao.
-Fontes/Modules/WeaponFactory.lua: pontos de pegada invisiveis.
-Fontes/Server/GunServer.server.lua: equip, RightGrip padrao e tiro validado.
-Blender inclui o modelo e Preview_Pegada_R6.png, uma pre-visualizacao tecnica
-com manequim neutro, nao uma captura do Roblox Studio.
+**Treinamento:** alvos estáticos e móveis; todas as armas podem ser experimentadas sem compra. Não concede créditos ou Elo por eliminar os bots.
 
-VALIDACAO
-Testes Luau com APIs simuladas: cano horizontal em Idle neutro, arma fora
-do tronco, contato das maos em Idle/ADS/walk/run/jump, recarga e inspecao,
-limbs R6 sem alongamento, acessorio grande sem alterar pose, exclusao de
-motores de acessorios, ausencia de RightGrip duplicado, dano, equipes,
-municao, recarga, respawn, corrida, camera e nove raios centrais livres.
-RBXLX validado e regravado com rbxmk, fontes preservadas e Luau compilado.
-Roblox Studio nao esta disponivel neste ambiente. Aparencia em avatares
-reais e replicacao em rede ainda precisam de verificacao com 2 clientes.
+**Ranqueado:** duelo entre humanos no mesmo servidor, fila aproximada por Elo, primeiro a 5 eliminações ou 4 minutos. Até três duelos simultâneos. Vitória +24 Elo, derrota -18, empate sem alteração; primeiras 5 partidas são provisórias. Sair ou desconectar durante um duelo conta como derrota. A fila não conecta servidores diferentes e não coloca bots no ranqueado.
 
-POSTURA FINAL: ARMA NO LADO DIREITO DO PERSONAGEM
-A arma fica no lado direito anatomico (local +X), nao no centro do peito.
-A placa da coronha repousa na frente do ombro direito. O cano segue em
-frente, horizontal em Idle neutro. Nao ha mais angulo lateral compensatorio.
-Mao direita no cabo; a esquerda cruza pela frente para apoiar a arma.
-A pose de R6 e estilizada com membros rigidos, preservando a skin.
-Teste exige a coronha a menos de 0.23 stud da regiao do ombro direito,
-contato das maos, ausencia de alongamento e passagem livre da mira.
+## Operadores — mantém a roupa e os acessórios do jogador
 
-INTERFACE, ANIMACOES E EFEITOS - ATUALIZACAO
-Hotbar padrao do Roblox removida no cliente. LoadoutController cria um
-slot proprio no canto inferior direito; tecla 1, toque ou R1 alternam
-entre equipar/desequipar a Rifle real. Nao ha slots falsos de outras armas.
-Vida numerica e barra ficam a esquerda; municao grande e reserva separada
-ficam a direita. Slot e vida persistem no respawn; chat nao equipa arma.
-A UI tem leitura para desktop/mobile, selecao destacada e silhouette autoral.
-O controlador restaura o estado anterior da CoreGui se for encerrado.
+**ION / mobilidade:** Q Arco condutor (12 de dano + lentidão leve de 2 s); E Trilho de impulso (+12% de velocidade por 3 s); C Eco residual (distração destrutível de 20 HP, sem dano e sem recompensa de eliminação).
 
-Idle tem respiracao; caminhar e correr possuem cadencias/amplitudes distintas.
-Corrida adiciona inclinacao do tronco, passada maior, sway e FOV +4 gradual.
-Salto e pouso usam transicoes suaves e mola visual na primeira pessoa,
-sem aplicar forcas ao personagem. Os bracos continuam na arma a direita.
-Movimentos do corpo permanecem replicados pelo servidor.
+**ÂMBAR / suporte:** Q Película cinética (absorve até 25 de dano, 4 s); E Sutura de campo (2 HP/s por 5 s fora de combate); C Tranca de pulso (cobertura de 40 HP por 4 s).
 
-Flash em cruz com luz curta, cartucho ejetado, fumaca e tracer com fade.
-Impactos produzem faiscas, poeira e marca curta, sem colisao. Sem impacto
-flutuante no ar quando o tiro erra. O servidor envia dano realmente aplicado
-e confirma eliminacao; HUD mostra numero, critico e ELIMINADO com fade.
-Linhas discretas nas laterais reforcam corrida, sem cobrir o centro da mira.
-Elementos e efeitos sao originais, inspirados no estilo arcade de RIVALS.
+**VÉU / informação:** Q Farol espectral (revela por 0,8 s dentro da linha de visão); E Neblina fragmentada (4 s de fumaça; balas atravessam); C Escuta direcional (sensor de disparos por 6 s; ping privado e breve).
 
-Previa/Preview_Interface.png e uma pre-visualizacao tecnica da disposicao
-da GUI com os dados dos testes, nao uma captura do Roblox Studio.
-Testes adicionais cobrem hotbar, selecao por tecla/toque, chat, vida, respawn,
-limpeza da UI, salto/pouso, dano confirmado e efeitos sem colisao.
+As nove habilidades têm cooldowns no servidor. Nenhuma concede invulnerabilidade. Balanceamento numérico inicial: precisa de avaliação com jogadores reais.
 
-CAMERA E HUD DA REFERENCIA - VERSAO ATUAL
-Primeira pessoa permanente no StarterPlayer, no jogador e no cliente.
-Desequipar, morrer e renascer nao restauram a camera em terceira pessoa.
-A arma permanece na mao/braco direito, na pose lateral anterior.
+## Controles
 
-HUD com vida verde no canto inferior esquerdo, municao grande/reserva e
-nome da arma a direita, quatro slots numerados (1 ativo, demais vazios),
-ranking com retratos das contas, cronometro central e feed de eliminacoes.
-TAB: placar da rodada. V: mostrar/ocultar objetivos. M: ajustes.
-Ajustes permitem ligar/desligar VFX e FOV da corrida; nao disparam a arma
-enquanto o menu esta aberto. No mobile existem botoes de placar e ajustes.
+WASD mover • Mouse mirar • Clique disparar • Direito ADS • Shift correr • Ctrl ou F dash • R recarregar • H inspecionar • 1/2 trocar arma • Q/E/C habilidades • B menu • Tab placar • V objetivos • M opções. Há botões de toque para ações principais; adaptação completa para controle ainda não foi validada.
 
-MatchState controla rodadas de 4 minutos e estatisticas da sessao.
-Eliminacoes reais, incluindo alvos de treino, somam pontos no ranking.
-Objetivos funcionais: equipar, eliminar 5 alvos e concluir uma rodada.
-XP: 25/75/50 por objetivo, uma vez por sessao; 10 por eliminacao.
-Ao fim da rodada o placar reinicia, rodadas concluidas incrementam e o
-lider unico com pelo menos 1 ponto recebe uma vitoria. Nao ha matchmaking
-de duelos. XP/objetivos sao de sessao, sem salvamento entre servidores.
-Nao ha jogadores, armas ou resultados inventados para preencher o HUD.
+O dash é terrestre, percorre cerca de 8 studs, tem cooldown de 4 s e verifica paredes. Não é uma rasteira. Não permite atirar durante sua janela curta e não concede invulnerabilidade.
 
-Validacoes simuladas adicionais: camera bloqueada apos desequipar/morrer/
-respawn; contador, ranking e feed conectados ao servidor; XP sem recompensa
-duplicada; troca de rodada; placar/ajustes; slots desktop/mobile.
-Preview_Interface.png mostra uma previa tecnica com dados de teste e
-retratos ilustrativos. No jogo os retratos carregam das contas Roblox.
-O Roblox Studio nao esta disponivel aqui; validar aparencia e rede nele.
+## Publicação e salvamento
+
+1. Abra o lugar e teste com **Test > Start Server**, usando pelo menos dois jogadores para conferir replicação, fila e duelo.
+2. Publique pelo Studio na sua conta/grupo. Para testar persistência no Studio, habilite **Game Settings > Security > Enable Studio Access to API Services** em uma experiência de teste publicada.
+3. O DataStore `VYREL_Profile_v1` guarda créditos, compras, equipamento, operador e Elo. Sem acesso ao DataStore, o menu avisa que o progresso é apenas da sessão. Perfil já em uso fica protegido contra compras concorrentes. Não há produtos ou passes pagos configurados.
+4. Ajustes de armas: `WeaponCatalog`; agentes: `AgentCatalog` e `SkillService`; economia: `ProfileService`; modos: `SessionService`; arenas: `WorldService`.
+
+O instalador opcional é destinado a um lugar vazio e para instalação fora do Play. O caminho recomendado é abrir o RBXLX incluído. Não instale duas cópias do sistema no mesmo lugar.
+
+## Fontes, Blender e validação
+
+`Fontes/` contém todos os scripts. `Blender/` inclui o arquivo editável com as 12 armas e seus geradores. O jogo usa a geometria nativa equivalente; os bevels do arquivo Blender não são meshes importados automaticamente. `Previas/` contém renders técnicos, não capturas de execução do Roblox Studio. `Referencias.md` documenta a pesquisa de RIVALS/VALORANT; nomes, habilidades e geometrias deste projeto são originais.
+
+Foram executados testes Luau com serviços e física simulados para tiro, munição, dano, movimento, pose, aparência, GUI, economia, habilidades, bots e ciclo de partida. O RBXLX foi lido e regravado pelo rbxmk, verificando referências e preservação dos 36 scripts. Os scripts finais foram compilados com Luau. Esses testes não substituem a validação no motor Roblox: o Studio não estava disponível neste ambiente. Não há garantia de ausência de bugs ou de balanceamento final.
