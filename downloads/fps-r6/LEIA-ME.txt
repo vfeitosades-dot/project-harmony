@@ -1,12 +1,23 @@
 # VYREL — FPS R6
 
-Abra **VYREL_R6.rbxlx** no Roblox Studio e use Play. O menu, a citadela, as arenas e os bots são criados pelos scripts ao iniciar. O avatar mantém sua aparência, convertido para R6, e a câmera fica em primeira pessoa. Não exige importar meshes ou cadastrar IDs de animação.
+Abra **VYREL_R6.rbxlx** no Roblox Studio e use Play. Os cenários já aparecem no editor. Ao iniciar Play, WorldService reconstrói as arenas a partir das fontes e cria os bots. Alterações no mapa devem ser feitas em WorldService, pois a cópia visível no editor é substituída no Play. O avatar mantém sua aparência, convertido para R6, e a câmera fica em primeira pessoa. Não exige importar meshes ou cadastrar IDs de animação.
 
 ## Atualização do menu
 
 Correção da inicialização: a linha visual agora se chama `SelectionLine` e é acessada com `FindFirstChild`, sem conflitar com a propriedade booleana nativa `GuiButton.Selected`. O teste reproduziu a falha anterior (`attempt to index boolean with Visible`) e verifica as seis abas com essa propriedade presente.
 
 Cursor liberado durante o menu e restaurado ao jogar; captura modal reduzida a 1 pixel; camadas decorativas sem captura de cliques; botões com entrada explícita. O carregamento opcional do PlayerModule não bloqueia os eventos da GUI. Sincronização sem alterações mantém os botões existentes. Nova tela inicial, prévias 3D nos cards e rolagem em telas pequenas.
+
+## Mapas, votação e spawns
+
+- **SOLARA:** templo e jardins, arcos de arenito, palmeiras, pátios e santuário central.
+- **GLACIER:** porto polar, contêineres com nervuras, neve, guindastes e plataformas de carga.
+- **HOSHIMA:** mercado noturno, lojas com letreiros, lanternas, tijolos, asfalto e neon.
+- Geometria própria e materiais nativos texturizados, com iluminação local por tema. As referências de VALORANT/Roblox constam em Referencias.md; não são cópias exatas dos mapas pesquisados.
+- Iniciar uma nova sessão de casual ou treino abre votação com os três mapas. No ranqueado, os dois humanos votam após o pareamento. Cada pessoa tem um voto e pode mudá-lo. O prazo é de 12 s, reduzido a cerca de 4 s se todos votarem; empates e ausência de votos são resolvidos pelo servidor entre os candidatos empatados. Cancelar a votação ranqueada não perde Elo. Entrar em uma sessão já em andamento mantém o mapa atual. Testar uma arma pela loja abre treino imediatamente.
+- Ao terminar a rodada casual, os participantes voltam à votação para escolher a próxima arena. Duelo ranqueado mantém sua arena até o fim, sem bots.
+- Casual e ranqueado têm 12 posições por lado, com checagem de piso e espaço livre para o corpo R6. Reservas temporárias reduzem sobreposição; distância, visibilidade dos inimigos e aliados próximos influenciam a escolha. O treino usa posições próprias, próximas aos alvos. Teleporte move o modelo completo, zera velocidade e concede proteção breve. Personagens vivos que caem fora da arena são reposicionados.
+- As 12 armas receberam novas proporções e detalhes por família, incluindo madeira, metal escuro, carregadores, miras abertas, lunetas, ferrolhos, bombas e coronhas. Blender e geometria nativa usam o mesmo catálogo.
 
 ## Conteúdo
 
@@ -56,4 +67,6 @@ O instalador opcional é destinado a um lugar vazio e para instalação fora do 
 
 O teste de entrada do menu simula hit testing por camadas e a disputa de cursor com a câmera em primeira pessoa; verifica navegação, compra, treino, retorno ao jogo, atalhos, rolagem por toque e limpeza.
 
-Foram executados testes Luau com serviços e física simulados para tiro, munição, dano, movimento, pose, aparência, GUI, economia, habilidades, bots e ciclo de partida. O RBXLX foi lido e regravado pelo rbxmk, verificando referências e preservação dos 36 scripts. Os scripts finais foram compilados com Luau. Esses testes não substituem a validação no motor Roblox: o Studio não estava disponível neste ambiente. Não há garantia de ausência de bugs ou de balanceamento final.
+Foram executados testes Luau com serviços e física simulados para tiro, munição, dano, movimento, pose, aparência, GUI, economia, habilidades, bots e ciclo de partida. O RBXLX foi lido e regravado pelo rbxmk, verificando referências e preservação dos 37 scripts. Os scripts finais foram compilados com Luau. Esses testes não substituem a validação no motor Roblox: o Studio não estava disponível neste ambiente. Não há garantia de ausência de bugs ou de balanceamento final.
+
+Validação adicional: testes simulados de votação compartilhada, mudança de voto, mapa inválido, cancelamento, prazo sem votos, aplicação do vencedor, reserva de duelo e spawns nos três temas. Colisões foram verificadas por consultas simuladas de volume e apoio de piso; a física, o streaming e a navegação dos bots ainda precisam de sessão real no Studio.
