@@ -520,21 +520,21 @@ function G.init()
  local state={Credits=500,Weapons={VETOR=true,NOMAD=true},Agents={ION=true},Primary="VETOR",Secondary="NOMAD",Agent="ION",Elo=1000,RankMatches=0,Wins=0,Mode="Lobby",Storage="Carregando",Prices={}}
  local page="INICIO" local selectedWeapon="VETOR" local selectedAgent="ION" local storeTab="DESTAQUES" local signature="" local exitGui local preview local currentNav={} local open=true local syncAt=0
  local compact=Input.TouchEnabled or workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize and workspace.CurrentCamera.ViewportSize.X<1000
- local coral=Color3.fromRGB(248,119,111) local white=Color3.fromRGB(239,245,252) local muted=Color3.fromRGB(161,179,201) local dark=Color3.fromRGB(13,26,43)
+ local coral=Color3.fromRGB(255,103,107) local white=Color3.fromRGB(239,245,252) local muted=Color3.fromRGB(161,179,201) local dark=Color3.fromRGB(13,26,43)
  local function connect(event,fn,list) table.insert(list or links,event:Connect(fn)) end
- local gui=Instance.new("ScreenGui") gui.Name="VYRELMenu" gui.IgnoreGuiInset=true gui.ResetOnSpawn=false gui.DisplayOrder=60 gui.Parent=pg
- local root=Instance.new("Frame") root.Name="Root" root.Size=UDim2.fromScale(1,1) root.BackgroundColor3=dark root.BorderSizePixel=0 root.Parent=gui
- local gradient=Instance.new("UIGradient") gradient.Color=ColorSequence.new(Color3.fromRGB(13,31,47),Color3.fromRGB(53,40,78)) gradient.Rotation=22 gradient.Parent=root
- local modal=Instance.new("TextButton") modal.Name="CursorCapture" modal.Text="" modal.BackgroundTransparency=1 modal.Size=UDim2.fromScale(1,1) modal.Modal=true modal.Parent=root
+ local gui=Instance.new("ScreenGui") gui.Name="VYRELMenu" gui.IgnoreGuiInset=true gui.ResetOnSpawn=false gui.DisplayOrder=60 gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling gui.Parent=pg
+ local root=Instance.new("Frame") root.Name="Root" root.Size=UDim2.fromScale(1,1) root.BackgroundColor3=dark root.BorderSizePixel=0 root.ZIndex=1 root.Active=false root.Parent=gui
+ local gradient=Instance.new("UIGradient") gradient.Color=ColorSequence.new(Color3.fromRGB(9,19,32),Color3.fromRGB(30,35,58)) gradient.Rotation=22 gradient.Parent=root
+ local modal=Instance.new("TextButton") modal.Name="CursorCapture" modal.Text="" modal.BackgroundTransparency=1 modal.Size=UDim2.fromOffset(1,1) modal.Position=UDim2.fromOffset(0,0) modal.ZIndex=1 modal.AutoButtonColor=false modal.Selectable=false modal.Modal=true modal.Parent=root
  local function frame(parent,name,size,pos,alpha,color)
-  local f=Instance.new("Frame") f.Name=name f.Size=size f.Position=pos f.BackgroundTransparency=alpha or 0 f.BackgroundColor3=color or dark f.BorderSizePixel=0 f.Parent=parent return f
+  local f=Instance.new("Frame") f.Name=name f.Size=size f.Position=pos f.BackgroundTransparency=alpha or 0 f.BackgroundColor3=color or dark f.BorderSizePixel=0 f.ZIndex=(parent:IsA("ScreenGui") and 1 or parent.ZIndex or 1)+1 f.Active=false f.Parent=parent return f
  end
  local function text(parent,name,value,size,pos,fs,color)
-  local t=Instance.new("TextLabel") t.Name=name t.Text=value t.Size=size t.Position=pos t.BackgroundTransparency=1 t.TextColor3=color or white t.Font=Enum.Font.GothamMedium t.TextSize=fs t.TextXAlignment=Enum.TextXAlignment.Left t.TextWrapped=true t.Parent=parent return t
+  local t=Instance.new("TextLabel") t.Name=name t.Text=value t.Size=size t.Position=pos t.BackgroundTransparency=1 t.TextColor3=color or white t.Font=Enum.Font.GothamMedium t.TextSize=fs t.TextXAlignment=Enum.TextXAlignment.Left t.TextWrapped=true t.Active=false t.Selectable=false t.ZIndex=(parent.ZIndex or 1)+1 t.Parent=parent return t
  end
  local function line(parent,width,pos,color) return frame(parent,"Line",UDim2.new(width,0,0,2),pos,0,color or coral) end
  local function button(parent,name,value,size,pos,action,accent,permanent)
-  local b=Instance.new("TextButton") b.Name=name b.Text=value b.Size=size b.Position=pos b.BackgroundColor3=accent and coral or Color3.fromRGB(32,49,69) b.TextColor3=accent and Color3.fromRGB(18,25,35) or white b.BorderSizePixel=0 b.AutoButtonColor=false b.Font=Enum.Font.GothamBold b.TextSize=compact and 11 or 14 b.TextWrapped=true b.Parent=parent
+  local b=Instance.new("TextButton") b.Name=name b.Text=value b.Size=size b.Position=pos b.BackgroundColor3=accent and coral or Color3.fromRGB(32,49,69) b.TextColor3=accent and Color3.fromRGB(18,25,35) or white b.BorderSizePixel=0 b.AutoButtonColor=false b.Font=Enum.Font.GothamBold b.TextSize=compact and 11 or 14 b.TextWrapped=true b.Active=true b.Selectable=true b.ZIndex=(parent.ZIndex or 1)+2 b.Parent=parent
   local stroke=Instance.new("UIStroke") stroke.Thickness=1 stroke.Transparency=accent and .9 or .65 stroke.Color=white stroke.Parent=b
   local list=permanent and links or pageLinks
   connect(b.Activated,action,list)
@@ -542,7 +542,7 @@ function G.init()
   connect(b.MouseLeave,function() Tween:Create(b,TweenInfo.new(.12),{BackgroundColor3=accent and coral or Color3.fromRGB(32,49,69)}):Play() end,list)
   return b
  end
- local city=Instance.new("ViewportFrame") city.Name="CitadelaViva" city.BackgroundTransparency=1 city.Size=UDim2.fromScale(.72,.9) city.Position=UDim2.fromScale(.25,.08) city.Ambient=Color3.fromRGB(150,160,190) city.LightColor=Color3.fromRGB(255,201,179) city.LightDirection=Vector3.new(-1,-2,-1) city.Parent=root
+ local city=Instance.new("ViewportFrame") city.Name="CitadelaViva" city.BackgroundTransparency=1 city.Size=UDim2.fromScale(.72,.9) city.Position=UDim2.fromScale(.25,.08) city.Ambient=Color3.fromRGB(150,160,190) city.LightColor=Color3.fromRGB(255,201,179) city.LightDirection=Vector3.new(-1,-2,-1) city.Active=false city.ZIndex=2 city.Parent=root
  local cityWorld=Instance.new("WorldModel") cityWorld.Parent=city local cityCamera=Instance.new("Camera") cityCamera.FieldOfView=48 cityCamera.Parent=city city.CurrentCamera=cityCamera
  local cityReady=false
  local function loadCity()
@@ -550,96 +550,152 @@ function G.init()
   local clone=source:Clone() clone.Parent=cityWorld cityReady=true
  end
  local shade=frame(root,"Shade",UDim2.fromScale(1,1),UDim2.fromScale(0,0),.35,dark)
+ shade.ZIndex=3 shade.Active=false
  local shadeGradient=Instance.new("UIGradient") shadeGradient.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,0),NumberSequenceKeypoint.new(.5,.7),NumberSequenceKeypoint.new(1,.25)}) shadeGradient.Parent=shade
  local top=frame(root,"Navigation",UDim2.new(1,0,0,compact and 96 or 82),UDim2.fromScale(0,0),.2)
- local brand=text(top,"Brand","VYREL",UDim2.fromOffset(130,45),UDim2.fromOffset(18,15),compact and 24 or 28) brand.Font=Enum.Font.GothamBlack
- local wallet=text(top,"Wallet","CR  500",UDim2.fromOffset(185,26),UDim2.new(1,-205,0,compact and 70 or 19),14,Color3.fromRGB(255,218,104)) wallet.TextXAlignment=Enum.TextXAlignment.Right
+ top.ZIndex=20
+ local brand=text(top,"Brand","VYREL",UDim2.fromOffset(130,45),compact and UDim2.fromOffset(72,6) or UDim2.fromOffset(78,15),compact and 24 or 28) brand.Font=Enum.Font.GothamBlack
+ local wallet=text(top,"Wallet","CR  500",UDim2.fromOffset(185,26),UDim2.new(1,-205,0,compact and 10 or 19),14,Color3.fromRGB(255,218,104)) wallet.TextXAlignment=Enum.TextXAlignment.Right
  local pageRoot=frame(root,"Page",UDim2.new(1,0,1,compact and -126 or -110),UDim2.fromOffset(0,compact and 106 or 94),1)
+ pageRoot.ZIndex=10
+ if compact then
+  local viewport=workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(800,600)
+  local height=math.max(580,viewport.Y-126)
+  local scroll=Instance.new("ScrollingFrame") scroll.Name="ContentScroll" scroll.Size=UDim2.new(1,0,1,-126) scroll.Position=UDim2.fromOffset(0,106) scroll.BackgroundTransparency=1 scroll.BorderSizePixel=0 scroll.ScrollBarThickness=4 scroll.ScrollingDirection=Enum.ScrollingDirection.Y scroll.CanvasSize=UDim2.fromOffset(0,height) scroll.ZIndex=10 scroll.Active=true scroll.Parent=root
+  pageRoot.Parent=scroll pageRoot.Position=UDim2.fromOffset(0,0) pageRoot.Size=UDim2.new(1,0,0,height)
+ end
  local toast=text(root,"Notice","",UDim2.new(.8,0,0,36),UDim2.new(.1,0,1,-48),13) toast.TextXAlignment=Enum.TextXAlignment.Center local toastUntil=0
+ toast.ZIndex=100 toast.BackgroundColor3=dark toast.BackgroundTransparency=.1 toast.Visible=false
  local storage=text(root,"Storage","",UDim2.new(.7,0,0,16),UDim2.new(.02,0,1,-20),10,muted)
- local controls
- pcall(function() controls=require(player:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule")):GetControls() end)
+ local controls local menuCamera local savedCameraType
+ local function cursor()
+  if open or exitGui and exitGui.Enabled then Input.MouseBehavior=Enum.MouseBehavior.Default Input.MouseIconEnabled=true end
+ end
  local function applyOpen(value)
-  open=value gui.Enabled=value if exitGui then exitGui.Enabled=false end player:SetAttribute("FPSGameMenu",value) player:SetAttribute("FPSMenuOpen",value)
-  Input.MouseIconEnabled=value
+  local wasOpen=open
+  open=value gui.Enabled=value if exitGui then exitGui.Enabled=false end
+  local camera=workspace.CurrentCamera
+  if value and camera then
+   if menuCamera~=camera then menuCamera=camera savedCameraType=camera.CameraType end
+   camera.CameraType=Enum.CameraType.Scriptable
+  elseif not value and menuCamera then
+   menuCamera.CameraType=savedCameraType or Enum.CameraType.Custom menuCamera=nil
+  end
+  if wasOpen and not value then Input.MouseBehavior=Enum.MouseBehavior.Default end
+  player:SetAttribute("FPSGameMenu",value) player:SetAttribute("FPSMenuOpen",value)
+  Input.MouseIconEnabled=value cursor()
   for _,name in ipairs({"FPSLoadout","FPSMatchHUD","FPSAbilities"}) do local other=pg:FindFirstChild(name) if other then other.Enabled=not value end end
   local hud=pg:FindFirstChild("GunHUD") if hud and value then hud.Enabled=false end
   local match=pg:FindFirstChild("FPSMatchHUD") if match and match:FindFirstChild("Settings") then match.Settings.Visible=false end
   if controls then if value then controls:Disable() else controls:Enable() end end
  end
+ -- PlayerModule is optional during startup; never hold GUI event wiring while it loads.
+ task.spawn(function()
+  local scripts=player:WaitForChild("PlayerScripts",10) local module=scripts and scripts:WaitForChild("PlayerModule",10)
+  if module then local ok,result=pcall(function() return require(module):GetControls() end) if ok then controls=result if open then controls:Disable() end end end
+ end)
+ local cursorBinding="VYRELMenuCursor"
+ Run:BindToRenderStep(cursorBinding,Enum.RenderPriority.Camera.Value+50,cursor)
  local function send(action,value,extra)
-  if action~="Sync" and action~="Leave" and player:GetAttribute("FPSProfileReady")~=true then toast.Text="Carregando seu perfil..." toastUntil=os.clock()+3 return end
+  if action~="Sync" and action~="Leave" and player:GetAttribute("FPSProfileReady")~=true then toast.Text="Carregando seu perfil..." toast.Visible=true toastUntil=os.clock()+3 return end
   R.Session:FireServer(action,value,extra)
  end
- local function inspectWeapon(parent,id,size,pos)
-  local viewport=Instance.new("ViewportFrame") viewport.Name="PreviewArma" viewport.Size=size viewport.Position=pos viewport.BackgroundTransparency=1 viewport.Ambient=Color3.fromRGB(180,190,205) viewport.LightColor=Color3.fromRGB(255,232,207) viewport.LightDirection=Vector3.new(-1,-2,-1) viewport.Parent=parent
+ local function inspectWeapon(parent,id,size,pos,static)
+  local viewport=Instance.new("ViewportFrame") viewport.Name=static and "Thumb_"..id or "PreviewArma" viewport.Size=size viewport.Position=pos viewport.BackgroundTransparency=1 viewport.Ambient=Color3.fromRGB(180,190,205) viewport.LightColor=Color3.fromRGB(255,232,207) viewport.LightDirection=Vector3.new(-1,-2,-1) viewport.Active=false viewport.ZIndex=(parent.ZIndex or 1)+1 viewport.Parent=parent
   local world=Instance.new("WorldModel") world.Parent=viewport local model=Factory.Build(world,1,id)
   for _,part in ipairs(model:GetDescendants()) do if part:IsA("BasePart") then part.Anchored=true end end
   local cf,bounds=model:GetBoundingBox() local focus=cf.Position local length=math.max(bounds.X,bounds.Y,bounds.Z)
   local cam=Instance.new("Camera") cam.FieldOfView=38 cam.Parent=viewport viewport.CurrentCamera=cam
-  preview={viewport=viewport,camera=cam,focus=focus,distance=length*(Weapons.Get(id).Kind=="Pistol" and 1.65 or 1.05)} return viewport
+  local distance=length*(Weapons.Get(id).Kind=="Pistol" and 1.65 or 1.05)
+  cam.CFrame=CFrame.lookAt(focus+Vector3.new(distance,.25*distance,.38*distance),focus)
+  if not static then preview={viewport=viewport,camera=cam,focus=focus,distance=distance} end
+  return viewport
  end
  local render
- local function choose(nextPage) page=nextPage if page=="LOJA" and storeTab=="DESTAQUES" then selectedWeapon=state.Featured or "KESTREL" end signature="" render() end
+ local function choose(nextPage) page=nextPage if page=="LOJA" and storeTab=="DESTAQUES" then selectedWeapon=state.Featured or "KESTREL" end render() end
  for i,name in ipairs({"INICIO","JOGAR","ARSENAL","OPERADORES","LOJA","CARREIRA"}) do
-  local pos=compact and UDim2.fromOffset(112+((i-1)%3)*66,8+math.floor((i-1)/3)*28) or UDim2.fromOffset(172+(i-1)*105,22)
-  local b=button(top,"Nav"..i,name,UDim2.fromOffset(compact and 64 or 99,compact and 25 or 34),pos,function() choose(name) end,false,true) b.TextSize=compact and 9 or 12 b.BackgroundTransparency=1 local stroke=b:FindFirstChildOfClass("UIStroke") if stroke then stroke.Transparency=1 end local indicator=line(b,1,UDim2.new(0,0,1,-2),coral) indicator.Name="Selected" indicator.Visible=false currentNav[name]=b
+  local pos=compact and UDim2.new((i-1)/6,8,0,52) or UDim2.fromOffset(232+(i-1)*105,22)
+  local b=button(top,"Nav"..i,name,(compact and UDim2.new(1/6,-10,0,30) or UDim2.fromOffset(99,34)),pos,function() choose(name) end,false,true) b.TextSize=compact and 9 or 12 b.BackgroundTransparency=1 local stroke=b:FindFirstChildOfClass("UIStroke") if stroke then stroke.Transparency=1 end local indicator=line(b,1,UDim2.new(0,0,1,-2),coral) indicator.Name="Selected" indicator.Visible=false currentNav[name]=b
  end
  local function title(value,sub)
   text(pageRoot,"Title",value,UDim2.new(1,-48,0,40),UDim2.fromOffset(24,4),compact and 24 or 32)
   if sub then text(pageRoot,"Subtitle",sub,UDim2.new(1,-48,0,34),UDim2.fromOffset(24,46),compact and 11 or 13,muted) end
  end
  local function home()
-  local x=compact and 24 or .36
-  local hero=frame(pageRoot,"Hero",UDim2.new(compact and 1 or .55,compact and -48 or 0,.65,0),compact and UDim2.fromOffset(24,80) or UDim2.fromScale(.34,.25),1)
-  text(hero,"Season","FRACTURA / TEMPORADA ZERO",UDim2.new(1,0,0,26),UDim2.fromOffset(0,0),12,coral)
-  local logo=text(hero,"Logo","VYREL",UDim2.new(1,0,0,100),UDim2.fromOffset(0,28),compact and 58 or 88) logo.Font=Enum.Font.GothamBlack
-  text(hero,"Tagline","ESCOLHA SEU RITMO. ROMPA O CAMPO.",UDim2.new(1,-20,0,44),UDim2.fromOffset(0,125),compact and 11 or 15)
-  button(hero,"Play","JOGAR",UDim2.fromOffset(compact and 240 or 290,58),UDim2.fromOffset(0,190),function() choose("JOGAR") end,true)
+  local cyan=Color3.fromRGB(103,229,224)
+  local hero=frame(pageRoot,"Hero",UDim2.new(compact and 1 or .62,compact and -48 or -24,compact and .63 or .72,0),compact and UDim2.fromOffset(24,20) or UDim2.new(.035,0,0,26),1)
+  local badge=frame(hero,"SeasonTag",UDim2.fromOffset(248,28),UDim2.fromOffset(0,0),.12)
+  frame(badge,"Status",UDim2.fromOffset(4,12),UDim2.fromOffset(10,8),0,cyan)
+  text(badge,"Text","FRACTURA   /   TEMPORADA ZERO",UDim2.new(1,-30,1,0),UDim2.fromOffset(24,0),10,cyan)
+  local logo=text(hero,"Logo","VYREL",UDim2.new(1,0,0,100),UDim2.fromOffset(-4,46),compact and 64 or 96) logo.Font=Enum.Font.GothamBlack
+  text(hero,"Tagline","PRECISAO. PODER.\nSEU PROXIMO LIMITE.",UDim2.new(.9,0,0,74),UDim2.fromOffset(0,150),compact and 22 or 29).Font=Enum.Font.GothamBold
+  text(hero,"Description","Escolha seu operador. Domine seu arsenal.\nEntre no campo com a sua propria identidade.",UDim2.new(.84,0,0,54),UDim2.fromOffset(0,238),compact and 11 or 13,muted)
+  local go=button(hero,"Play","JOGAR    /    ENTRAR NO CAMPO",UDim2.fromOffset(compact and 270 or 330,58),UDim2.fromOffset(0,310),function() choose("JOGAR") end,true)
+  frame(go,"Edge",UDim2.fromOffset(3,24),UDim2.fromOffset(10,17),0,dark)
+  text(hero,"Hint","CASUAL  /  RANQUEADO  /  TREINAMENTO",UDim2.fromOffset(350,24),UDim2.fromOffset(0,375),10,muted)
   if not compact then
-   local missions=frame(pageRoot,"Missions",UDim2.fromOffset(258,254),UDim2.new(0,24,.2,0),.22)
-   text(missions,"Header","SUA PROXIMA FRONTEIRA",UDim2.new(1,-24,0,32),UDim2.fromOffset(12,8),14)
-   line(missions,.9,UDim2.fromOffset(12,43))
-      for i,v in ipairs({{"OPERADOR",Agents.Agents[state.Agent].Name},{"ARSENAL",Weapons.Get(state.Primary).Name},{"OBJETIVO","Complete partidas para ganhar creditos"},{"PROGRESSO",(player:GetAttribute("FPSXP") or 0).." XP nesta sessao"}}) do
-    text(missions,"Label"..i,v[1],UDim2.new(1,-24,0,18),UDim2.fromOffset(12,55+(i-1)*46),10,muted)
-    text(missions,"Value"..i,v[2],UDim2.new(1,-24,0,25),UDim2.fromOffset(12,71+(i-1)*46),13)
+   local showcase=frame(pageRoot,"Showcase",UDim2.new(.47,-24,.64,0),UDim2.new(.51,0,0,42),.82,Color3.fromRGB(54,75,90))
+   local g=Instance.new("UIGradient") g.Color=ColorSequence.new(Color3.fromRGB(49,78,96),Color3.fromRGB(23,32,51)) g.Rotation=35 g.Parent=showcase
+   local outline=Instance.new("UIStroke") outline.Color=cyan outline.Transparency=.8 outline.Thickness=1 outline.Parent=showcase
+   text(showcase,"Kicker","SEU EQUIPAMENTO",UDim2.new(1,-36,0,24),UDim2.fromOffset(18,14),10,cyan)
+   text(showcase,"WeaponName",Weapons.Get(state.Primary).Name,UDim2.new(1,-36,0,38),UDim2.fromOffset(18,44),26)
+   inspectWeapon(showcase,state.Primary,UDim2.new(1,0,.65,0),UDim2.fromScale(0,.18))
+   line(showcase,.9,UDim2.new(.05,0,1,-70),cyan)
+   text(showcase,"OperatorLabel","OPERADOR ATIVO",UDim2.new(.5,-20,0,18),UDim2.new(0,18,1,-60),9,muted)
+   text(showcase,"Operator",Agents.Agents[state.Agent].Name.."  /  "..Agents.Agents[state.Agent].Role,UDim2.new(1,-180,0,30),UDim2.new(0,18,1,-39),12)
+   button(showcase,"Customize","PERSONALIZAR",UDim2.fromOffset(140,34),UDim2.new(1,-158,1,-50),function() choose("ARSENAL") end,false)
+   local bottom=frame(pageRoot,"QuickAccess",UDim2.new(1,-80,0,118),UDim2.new(0,40,1,-132),1)
+   local tiles={{"01","OPERADORES","Tres estilos. A mesma identidade.","OPERADORES"},{"02","ARSENAL","12 armas. Encontre seu ritmo.","ARSENAL"},{"03","LOJA","Novos projetos e destaque diario.","LOJA"}}
+   for i,d in ipairs(tiles) do
+    local tile=button(bottom,"Quick"..i,"",UDim2.new(1/3,-12,1,0),UDim2.new((i-1)/3,0,0,0),function() choose(d[4]) end,false)
+    tile.BackgroundTransparency=.2
+    text(tile,"Number",d[1],UDim2.fromOffset(36,30),UDim2.fromOffset(15,12),16,coral)
+    text(tile,"Title",d[2].."   >",UDim2.new(1,-72,0,30),UDim2.fromOffset(58,12),17)
+    text(tile,"Caption",d[3],UDim2.new(1,-30,0,42),UDim2.fromOffset(15,55),12,muted)
    end
-   local social=frame(pageRoot,"Social",UDim2.fromOffset(190,240),UDim2.new(1,-210,0,10),.2)
-   text(social,"Title","NESTE SERVIDOR",UDim2.new(1,-20,0,30),UDim2.fromOffset(10,6),12)
-   for i,p in ipairs(Players:GetPlayers()) do if i<=7 then text(social,"Player"..i,p.DisplayName or p.Name,UDim2.new(1,-20,0,25),UDim2.fromOffset(10,39+(i-1)*26),12,muted) end end
   end
  end
  local function play()
-  title("ESCOLHA SEU CAMPO","Primeira pessoa, R6, habilidade e gunplay. Sua skin permanece sua.")
+  title("ESCOLHA SEU CAMPO","TRES FORMAS DE JOGAR   /   UM UNICO ARSENAL")
   local choices={{"Casual","CASUAL","ESQUADRAO VS SENTINELAS","Partidas de 5 minutos contra bots taticos. Ganhe creditos e experimente seu operador."},{"Ranked","RANQUEADO","DUELO PVP / PRIMEIRO A 5","Adversarios humanos neste servidor. Vitorias e derrotas ajustam sua classificacao; bots nao alteram Elo."},{"Training","TREINAMENTO","ARSENAL LIVRE","Experimente qualquer arma e pratique habilidades sem precisar comprar o equipamento."}}
   for i,d in ipairs(choices) do
    local size=compact and UDim2.new(1,-48,0,132) or UDim2.new(.3,0,.66,0)
    local pos=compact and UDim2.fromOffset(24,88+(i-1)*140) or UDim2.new(.025+(i-1)*.325,0,0,96)
-   local card=frame(pageRoot,"Mode"..i,size,pos,.15) line(card,1,UDim2.fromScale(0,0),i==2 and Color3.fromRGB(173,144,245) or coral)
+   local card=frame(pageRoot,"Mode"..i,size,pos,.08,Color3.fromRGB(20,34,52)) line(card,1,UDim2.fromScale(0,0),i==2 and Color3.fromRGB(173,144,245) or coral)
+   text(card,"Index","0"..i,UDim2.fromOffset(80,40),UDim2.new(1,-94,0,8),32,Color3.fromRGB(72,87,109))
    text(card,"Name",d[2],UDim2.new(1,-28,0,40),UDim2.fromOffset(14,12),compact and 20 or 25)
    text(card,"Type",d[3],UDim2.new(1,-28,0,32),UDim2.fromOffset(14,48),10,coral)
    text(card,"Description",d[4],UDim2.new(1,-28,compact and 0 or .4,compact and 0 or 0),UDim2.fromOffset(14,90),12,muted).Visible=not compact
+   if not compact then
+    local zone=frame(card,"Emblem",UDim2.new(1,-28,.24,0),UDim2.new(0,14,.27,0),.65)
+    local color=i==1 and coral or i==2 and Color3.fromRGB(178,148,255) or Color3.fromRGB(103,229,224)
+    for n=1,3 do local shard=frame(zone,"Shard"..n,UDim2.fromOffset(22,n==2 and 66 or 43),UDim2.new(.5,(n-2)*32-11,.5,n==2 and -33 or -21),.15,color) shard.Rotation=i==2 and 45 or -12 end
+    card.Description.Position=UDim2.new(0,14,.55,0) card.Description.Size=UDim2.new(1,-28,.2,0)
+   end
    button(card,"Start",state.Queued and d[1]=="Ranked" and "BUSCANDO..." or "ENTRAR",UDim2.new(1,-28,0,compact and 32 or 44),UDim2.new(0,14,1,compact and -42 or -58),function() send("Play",d[1]) end,i==1)
   end
   if state.Queued then button(pageRoot,"CancelQueue","CANCELAR BUSCA",UDim2.fromOffset(230,34),UDim2.new(.5,-115,1,-42),function() send("CancelQueue") end,false) end
  end
  local function weaponPage()
-  title(page=="LOJA" and "LOJA / ARMAMENTO" or "ARSENAL", "12 projetos distintos. Creditos de partida, desbloqueios deterministas e teste gratuito no treino.")
+  title(page=="LOJA" and "LOJA / ARMAMENTO" or "ARSENAL", "Encontre sua assinatura. Compare, equipe e experimente qualquer arma no treinamento.")
   if page=="LOJA" then
-   for i,v in ipairs({"DESTAQUES","ARMAS","OPERADORES"}) do button(pageRoot,"Category"..i,v,UDim2.fromOffset(compact and 92 or 135,28),UDim2.fromOffset(24+(i-1)*(compact and 98 or 142),80),function() if v=="OPERADORES" then choose("OPERADORES") else storeTab=v render() end end,false) end
+   for i,v in ipairs({"DESTAQUES","ARMAS","OPERADORES"}) do button(pageRoot,"Category"..i,v,UDim2.fromOffset(compact and 92 or 135,28),UDim2.fromOffset(24+(i-1)*(compact and 98 or 142),80),function() if v=="OPERADORES" then choose("OPERADORES") else storeTab=v render() end end,storeTab==v) end
   end
-  local list=Instance.new("ScrollingFrame") list.Name="WeaponGrid" list.Size=UDim2.new(compact and .48 or .58,-32,1,-130) list.Position=UDim2.fromOffset(24,120) list.BackgroundTransparency=1 list.BorderSizePixel=0 list.ScrollBarThickness=3 list.Parent=pageRoot
+  local list=Instance.new("ScrollingFrame") list.Name="WeaponGrid" list.Size=UDim2.new(compact and .48 or .58,-32,1,-130) list.Position=UDim2.fromOffset(24,120) list.BackgroundTransparency=1 list.BorderSizePixel=0 list.ScrollBarThickness=4 list.ScrollingDirection=Enum.ScrollingDirection.Y list.Active=true list.ZIndex=pageRoot.ZIndex+1 list.Parent=pageRoot
   local columns=compact and 1 or 3 local total=0
   for _,id in ipairs(Weapons.Order) do
    if page~="LOJA" or storeTab~="DESTAQUES" or id==(state.Featured or "KESTREL") or id=="BASIL" or id=="LYRA" then
     local index=total total+=1 local cfg=Weapons.Get(id) local owned=state.Weapons[id] local price=state.Prices and state.Prices[id] or cfg.Price
-    local card=button(list,"Weapon"..id,"",UDim2.new(1/columns,-8,0,110),UDim2.new((index%columns)/columns,0,0,math.floor(index/columns)*120),function() selectedWeapon=id render() end,id==selectedWeapon)
-    text(card,"Name",cfg.Name,UDim2.new(1,-18,0,35),UDim2.fromOffset(9,12),compact and 10 or 13, id==selectedWeapon and dark or white)
-    text(card,"Kind",cfg.Kind,UDim2.new(1,-18,0,20),UDim2.fromOffset(9,47),11,id==selectedWeapon and dark or muted)
-    text(card,"Price",owned and "POSSUIDA" or price.." CR",UDim2.new(1,-18,0,22),UDim2.fromOffset(9,78),12,id==selectedWeapon and dark or Color3.fromRGB(255,215,114))
+    local card=button(list,"Weapon"..id,"",UDim2.new(1/columns,-8,0,158),UDim2.new((index%columns)/columns,0,0,math.floor(index/columns)*168),function() selectedWeapon=id render() end,false)
+    card.BackgroundColor3=id==selectedWeapon and Color3.fromRGB(47,68,83) or Color3.fromRGB(23,37,55)
+    line(card,1,UDim2.new(0,0,1,-2),id==selectedWeapon and coral or Color3.fromRGB(65,82,103))
+    text(card,"Name",cfg.Name,UDim2.new(1,-18,0,24),UDim2.fromOffset(9,8),compact and 10 or 13, white)
+    text(card,"Kind",cfg.Kind,UDim2.new(1,-18,0,20),UDim2.fromOffset(9,31),10,muted)
+    inspectWeapon(card,id,UDim2.new(1,-6,0,75),UDim2.fromOffset(3,52),true)
+    text(card,"Price",owned and "POSSUIDA" or price.." CR",UDim2.new(1,-18,0,22),UDim2.fromOffset(9,130),11,owned and Color3.fromRGB(103,229,224) or Color3.fromRGB(255,215,114))
    end
   end
-  list.CanvasSize=UDim2.fromOffset(0,math.ceil(total/columns)*120)
+  list.CanvasSize=UDim2.fromOffset(0,math.ceil(total/columns)*168)
   local cfg=Weapons.Get(selectedWeapon) local panel=frame(pageRoot,"WeaponDetails",UDim2.new(compact and .5 or .37,-24,1,-130),UDim2.new(compact and .5 or .62,0,0,120),.3)
   text(panel,"Name",cfg.Name,UDim2.new(1,-24,0,34),UDim2.fromOffset(12,8),compact and 15 or 24)
   inspectWeapon(panel,cfg.Id,UDim2.new(1,0,.42,0),UDim2.fromScale(0,.08))
@@ -651,7 +707,7 @@ function G.init()
  end
  local function avatarPreview(parent)
   local char=player.Character local h=char and char:FindFirstChildOfClass("Humanoid") if not char or not h or h.Health<=0 then return end
-  local vp=Instance.new("ViewportFrame") vp.Name="SeuAvatar" vp.Size=UDim2.new(.24,0,0,180) vp.Position=UDim2.new(.73,0,0,62) vp.BackgroundTransparency=1 vp.Ambient=Color3.fromRGB(180,190,210) vp.LightColor=Color3.fromRGB(255,220,200) vp.Parent=parent
+  local vp=Instance.new("ViewportFrame") vp.Name="SeuAvatar" vp.Size=UDim2.new(.24,0,0,180) vp.Position=UDim2.new(.73,0,0,62) vp.BackgroundTransparency=1 vp.Ambient=Color3.fromRGB(180,190,210) vp.LightColor=Color3.fromRGB(255,220,200) vp.Active=false vp.ZIndex=(parent.ZIndex or 1)+1 vp.Parent=parent
   local world=Instance.new("WorldModel") world.Parent=vp
   local old=char.Archivable char.Archivable=true local clone=char:Clone() char.Archivable=old
   for _,v in ipairs(clone:GetDescendants()) do if v:IsA("Script") or v:IsA("LocalScript") or v:IsA("Tool") then v:Destroy() elseif v:IsA("BasePart") then v.Anchored=true v.LocalTransparencyModifier=0 end end
@@ -661,12 +717,12 @@ function G.init()
   local camera=Instance.new("Camera") camera.FieldOfView=38 camera.CFrame=CFrame.lookAt(Vector3.new(4,2,7),Vector3.new(0,-.3,0)) camera.Parent=vp vp.CurrentCamera=camera
  end
  local function agentPage()
-  title("OPERADORES", "3 identidades de combate, 3 habilidades cada. Nenhuma troca de roupa do avatar.")
+  title("OPERADORES", "Escolha seu estilo de combate. Sua identidade continua a mesma.")
   for i,id in ipairs(Agents.Order) do local a=Agents.Agents[id]
    local card=button(pageRoot,"Agent"..id,a.Name.."\n"..a.Role,UDim2.new(compact and .28 or .2,0,0,compact and 70 or 92),UDim2.new(.025+(i-1)*(compact and .32 or .23),0,0,88),function() selectedAgent=id render() end,id==selectedAgent)
    card.Text=""
    local color=Color3.fromRGB(table.unpack(a.Color)) line(card,1,UDim2.fromScale(0,0),color)
-   local sigil=frame(card,"Sigil",UDim2.fromOffset(14,22),UDim2.fromOffset(12,17),0,color) sigil.Rotation=20+i*12
+   local sigil=frame(card,"Sigil",UDim2.fromOffset(14,22),UDim2.fromOffset(12,17),0,color) sigil.Rotation=20+i*12 sigil.Active=false
    text(card,"AgentName",a.Name,UDim2.new(1,-46,0,26),UDim2.fromOffset(38,10),compact and 13 or 19,id==selectedAgent and dark or white)
    text(card,"Role",a.Role,UDim2.new(1,-46,0,32),UDim2.fromOffset(38,38),compact and 9 or 11,id==selectedAgent and dark or muted)
   end
@@ -695,20 +751,26 @@ function G.init()
  render=function()
   for _,c in ipairs(pageLinks) do c:Disconnect() end table.clear(pageLinks) pageRoot:ClearAllChildren() preview=nil
   for name,b in pairs(currentNav) do b.TextColor3=name==page and coral or white b.Selected.Visible=name==page end
+  if compact then local scroll=root:FindFirstChild("ContentScroll") if scroll then scroll.CanvasPosition=Vector2.new(0,0) end end
   if page=="INICIO" then home() elseif page=="JOGAR" then play() elseif page=="ARSENAL" or page=="LOJA" then weaponPage() elseif page=="OPERADORES" then agentPage() else career() end
+  local pos=compact and UDim2.fromOffset(0,0) or UDim2.fromOffset(0,94)
+  pageRoot.Position=compact and UDim2.fromOffset(0,7) or UDim2.fromOffset(0,101)
+  Tween:Create(pageRoot,TweenInfo.new(.18,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=pos}):Play()
  end
  local function update(data)
   if type(data)~="table" or type(data.Weapons)~="table" or type(data.Agents)~="table" then return end state=data
   wallet.Text="CR  "..state.Credits storage.Text=state.Storage=="Carregando" and "Sincronizando perfil..." or state.Storage=="Persistente" and "" or state.Storage=="Em uso" and "Perfil em uso em outro servidor. Treinamento disponivel." or "Progresso desta sessao: DataStore indisponivel neste ambiente."
-  if data.Message and data.Message~="" then toast.Text=data.Message toastUntil=os.clock()+5 end
+  if data.Message and data.Message~="" then toast.Text=data.Message toast.Visible=true toastUntil=os.clock()+5 end
   local id=data.Mode..":"..tostring(data.Queued)..":"..data.Credits..":"..data.Primary..":"..data.Secondary..":"..data.Agent..":"..data.RankMatches
   for _,w in ipairs(Weapons.Order) do if data.Weapons[w] then id=id..":"..w end end for _,a in ipairs(Agents.Order) do if data.Agents[a] then id=id..":"..a end end
   if id~=signature then signature=id render() end
   applyOpen(data.Mode=="Lobby")
  end
- exitGui=Instance.new("ScreenGui") exitGui.Name="VYRELExit" exitGui.IgnoreGuiInset=true exitGui.ResetOnSpawn=false exitGui.DisplayOrder=61 exitGui.Enabled=false exitGui.Parent=pg
- local exitModal=Instance.new("TextButton") exitModal.Text="" exitModal.Size=UDim2.fromScale(1,1) exitModal.BackgroundColor3=dark exitModal.BackgroundTransparency=.2 exitModal.Modal=true exitModal.Parent=exitGui
+ exitGui=Instance.new("ScreenGui") exitGui.Name="VYRELExit" exitGui.IgnoreGuiInset=true exitGui.ResetOnSpawn=false exitGui.DisplayOrder=61 exitGui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling exitGui.Enabled=false exitGui.Parent=pg
+ local exitModal=Instance.new("Frame") exitModal.Active=false exitModal.Size=UDim2.fromScale(1,1) exitModal.BackgroundColor3=dark exitModal.BackgroundTransparency=.2 exitModal.ZIndex=1 exitModal.Parent=exitGui
+ local exitCapture=Instance.new("TextButton") exitCapture.Name="CursorCapture" exitCapture.Text="" exitCapture.BackgroundTransparency=1 exitCapture.Size=UDim2.fromOffset(1,1) exitCapture.Modal=true exitCapture.Selectable=false exitCapture.ZIndex=1 exitCapture.Parent=exitGui
  local exitPanel=frame(exitGui,"Confirm",UDim2.fromOffset(300,190),UDim2.new(.5,-150,.5,-95),.03)
+ exitPanel.ZIndex=2
  text(exitPanel,"Title","SAIR DO RANQUEADO?",UDim2.new(1,-28,0,36),UDim2.fromOffset(14,10),18,coral)
  text(exitPanel,"Warning","Sair agora encerra o duelo como derrota. Voce quer continuar jogando?",UDim2.new(1,-28,0,66),UDim2.fromOffset(14,50),13)
  button(exitPanel,"Stay","CONTINUAR",UDim2.fromOffset(130,36),UDim2.fromOffset(14,132),function() exitGui.Enabled=false player:SetAttribute("FPSMenuOpen",false) Input.MouseIconEnabled=false end,true,true)
@@ -728,11 +790,12 @@ function G.init()
    if preview and preview.viewport.Parent then local angle=.55+math.sin(time*.3)*.2 preview.camera.CFrame=CFrame.lookAt(preview.focus+Vector3.new(math.cos(angle)*preview.distance,preview.distance*.32,math.sin(angle)*preview.distance),preview.focus) end
    if time>syncAt then syncAt=time+3 send("Sync") end
   end
+  toast.Visible=os.clock()<=toastUntil and toast.Text~=""
   if os.clock()>toastUntil then toast.Text="" end
  end)
  render() applyOpen(true) send("Sync")
  local function cleanup()
-  alive=false for _,c in ipairs(links) do c:Disconnect() end for _,c in ipairs(pageLinks) do c:Disconnect() end applyOpen(false) exitGui:Destroy() gui:Destroy()
+  alive=false Run:UnbindFromRenderStep(cursorBinding) for _,c in ipairs(links) do c:Disconnect() end for _,c in ipairs(pageLinks) do c:Disconnect() end applyOpen(false) exitGui:Destroy() gui:Destroy()
  end oldCleanup=cleanup return cleanup
 end
 return G
@@ -1007,7 +1070,7 @@ function U.init()
   end
  end
  connect(Input.InputBegan,function(i,processed)
-  if processed or Input:GetFocusedTextBox() then return end
+  if processed or Input:GetFocusedTextBox() or player:GetAttribute("FPSGameMenu")==true then return end
   if i.KeyCode==Enum.KeyCode.Tab then board.Visible=true elseif i.KeyCode==Enum.KeyCode.V then tasks.Visible=not tasks.Visible elseif i.KeyCode==Enum.KeyCode.M then menu(not settings.Visible) end
  end)
  connect(Input.InputEnded,function(i) if i.KeyCode==Enum.KeyCode.Tab then board.Visible=false end end)

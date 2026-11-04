@@ -2,6 +2,10 @@
 
 Abra **VYREL_R6.rbxlx** no Roblox Studio e use Play. O menu, a citadela, as arenas e os bots são criados pelos scripts ao iniciar. O avatar mantém sua aparência, convertido para R6, e a câmera fica em primeira pessoa. Não exige importar meshes ou cadastrar IDs de animação.
 
+## Atualização do menu
+
+Cursor liberado durante o menu e restaurado ao jogar; captura modal reduzida a 1 pixel; camadas decorativas sem captura de cliques; botões com entrada explícita. O carregamento opcional do PlayerModule não bloqueia os eventos da GUI. Sincronização sem alterações mantém os botões existentes. Nova tela inicial, prévias 3D nos cards e rolagem em telas pequenas.
+
 ## Conteúdo
 
 - Menu animado: Início, Jogar, Arsenal, Operadores, Loja e Carreira. Armas em prévia 3D, preços, itens possuídos, compra, equipamento e teste gratuito no treinamento.
@@ -47,5 +51,7 @@ O instalador opcional é destinado a um lugar vazio e para instalação fora do 
 ## Fontes, Blender e validação
 
 `Fontes/` contém todos os scripts. `Blender/` inclui o arquivo editável com as 12 armas e seus geradores. O jogo usa a geometria nativa equivalente; os bevels do arquivo Blender não são meshes importados automaticamente. `Previas/` contém renders técnicos, não capturas de execução do Roblox Studio. `Referencias.md` documenta a pesquisa de RIVALS/VALORANT; nomes, habilidades e geometrias deste projeto são originais.
+
+O teste de entrada do menu simula hit testing por camadas e a disputa de cursor com a câmera em primeira pessoa; verifica navegação, compra, treino, retorno ao jogo, atalhos, rolagem por toque e limpeza.
 
 Foram executados testes Luau com serviços e física simulados para tiro, munição, dano, movimento, pose, aparência, GUI, economia, habilidades, bots e ciclo de partida. O RBXLX foi lido e regravado pelo rbxmk, verificando referências e preservação dos 36 scripts. Os scripts finais foram compilados com Luau. Esses testes não substituem a validação no motor Roblox: o Studio não estava disponível neste ambiente. Não há garantia de ausência de bugs ou de balanceamento final.
