@@ -42,6 +42,58 @@ jobs:
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           tail -n 160 /tmp/onicraft-build/build.log
           exit "$code"
+      - name: Smoke-test plugin startup on Paper 1.21.11
+        id: smoke
+        if: steps.compile.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/onicraft-build/server/plugins
+          cp /tmp/onicraft-build/code/build/libs/ONICRAFT-AnarchyCore-3.0.0-beta.jar /tmp/onicraft-build/server/plugins/
+          printf 'eula=true\n' > /tmp/onicraft-build/server/eula.txt
+          meta=$(curl -fsSL -A 'ONICRAFT-PluginSmokeTest/1.0 (github.com/vfeitosades-dot/project-harmony)' 'https://fill.papermc.io/v3/projects/paper/versions/1.21.11/builds?channel=STABLE')
+          url=$(printf '%s' "$meta" | jq -r '[.[] | select(.channel == "STABLE") | .downloads."server:default".url][0] // empty')
+          test -n "$url"
+          curl -fsSL -A 'ONICRAFT-PluginSmokeTest/1.0 (github.com/vfeitosades-dot/project-harmony)' "$url" -o /tmp/onicraft-build/server/paper.jar
+          cd /tmp/onicraft-build/server
+          mkfifo /tmp/onicraft-build/console.in
+          java -Xms256M -Xmx1400M -jar paper.jar --nogui < /tmp/onicraft-build/console.in > /tmp/onicraft-build/server.log 2>&1 &
+          pid=$!
+          exec 3> /tmp/onicraft-build/console.in
+          for i in $(seq 1 120); do
+            if grep -q 'Done (' /tmp/onicraft-build/server.log; then break; fi
+            if ! kill -0 "$pid" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          printf 'ac status\n' >&3
+          sleep 3
+          printf 'stop\n' >&3
+          exec 3>&-
+          for i in $(seq 1 20); do
+            if ! kill -0 "$pid" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          kill "$pid" 2>/dev/null || true
+          wait "$pid" || true
+          tail -n 140 /tmp/onicraft-build/server.log
+          grep -q 'ONICRAFT AnarchyCore v3' /tmp/onicraft-build/server.log
+          grep -q 'ONICRAFT AnarchyCore 3.0.0-beta ativo' /tmp/onicraft-build/server.log
+          ! grep -qE 'Error occurred while enabling AnarchyCore|Falha ao iniciar o AnarchyCore' /tmp/onicraft-build/server.log
+      - name: Save smoke test report
+        if: always()
+        shell: bash
+        run: |
+          if test -f /tmp/onicraft-build/server.log; then
+            tail -n 250 /tmp/onicraft-build/server.log > downloads/onicraft/smoke-log.txt
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add downloads/onicraft/smoke-log.txt
+            if ! git diff --staged --quiet; then
+              git commit -m 'Record ONICRAFT Paper startup test'
+              git push
+            fi
+          fi
       - name: Save build report
         if: always()
         shell: bash
