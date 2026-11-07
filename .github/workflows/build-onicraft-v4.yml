@@ -1,0 +1,115 @@
+name: Build ONICRAFT v4 Paper Plugin
+on:
+  push:
+    paths:
+      - 'downloads/onicraft-v4/source.b64'
+      - '.github/workflows/build-onicraft-v4.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14.3'
+      - name: Extract sources
+        run: |
+          mkdir -p /tmp/onicraft-v4/code
+          base64 -d downloads/onicraft-v4/source.b64 > /tmp/onicraft-v4/source.zip
+          unzip -q /tmp/onicraft-v4/source.zip -d /tmp/onicraft-v4/code
+          test -f /tmp/onicraft-v4/code/src/main/resources/plugin.yml
+      - name: Compile against official Paper
+        id: compile
+        shell: bash
+        working-directory: /tmp/onicraft-v4/code
+        run: |
+          set +e
+          gradle --no-daemon clean build --stacktrace > /tmp/onicraft-v4/build.log 2>&1
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          tail -n 90 /tmp/onicraft-v4/build.log
+          exit 0
+      - name: Verify JAR contents
+        if: steps.compile.outputs.exit_code == '0'
+        run: |
+          file=/tmp/onicraft-v4/code/build/libs/ONICRAFT-4.0.0-beta.jar
+          test -s "$file"
+          jar tf "$file" | grep -q 'plugin.yml'
+          jar tf "$file" | grep -q 'br/com/onicraft/ONICRAFTPlugin.class'
+          jar tf "$file" | grep -q 'br/com/onicraft/EconomyGuard.class'
+      - name: Smoke test on real Paper
+        id: smoke
+        if: steps.compile.outputs.exit_code == '0'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/onicraft-v4/server/plugins
+          cp /tmp/onicraft-v4/code/build/libs/ONICRAFT-4.0.0-beta.jar /tmp/onicraft-v4/server/plugins/
+          printf 'eula=true\n' > /tmp/onicraft-v4/server/eula.txt
+          curl -fsSL --retry 3 -A 'ONICRAFT-Paper-Smoke-Test/4.0' 'https://fill.papermc.io/v3/projects/paper/versions/1.21.11/builds?channel=STABLE' > /tmp/onicraft-v4/paper.json
+          url=$(jq -r '[.[] | select(.channel == "STABLE") | .downloads."server:default".url][0] // empty' /tmp/onicraft-v4/paper.json)
+          test -n "$url"
+          curl -fsSL --retry 3 -A 'ONICRAFT-Paper-Smoke-Test/4.0' "$url" -o /tmp/onicraft-v4/server/paper.jar
+          cd /tmp/onicraft-v4/server
+          mkfifo /tmp/onicraft-v4/input
+          java -Xms256M -Xmx1400M -jar paper.jar --nogui < /tmp/onicraft-v4/input > /tmp/onicraft-v4/server.log 2>&1 &
+          pid=$!
+          exec 3> /tmp/onicraft-v4/input
+          ready=0
+          for i in $(seq 1 115); do
+            if grep -q 'Done (' /tmp/onicraft-v4/server.log; then ready=1; break; fi
+            if ! kill -0 "$pid" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          printf 'onicraft status\n' >&3
+          sleep 3
+          printf 'stop\n' >&3
+          exec 3>&-
+          for i in $(seq 1 18); do
+            if ! kill -0 "$pid" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          kill "$pid" 2>/dev/null || true
+          wait "$pid" || true
+          tail -n 80 /tmp/onicraft-v4/server.log
+          test "$ready" = '1'
+          grep -q 'ONICRAFT v4: loja' /tmp/onicraft-v4/server.log
+          grep -q 'ONICRAFT 4.0.0-beta ativo' /tmp/onicraft-v4/server.log
+          ! grep -Eiq 'Error occurred while enabling ONICRAFT|Falha ao iniciar o ONICRAFTPlugin|Exception in thread' /tmp/onicraft-v4/server.log
+      - name: Publish compiled JAR and logs
+        if: always()
+        shell: bash
+        run: |
+          set -e
+          mkdir -p downloads/onicraft-v4
+          if test -f /tmp/onicraft-v4/build.log; then
+            tail -n 400 /tmp/onicraft-v4/build.log > downloads/onicraft-v4/build-log.txt
+          fi
+          if test -f /tmp/onicraft-v4/server.log; then
+            tail -n 280 /tmp/onicraft-v4/server.log > downloads/onicraft-v4/smoke-log.txt
+          fi
+          if [[ "${{ steps.compile.outputs.exit_code }}" == "0" ]]; then
+            cp /tmp/onicraft-v4/code/build/libs/ONICRAFT-4.0.0-beta.jar downloads/onicraft-v4/ONICRAFT-4.0.0-beta.jar
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A downloads/onicraft-v4/
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish verified ONICRAFT v4 plugin JAR and build logs'
+            git push
+          fi
+      - name: Fail if compilation failed
+        if: steps.compile.outputs.exit_code != '0'
+        run: exit 1
