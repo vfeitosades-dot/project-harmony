@@ -1,0 +1,104 @@
+name: Build ONICRAFT 5.1 Maps
+on:
+  push:
+    paths:
+      - 'downloads/onicraft-maps/source.b64'
+      - '.github/workflows/build-onicraft-maps.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+      - name: Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14.3'
+      - name: Unpack sources
+        run: |
+          mkdir -p /tmp/oni/code
+          base64 -d downloads/onicraft-maps/source.b64 > /tmp/oni/source.zip
+          unzip -q /tmp/oni/source.zip -d /tmp/oni/code
+          test -f /tmp/oni/code/src/main/resources/maps/ONICRAFT_Lobby_Japones.schem
+      - name: Compile
+        id: compile
+        shell: bash
+        run: |
+          set +e
+          cd /tmp/oni/code
+          gradle --no-daemon clean build --stacktrace > /tmp/oni/build.log 2>&1
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          tail -n 70 /tmp/oni/build.log
+          exit 0
+      - name: Inspect jar
+        if: steps.compile.outputs.exit_code == '0'
+        run: |
+          jar tf /tmp/oni/code/build/libs/ONICRAFT-5.1.0-beta.jar | grep -q 'br/com/onicraft/SchematicMaps.class'
+          jar tf /tmp/oni/code/build/libs/ONICRAFT-5.1.0-beta.jar | grep -q 'maps/ONICRAFT_Lobby_Japones.schem'
+          jar tf /tmp/oni/code/build/libs/ONICRAFT-5.1.0-beta.jar | grep -q 'plugin.yml'
+      - name: Start Paper and verify maps folder
+        if: steps.compile.outputs.exit_code == '0'
+        id: smoke
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/oni/server/plugins
+          cp /tmp/oni/code/build/libs/ONICRAFT-5.1.0-beta.jar /tmp/oni/server/plugins/
+          printf 'eula=true\n' > /tmp/oni/server/eula.txt
+          curl -fsSL --retry 3 -A 'ONICRAFT/5.1' 'https://fill.papermc.io/v3/projects/paper/versions/1.21.11/builds?channel=STABLE' > /tmp/oni/paper.json
+          url=$(jq -r '[.[] | select(.channel == "STABLE") | .downloads."server:default".url][0] // empty' /tmp/oni/paper.json)
+          test -n "$url"
+          curl -fsSL --retry 3 -A 'ONICRAFT/5.1' "$url" -o /tmp/oni/server/paper.jar
+          cd /tmp/oni/server
+          mkfifo /tmp/oni/input
+          java -Xms256M -Xmx1300M -jar paper.jar --nogui < /tmp/oni/input > /tmp/oni/server.log 2>&1 &
+          pid=$!
+          exec 3> /tmp/oni/input
+          ready=0
+          for i in $(seq 1 108); do
+            if grep -q 'Done (' /tmp/oni/server.log; then ready=1; break; fi
+            if ! kill -0 "$pid" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          printf 'mapa listar\n' >&3
+          sleep 3
+          printf 'stop\n' >&3
+          exec 3>&-
+          for i in $(seq 1 18); do
+            if ! kill -0 "$pid" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          kill "$pid" 2>/dev/null || true
+          wait "$pid" || true
+          test "$ready" = '1'
+          test -s plugins/ONICRAFT/maps/ONICRAFT_Lobby_Japones.schem
+          test -s plugins/ONICRAFT/maps/LEIA-ME.txt
+          grep -q 'ONICRAFT_Lobby_Japones' /tmp/oni/server.log
+          ! grep -Eiq 'Error occurred while enabling ONICRAFT|Falha ao iniciar o ONICRAFTPlugin' /tmp/oni/server.log
+      - name: Publish jar and logs
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p downloads/onicraft-maps
+          if test -f /tmp/oni/build.log; then tail -n 300 /tmp/oni/build.log > downloads/onicraft-maps/build-log.txt; fi
+          if test -f /tmp/oni/server.log; then tail -n 230 /tmp/oni/server.log > downloads/onicraft-maps/smoke-log.txt; fi
+          if [[ "${{ steps.compile.outputs.exit_code }}" == "0" ]]; then
+            cp /tmp/oni/code/build/libs/ONICRAFT-5.1.0-beta.jar downloads/onicraft-maps/ONICRAFT-5.1.0-beta.jar
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A downloads/onicraft-maps/
+          if ! git diff --cached --quiet; then git commit -m 'Build ONICRAFT 5.1 with integrated schematic maps folder'; git push; fi
+      - name: Assert build passed
+        if: steps.compile.outputs.exit_code != '0'
+        run: exit 1
