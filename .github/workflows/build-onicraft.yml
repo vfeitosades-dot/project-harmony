@@ -31,9 +31,33 @@ jobs:
           unzip -q /tmp/onicraft-build/src.zip -d /tmp/onicraft-build/code
           test -f /tmp/onicraft-build/code/src/main/resources/plugin.yml
       - name: Build against official Paper 1.21.11 API
+        id: compile
         working-directory: /tmp/onicraft-build/code
-        run: gradle --no-daemon clean build --stacktrace
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          gradle --no-daemon clean build --stacktrace > /tmp/onicraft-build/build.log 2>&1
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          tail -n 160 /tmp/onicraft-build/build.log
+          exit "$code"
+      - name: Save build report
+        if: always()
+        shell: bash
+        run: |
+          if test -f /tmp/onicraft-build/build.log; then
+            tail -n 500 /tmp/onicraft-build/build.log > downloads/onicraft/build-log.txt
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add downloads/onicraft/build-log.txt
+            if ! git diff --staged --quiet; then
+              git commit -m 'Record ONICRAFT Paper build report'
+              git push
+            fi
+          fi
       - name: Publish JAR
+        if: steps.compile.outcome == 'success'
         shell: bash
         run: |
           cp /tmp/onicraft-build/code/build/libs/ONICRAFT-AnarchyCore-3.0.0-beta.jar downloads/onicraft/ONICRAFT-AnarchyCore-3.0.0-beta.jar
