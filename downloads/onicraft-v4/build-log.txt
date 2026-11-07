@@ -16,9 +16,9 @@ Note: Recompile with -Xlint:deprecation for details.
 > Task :test NO-SOURCE
 > Task :check UP-TO-DATE
 > Task :build
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/compile-1794079382558.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/compile-1794079625278.json
 
 [Incubating] Problems report is available at: file:///tmp/onicraft-v4/code/build/reports/problems/problems-report.html
 
-BUILD SUCCESSFUL in 16s
+BUILD SUCCESSFUL in 21s
 4 actionable tasks: 3 executed, 1 up-to-date
