@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "onimarket",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "name": "OniMarket",
   "environment": "client",
   "entrypoints": {
