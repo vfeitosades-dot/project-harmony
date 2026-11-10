@@ -36,6 +36,19 @@ jobs:
         run: |
           test "$(grep -vc '^#' src/main/resources/onimarket_reference_prices.tsv)" -eq 242
           grep -q '^DIAMOND' src/main/resources/onimarket_reference_prices.tsv
+      - name: Verificar ordem de renderização da interface
+        working-directory: OniMarket
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('src/main/java/br/com/onicraft/onimarket/OniMarketClient.java').read_text()
+          render=s[s.index('        @Override public void render(GuiGraphics g,int mouseX,int mouseY,float delta) {'):]
+          assert render.index('super.render(g,mouseX,mouseY,delta)') < render.index('if(playersTab) drawPlayers(g)'), 'A tabela precisa ser desenhada depois do fundo'
+          assert 'Limpar busca' in s
+          assert 'option.render(g,mouseX,mouseY,delta)' in s
+          print('Ordem da renderização, botão Limpar e autocomplete: OK')
+          PY
       - name: Build mod Fabric
         working-directory: OniMarket
         run: gradle clean build --no-daemon
@@ -43,7 +56,7 @@ jobs:
         working-directory: OniMarket
         shell: bash
         run: |
-          jar tf build/libs/OniMarket-1.21.11-1.7.0.jar > /tmp/onimarket-files.txt
+          jar tf build/libs/OniMarket-1.21.11-1.8.0.jar > /tmp/onimarket-files.txt
           grep -q 'OniMarketClient.class' /tmp/onimarket-files.txt
           grep -q 'PriceParser.class' /tmp/onimarket-files.txt
           grep -q 'SearchSuggestions.class' /tmp/onimarket-files.txt
@@ -52,5 +65,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: OniMarket-1.21.11-Standalone-JAR
-          path: OniMarket/build/libs/OniMarket-1.21.11-1.7.0.jar
+          path: OniMarket/build/libs/OniMarket-1.21.11-1.8.0.jar
           if-no-files-found: error
