@@ -1,0 +1,105 @@
+name: Build ONICRAFT 5.2 HUD
+on:
+  push:
+    paths:
+      - 'downloads/onicraft-hud/source.b64'
+      - '.github/workflows/build-onicraft-hud.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14.3'
+      - name: Extract source
+        run: |
+          mkdir -p /tmp/onicraft-hud/code
+          base64 -d downloads/onicraft-hud/source.b64 > /tmp/onicraft-hud/source.zip
+          unzip -q /tmp/onicraft-hud/source.zip -d /tmp/onicraft-hud/code
+          test -f /tmp/onicraft-hud/code/src/main/java/br/com/onicraft/VisualHUD.java
+      - name: Compile with official Paper API
+        id: compile
+        shell: bash
+        run: |
+          set +e
+          cd /tmp/onicraft-hud/code
+          gradle --no-daemon clean build --stacktrace > /tmp/onicraft-hud/build.log 2>&1
+          status=$?
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          tail -n 65 /tmp/onicraft-hud/build.log
+          exit 0
+      - name: Inspect jar
+        if: steps.compile.outputs.exit_code == '0'
+        run: |
+          FILE=/tmp/onicraft-hud/code/build/libs/ONICRAFT-5.2.0-beta.jar
+          test -s "$FILE"
+          jar tf "$FILE" | grep -q 'br/com/onicraft/VisualHUD.class'
+          jar tf "$FILE" | grep -q 'br/com/onicraft/Sidebar.class'
+          jar tf "$FILE" | grep -q 'maps/ONICRAFT_Lobby_Japones.schem'
+          jar tf "$FILE" | grep -q 'plugin.yml'
+      - name: Start official Paper and smoke test
+        if: steps.compile.outputs.exit_code == '0'
+        id: smoke
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/onicraft-hud/server/plugins
+          cp /tmp/onicraft-hud/code/build/libs/ONICRAFT-5.2.0-beta.jar /tmp/onicraft-hud/server/plugins/
+          printf 'eula=true\n' > /tmp/onicraft-hud/server/eula.txt
+          curl -fsSL --retry 3 -A 'ONICRAFT-HUD-Smoke/5.2' 'https://fill.papermc.io/v3/projects/paper/versions/1.21.11/builds?channel=STABLE' > /tmp/onicraft-hud/paper.json
+          url=$(jq -r '[.[] | select(.channel == "STABLE") | .downloads."server:default".url][0] // empty' /tmp/onicraft-hud/paper.json)
+          test -n "$url"
+          curl -fsSL --retry 3 -A 'ONICRAFT-HUD-Smoke/5.2' "$url" -o /tmp/onicraft-hud/server/paper.jar
+          cd /tmp/onicraft-hud/server
+          mkfifo /tmp/onicraft-hud/input
+          java -Xms256M -Xmx1400M -jar paper.jar --nogui < /tmp/onicraft-hud/input > /tmp/onicraft-hud/server.log 2>&1 &
+          pid=$!
+          exec 3> /tmp/onicraft-hud/input
+          ready=0
+          for i in $(seq 1 115); do
+            if grep -q 'Done (' /tmp/onicraft-hud/server.log; then ready=1; break; fi
+            if ! kill -0 "$pid" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          printf 'onicraft status\n' >&3
+          sleep 3
+          printf 'stop\n' >&3
+          exec 3>&-
+          for i in $(seq 1 18); do
+            if ! kill -0 "$pid" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          kill "$pid" 2>/dev/null || true
+          wait "$pid" || true
+          tail -n 85 /tmp/onicraft-hud/server.log
+          test "$ready" = '1'
+          grep -q 'ONICRAFT v5.2' /tmp/onicraft-hud/server.log
+          ! grep -Eiq 'Error occurred while enabling ONICRAFT|Falha ao iniciar o ONICRAFTPlugin|Exception in thread' /tmp/onicraft-hud/server.log
+          test -s plugins/ONICRAFT/maps/ONICRAFT_Lobby_Japones.schem
+      - name: Publish binary and test logs
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p downloads/onicraft-hud
+          if test -f /tmp/onicraft-hud/build.log; then tail -n 500 /tmp/onicraft-hud/build.log > downloads/onicraft-hud/build-log.txt; fi
+          if test -f /tmp/onicraft-hud/server.log; then tail -n 250 /tmp/onicraft-hud/server.log > downloads/onicraft-hud/server-test-log.txt; fi
+          if [[ "${{ steps.compile.outputs.exit_code }}" == "0" ]]; then cp /tmp/onicraft-hud/code/build/libs/ONICRAFT-5.2.0-beta.jar downloads/onicraft-hud/ONICRAFT-5.2.0-beta.jar; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A downloads/onicraft-hud/
+          if ! git diff --cached --quiet; then git commit -m 'Compile ONICRAFT 5.2 HUD with Paper API and test logs'; git push; fi
+      - name: Assert compilation
+        if: steps.compile.outputs.exit_code != '0'
+        run: exit 1
