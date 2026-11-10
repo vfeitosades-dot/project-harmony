@@ -7,6 +7,8 @@ import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.PlayerInfo;
+import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -36,14 +38,14 @@ public class OniMarketClient implements ClientModInitializer {
     private static class PlayerPos {
         final String name, world;
         final int x,y,z;
-        PlayerPos(String name, String world, int x, int y, int z) {
-            this.name=name; this.world=world; this.x=x; this.y=y; this.z=z;
+        final boolean visible;
+        PlayerPos(String name, String world, int x, int y, int z, boolean visible) {
+            this.name=name;this.world=world;this.x=x;this.y=y;this.z=z;this.visible=visible;
         }
     }
     private static String serverName = "local";
     private static long scanUntil = 0;
     private static int capturedChanges = 0;
-    private static long lastPositionRequest = 0;
     private static long nextAutoQuery = 0;
     private static int autoIndex = -1;
     private static int tick = 0;
@@ -69,7 +71,6 @@ public class OniMarketClient implements ClientModInitializer {
                 loadPrices();
                 scanUntil = 0;
                 capturedChanges = 0;
-                lastPositionRequest = 0;
                 autoIndex = -1;
             }
             tick++;
@@ -80,10 +81,7 @@ public class OniMarketClient implements ClientModInitializer {
                     || title.contains("comprar") || title.contains("venda");
                 if(shopWindow || System.currentTimeMillis()<scanUntil)scanShop(client);
             }
-            if(tick%200==0 && client.screen instanceof MarketScreen && MarketScreen.playersTab
-                    && client.getConnection()!=null && System.currentTimeMillis()-lastPositionRequest>10000) {
-                requestPlayers(client);
-            }
+            if (tick % 10 == 0 && client.level != null) refreshPlayers(client);
             if (autoIndex >= 0 && System.currentTimeMillis() >= nextAutoQuery) {
                 if (autoIndex >= Math.min(12, queue.size())) { autoIndex = -1; savePrices(); }
                 else {
@@ -96,10 +94,30 @@ public class OniMarketClient implements ClientModInitializer {
         });
         ClientReceiveMessageEvents.GAME.register((message, overlay) -> { if(!overlay)scan(message.getString()); });
     }
-    private static void requestPlayers(Minecraft client) {
-        if(client.getConnection()==null)return;
-        lastPositionRequest=System.currentTimeMillis();
-        client.getConnection().sendCommand("onimarketplayers");
+    /**
+     * Apenas informações recebidas normalmente pelo cliente.
+     * Não usa API de coordenadas do servidor nem acessa jogadores descarregados.
+     */
+    private static void refreshPlayers(Minecraft client) {
+        if(client.level==null || client.getConnection()==null) return;
+        Map<String,PlayerPos> snapshot=new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        for(PlayerInfo info:client.getConnection().getListedOnlinePlayers()) {
+            String nick=info.getProfile().getName();
+            if(nick!=null && !nick.isBlank()) {
+                snapshot.put(nick,new PlayerPos(nick,"fora do alcance",0,0,0,false));
+            }
+        }
+        String dimension=client.level.dimension().location().toString();
+        for(AbstractClientPlayer player:client.level.players()) {
+            String nick=player.getName().getString();
+            if(nick==null || nick.isBlank())continue;
+            snapshot.put(nick,new PlayerPos(nick,dimension,
+                player.blockPosition().getX(),player.blockPosition().getY(),
+                player.blockPosition().getZ(),true));
+        }
+        playerPositions.clear();
+        playerPositions.putAll(snapshot);
+        positionsUpdatedAt=System.currentTimeMillis();
     }
     private static void scanShop(Minecraft client) {
         if (!(client.screen instanceof AbstractContainerScreen<?> screen)) return;
@@ -145,26 +163,6 @@ public class OniMarketClient implements ClientModInitializer {
         } catch(Exception ex) { System.err.println("[OniMarket] "+ex.getMessage()); }
     }
     private static void scan(String raw) {
-        if (raw.equals("[ONIMARKET:BEGIN]")) {
-            playerPositions.clear();
-            positionsUpdatedAt=0;
-            return;
-        }
-        if (raw.startsWith("[ONIMARKET:POS]")) {
-            try {
-                String[] parts = raw.substring("[ONIMARKET:POS]".length()).split("\\|",5);
-                if(parts.length==5 && parts[0].matches("[A-Za-z0-9_]{1,16}")) {
-                    PlayerPos p = new PlayerPos(parts[0],parts[1],
-                        Integer.parseInt(parts[2]), Integer.parseInt(parts[3]), Integer.parseInt(parts[4]));
-                    if(playerPositions.size()<500) playerPositions.put(p.name,p);
-                }
-            } catch (RuntimeException ignored) { }
-            return;
-        }
-        if (raw.equals("[ONIMARKET:END]")) {
-            positionsUpdatedAt=System.currentTimeMillis();
-            return;
-        }
         String item=lastItem;
         Matcher named=Pattern.compile("(?iu)(?:item|produto)\\s*[:=-]\\s*([\\p{L}0-9_ -]{2,35})").matcher(raw);
         if(named.find())item=named.group(1).trim();
@@ -207,7 +205,7 @@ public class OniMarketClient implements ClientModInitializer {
             }).bounds(x+8,22,Math.min(120,panelW/3),20).build());
             addRenderableWidget(Button.builder(Component.literal("JOGADORES"), b -> {
                 playersTab=true;
-                requestPlayers(Minecraft.getInstance());
+                refreshPlayers(Minecraft.getInstance());
                 Minecraft.getInstance().setScreen(new MarketScreen());
             }).bounds(x+Math.min(138,panelW/3+14),22,Math.min(120,panelW/3),20).build());
             addRenderableWidget(Button.builder(Component.literal("X"), b -> onClose())
@@ -252,7 +250,7 @@ public class OniMarketClient implements ClientModInitializer {
                     if(autoIndex>=0) onClose();
                 }).bounds(findX,76,Math.min(106,x+panelW-findX-8),20).build());
             } else {
-                addRenderableWidget(Button.builder(Component.literal("Atualizar coordenadas"), b -> send("onimarketplayers"))
+                addRenderableWidget(Button.builder(Component.literal("Atualizar jogadores"), b -> { refreshPlayers(Minecraft.getInstance()); status="Lista local atualizada."; })
                     .bounds(x+8,76,190,20).build());
             }
             addRenderableWidget(Button.builder(Component.literal("◀ Anterior"), b -> {
@@ -282,7 +280,6 @@ public class OniMarketClient implements ClientModInitializer {
                 scanUntil=System.currentTimeMillis()+20L*60*1000;
                 capturedChanges=0;
             }
-            if(command.equals("onimarketplayers")) lastPositionRequest=System.currentTimeMillis();
             mc.getConnection().sendCommand(command);
             status="Enviado /"+command;
         }
@@ -290,7 +287,7 @@ public class OniMarketClient implements ClientModInitializer {
         @Override public void render(GuiGraphics g,int mouseX,int mouseY,float delta) {
             g.fill(startX,8,startX+panelW,height-8,0xD9141923);
             super.render(g,mouseX,mouseY,delta);
-            g.drawCenteredString(font,"ONIMARKET | "+(playersTab?"ADMINISTRAÇÃO":"ECONOMIA"),width/2,10,0xFFFFFF);
+            g.drawCenteredString(font,"ONIMARKET | "+(playersTab?"JOGADORES":"ECONOMIA"),width/2,10,0xFFFFFF);
             String current=filterBox==null?"":filterBox.getValue();
             if(!searchText.equals(current)) {
                 searchText=current;
@@ -364,17 +361,16 @@ public class OniMarketClient implements ClientModInitializer {
                 int y=128+j*16;
                 if(j%2==0)g.fill(x+8,y-2,x+panelW-8,y+13,0x2AFFFFFF);
                 g.drawString(font,shortText(p.name,worldX-x-16),x+10,y,0xEEEEEE);
-                g.drawString(font,shortText(p.world,cx-worldX-10),worldX,y,0xBBBBBB);
-                g.drawString(font,Integer.toString(p.x),cx,y,0xFFCA7B);
-                g.drawString(font,Integer.toString(p.y),cy,y,0x89CBFF);
-                g.drawString(font,Integer.toString(p.z),cz,y,0x83F4A1);
+                g.drawString(font,shortText(p.world,cx-worldX-10),worldX,y,p.visible?0xBBBBBB:0x888888);
+                g.drawString(font,p.visible?Integer.toString(p.x):"--",cx,y,p.visible?0xFFCA7B:0x888888);
+                g.drawString(font,p.visible?Integer.toString(p.y):"--",cy,y,p.visible?0x89CBFF:0x888888);
+                g.drawString(font,p.visible?Integer.toString(p.z):"--",cz,y,p.visible?0x83F4A1:0x888888);
             }
-            String status=positionsUpdatedAt==0
-                ?"Sem resposta. Confirme o plugin com /onimarketplayers"
-                :list.size()+" jogadores | página "+(playersPage+1)+"/"+pages+
-                (System.currentTimeMillis()-positionsUpdatedAt>120000?" | ATUALIZE OS DADOS":" | atualizado");
-            g.drawCenteredString(font,status,width/2,height-58,0xCCCCCC);
-            g.drawCenteredString(font,"Atualiza a cada 10s quando a aba está aberta.",width/2,height-46,0xAAAAAA);
+            long loaded=list.stream().filter(p->p.visible).count();
+            g.drawCenteredString(font,list.size()+" online | "+loaded+" com coordenadas visíveis | página "+
+                (playersPage+1)+"/"+pages,width/2,height-58,0xCCCCCC);
+            g.drawCenteredString(font,"Sem plugin: posições somente de jogadores carregados no seu mundo.",
+                width/2,height-46,0xAAAAAA);
         }
         private String shortText(String value,int maxWidth) {
             if(maxWidth<25)return "...";
