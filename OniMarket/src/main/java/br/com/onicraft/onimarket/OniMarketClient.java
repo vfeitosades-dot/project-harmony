@@ -21,6 +21,10 @@ import net.minecraft.world.item.component.ItemLore;
 import net.fabricmc.loader.api.FabricLoader;
 import java.nio.file.*;
 import java.nio.charset.StandardCharsets;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
@@ -46,11 +50,13 @@ public class OniMarketClient implements ClientModInitializer {
     private static String serverName = "local";
     private static long scanUntil = 0;
     private static int capturedChanges = 0;
+    private static int scannedSlots = 0;
+    private static String lastWindow = "Sem janela de loja";
     private static long nextAutoQuery = 0;
     private static int autoIndex = -1;
     private static int tick = 0;
     private static List<String> queue = new ArrayList<>();
-    private static class Prices { double buy = -1, sell = -1; }
+    private static class Prices { double buy = -1, sell = -1; boolean reference = false; }
     @Override public void onInitializeClient() {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
             dispatcher.register(ClientCommandManager.literal("onimarketui").executes(context -> {
@@ -69,18 +75,14 @@ public class OniMarketClient implements ClientModInitializer {
                 playerPositions.clear();
                 positionsUpdatedAt=0;
                 loadPrices();
+                loadReferenceCatalog();
                 scanUntil = 0;
                 capturedChanges = 0;
+                scannedSlots = 0;
                 autoIndex = -1;
             }
             tick++;
-            if(tick%7==0 && client.screen instanceof AbstractContainerScreen<?> container) {
-                String title=container.getTitle().getString().toLowerCase(Locale.ROOT);
-                boolean shopWindow=title.contains("shop") || title.contains("loja")
-                    || title.contains("market") || title.contains("mercado")
-                    || title.contains("comprar") || title.contains("venda");
-                if(shopWindow || System.currentTimeMillis()<scanUntil)scanShop(client);
-            }
+            if(tick%2==0 && client.screen instanceof AbstractContainerScreen<?>)scanShop(client);
             if (tick % 10 == 0 && client.level != null) refreshPlayers(client);
             if (autoIndex >= 0 && System.currentTimeMillis() >= nextAutoQuery) {
                 if (autoIndex >= Math.min(12, queue.size())) { autoIndex = -1; savePrices(); }
@@ -115,25 +117,35 @@ public class OniMarketClient implements ClientModInitializer {
                 player.blockPosition().getX(),player.blockPosition().getY(),
                 player.blockPosition().getZ(),true));
         }
+        if(client.player!=null) {
+            String own=client.player.getName().getString();
+            snapshot.put(own,new PlayerPos(own,dimension,
+                client.player.blockPosition().getX(),client.player.blockPosition().getY(),
+                client.player.blockPosition().getZ(),true));
+        }
         playerPositions.clear();
         playerPositions.putAll(snapshot);
         positionsUpdatedAt=System.currentTimeMillis();
     }
     private static void scanShop(Minecraft client) {
         if (!(client.screen instanceof AbstractContainerScreen<?> screen)) return;
-        List<Slot> slots = screen.getMenu().slots;
-        int n = slots.size() > 36 ? slots.size()-36 : slots.size();
-        for (int i=0;i<n;i++) {
-            ItemStack stack = slots.get(i).getItem();
-            if (stack.isEmpty()) continue;
-            ItemLore lore = stack.get(DataComponents.LORE);
-            if (lore == null || lore.lines().isEmpty()) continue;
-            String name = stack.getHoverName().getString();
-            Prices old=prices.get(name);
-            double buy=old==null?-1:old.buy, sell=old==null?-1:old.sell;
-            for (Component l : lore.lines()) scanPrice(name,l.getString());
-            Prices current=prices.get(name);
-            if(current!=null && (current.buy!=buy || current.sell!=sell))capturedChanges++;
+        lastWindow=screen.getTitle().getString();
+        List<Slot> slots=screen.getMenu().slots;
+        int n=slots.size()>36 ? slots.size()-36 : slots.size();
+        for(int i=0;i<n;i++) {
+            ItemStack stack=slots.get(i).getItem();
+            if(stack.isEmpty())continue;
+            scannedSlots++;
+            ItemLore lore=stack.get(DataComponents.LORE);
+            if(lore==null || lore.lines().isEmpty())continue;
+            String id=BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath().toUpperCase(Locale.ROOT);
+            Prices prev=prices.get(id);
+            double buy=prev==null?-1:prev.buy, sell=prev==null?-1:prev.sell;
+            boolean wasReference=prev!=null && prev.reference;
+            for(Component line:lore.lines())scanPrice(id,line.getString());
+            Prices current=prices.get(id);
+            if(current!=null && (buy!=current.buy || sell!=current.sell || wasReference!=current.reference))
+                capturedChanges++;
         }
     }
     private static Path dataFile() {
@@ -143,24 +155,40 @@ public class OniMarketClient implements ClientModInitializer {
     }
     private static void savePrices() {
         try {
-            Path file = dataFile();
-            Files.createDirectories(file.getParent());
-            List<String> lines = new ArrayList<>();
-            for (var e : prices.entrySet()) lines.add(e.getKey().replace("\t"," ")+"\t"+e.getValue().buy+"\t"+e.getValue().sell);
-            Files.write(file, lines, StandardCharsets.UTF_8);
-        } catch (Exception ex) { System.err.println("[OniMarket] "+ex.getMessage()); }
+            Path file=dataFile();Files.createDirectories(file.getParent());
+            List<String> lines=new ArrayList<>();
+            for(var entry:prices.entrySet()) {
+                Prices p=entry.getValue();
+                if(!p.reference)lines.add(entry.getKey().replace("\t"," ")+"\t"+p.buy+"\t"+p.sell);
+            }
+            Files.write(file,lines,StandardCharsets.UTF_8);
+        }catch(Exception ex){System.err.println("[OniMarket] salvar: "+ex);}
     }
     private static void loadPrices() {
         try {
-            if (!Files.exists(dataFile())) return;
-            for (String line : Files.readAllLines(dataFile(),StandardCharsets.UTF_8)) {
-                String[] p = line.split("\\t");
-                if (p.length != 3) continue;
-                Prices v = new Prices();
-                v.buy = Double.parseDouble(p[1]); v.sell = Double.parseDouble(p[2]);
-                prices.put(p[0], v);
+            if(!Files.exists(dataFile()))return;
+            for(String line:Files.readAllLines(dataFile(),StandardCharsets.UTF_8)) {
+                String[] p=line.split("\t");
+                if(p.length!=3)continue;
+                Prices v=new Prices();v.buy=Double.parseDouble(p[1]);v.sell=Double.parseDouble(p[2]);
+                prices.put(p[0],v);
             }
-        } catch(Exception ex) { System.err.println("[OniMarket] "+ex.getMessage()); }
+        }catch(Exception ex){System.err.println("[OniMarket] carregar: "+ex);}
+    }
+    private static void loadReferenceCatalog() {
+        try(InputStream in=OniMarketClient.class.getResourceAsStream("/onimarket_reference_prices.tsv")) {
+            if(in==null){System.err.println("[OniMarket] Catálogo de referência não incluído.");return;}
+            try(BufferedReader reader=new BufferedReader(new InputStreamReader(in,StandardCharsets.UTF_8))) {
+                String line;
+                while((line=reader.readLine())!=null){
+                    String[] p=line.split("\t");
+                    if(p.length!=3 || p[0].startsWith("#") || prices.containsKey(p[0]))continue;
+                    Prices v=new Prices();
+                    v.buy=Double.parseDouble(p[1]);v.sell=Double.parseDouble(p[2]);v.reference=true;
+                    prices.put(p[0],v);
+                }
+            }
+        }catch(Exception ex){System.err.println("[OniMarket] referência: "+ex);}
     }
     private static void scan(String raw) {
         String item=lastItem;
@@ -173,6 +201,7 @@ public class OniMarketClient implements ClientModInitializer {
         PriceParser.Quote q=PriceParser.parse(raw);
         if(q.buy()==null && q.sell()==null)return;
         Prices p=prices.computeIfAbsent(item,k->new Prices());
+        if(p.reference) {p.buy=-1;p.sell=-1;p.reference=false;}
         if(q.buy()!=null)p.buy=q.buy();
         if(q.sell()!=null)p.sell=q.sell();
     }
@@ -314,7 +343,7 @@ public class OniMarketClient implements ClientModInitializer {
             }
             int pages=Math.max(1,(list.size()+rowsPerPage-1)/rowsPerPage);
             pricePage=Math.min(pricePage,pages-1);
-            g.drawString(font,"ITEM / BLOCO",x+10,109,0xDDDDDD);
+            g.drawString(font,"ITEM / BLOCO (*ref)",x+10,109,0xDDDDDD);
             int buy=x+(int)(panelW*.45), sell=x+(int)(panelW*.63), gain=x+(int)(panelW*.81);
             g.drawString(font,"COMPRA",buy,109,0xFFCA7B);
             g.drawString(font,"VENDA",sell,109,0x89CBFF);
@@ -326,7 +355,7 @@ public class OniMarketClient implements ClientModInitializer {
                 int y=128+j*16;
                 if(j%2==0) g.fill(x+8,y-2,x+panelW-8,y+13,0x2AFFFFFF);
                 Prices p=e.getValue();
-                String name=shortText(e.getKey(),Math.max(80,buy-x-16));
+                String name=shortText((p.reference?"*":"")+e.getKey(),Math.max(80,buy-x-16));
                 g.drawString(font,name,x+10,y,0xEEEEEE);
                 g.drawString(font,fmt(p.buy),buy,y,0xFFCA7B);
                 g.drawString(font,fmt(p.sell),sell,y,0x89CBFF);
@@ -335,9 +364,11 @@ public class OniMarketClient implements ClientModInitializer {
                     p.buy<0||p.sell<0?0x999999:profit>0?0x63E18C:0xF48787);
             }
             if(list.isEmpty()) g.drawCenteredString(font,"Nenhum item coletado. Abra /shop e navegue pelas páginas.",width/2,150,0xCCCCCC);
-            String footer=list.size()+" de "+prices.size()+" itens | página "+(pricePage+1)+"/"+pages+" | "+serverName;
+            long referenceCount=prices.values().stream().filter(p->p.reference).count();
+            String footer=list.size()+" itens | "+referenceCount+" referência, "+
+                (prices.size()-referenceCount)+" atualizados | página "+(pricePage+1)+"/"+pages;
             g.drawCenteredString(font,footer,width/2,height-61,0xCCCCCC);
-            g.drawCenteredString(font,"Capturas: "+capturedChanges+" | "+status,width/2,height-49,0xAAAAAA);
+            g.drawCenteredString(font,"Lidos: "+capturedChanges+" | Inventário: "+lastWindow,width/2,height-49,0xAAAAAA);
         }
 
         private void drawPlayers(GuiGraphics g) {
