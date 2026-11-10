@@ -18,6 +18,7 @@ public final class OniMarketAdminPlugin extends JavaPlugin implements CommandExe
     @Override public void onEnable() {
         if (getCommand("onimarketplayers") != null)
             getCommand("onimarketplayers").setExecutor(this);
+        getLogger().info("OniMarket v1.4 ativado: /onimarketplayers liberado para todos os jogadores.");
     }
 
     @Override public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
