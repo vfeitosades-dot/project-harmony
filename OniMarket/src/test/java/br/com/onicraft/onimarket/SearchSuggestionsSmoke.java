@@ -21,6 +21,10 @@ public final class SearchSuggestionsSmoke {
         check(SearchSuggestions.find(items,"",6).isEmpty(),"empty query no popup");
         check(SearchSuggestions.normalize("PÓLVORA").equals("polvora"),"accents");
         check(SearchSuggestions.matches("DIAMOND_BLOCK","bloco de diamante"),"translated name");
+        check(SearchSuggestions.find(List.of("STICK","STONE","DIAMOND"),"STICK",6).equals(List.of("STICK")),
+            "regression: STICK should appear in results");
+        check(SearchSuggestions.matches("insan1tyy","insan1tyy"),
+            "regression: exact player nick should match");
         System.out.println("OniMarket autocomplete: 11 testes OK");
     }
 }
