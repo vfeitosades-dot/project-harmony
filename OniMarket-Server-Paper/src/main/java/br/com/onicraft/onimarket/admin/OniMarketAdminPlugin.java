@@ -21,29 +21,25 @@ public final class OniMarketAdminPlugin extends JavaPlugin implements CommandExe
     }
 
     @Override public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player admin)) {
-            sender.sendMessage("Este comando deve ser usado por um administrador no jogo.");
-            return true;
-        }
-        if (!admin.hasPermission("onimarket.admin")) {
-            admin.sendMessage("Sem permissao: onimarket.admin");
+        if (!(sender instanceof Player viewer)) {
+            sender.sendMessage("Este comando precisa ser usado por um jogador dentro do jogo.");
             return true;
         }
         long now = System.currentTimeMillis();
-        long previous = lastRequest.getOrDefault(admin.getUniqueId(), 0L);
+        long previous = lastRequest.getOrDefault(viewer.getUniqueId(), 0L);
         if (now-previous < 2000L) {
-            admin.sendMessage("Aguarde 2 segundos entre atualizacoes.");
+            viewer.sendMessage("Aguarde 2 segundos entre atualizacoes.");
             return true;
         }
-        lastRequest.put(admin.getUniqueId(),now);
-        admin.sendMessage("[ONIMARKET:BEGIN]");
+        lastRequest.put(viewer.getUniqueId(),now);
+        viewer.sendMessage("[ONIMARKET:BEGIN]");
         for (Player p : Bukkit.getOnlinePlayers()) {
             Location loc = p.getLocation();
             String world = loc.getWorld() == null ? "unknown" : loc.getWorld().getName().replace("|", "_");
-            admin.sendMessage("[ONIMARKET:POS]" + p.getName() + "|" + world + "|"
+            viewer.sendMessage("[ONIMARKET:POS]" + p.getName() + "|" + world + "|"
                 + loc.getBlockX() + "|" + loc.getBlockY() + "|" + loc.getBlockZ());
         }
-        admin.sendMessage("[ONIMARKET:END]");
+        viewer.sendMessage("[ONIMARKET:END]");
         return true;
     }
 }
