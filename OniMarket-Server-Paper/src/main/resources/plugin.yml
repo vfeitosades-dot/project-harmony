@@ -1,14 +1,9 @@
 name: OniMarketAdmin
-version: 1.2.0
+version: 1.3.0
 main: br.com.onicraft.onimarket.admin.OniMarketAdminPlugin
-description: Fornece localizações de jogadores apenas a administradores autorizados.
+description: Compartilha as coordenadas dos jogadores online com quem consulta o painel OniMarket.
 api-version: '1.21'
 commands:
   onimarketplayers:
     description: Enviar nick, dimensão e coordenadas para o painel OniMarket
     usage: /onimarketplayers
-    permission: onimarket.admin
-permissions:
-  onimarket.admin:
-    description: Permite consultar coordenadas dos jogadores online
-    default: op
