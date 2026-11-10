@@ -29,6 +29,15 @@ public class OniMarketClient implements ClientModInitializer {
     private static final KeyMapping KEY = KeyBindingHelper.registerKeyBinding(new KeyMapping("Abrir OniMarket", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_P, CATEGORY));
     private static final Map<String, Prices> prices = new HashMap<>();
     private static String lastItem = "";
+    private static final Map<String, PlayerPos> playerPositions = new LinkedHashMap<>();
+    private static long positionsUpdatedAt = 0;
+    private static class PlayerPos {
+        final String name, world;
+        final int x,y,z;
+        PlayerPos(String name, String world, int x, int y, int z) {
+            this.name=name; this.world=world; this.x=x; this.y=y; this.z=z;
+        }
+    }
     private static String serverName = "local";
     private static long scanUntil = 0;
     private static long nextAutoQuery = 0;
@@ -47,6 +56,8 @@ public class OniMarketClient implements ClientModInitializer {
                 savePrices();
                 serverName = name;
                 prices.clear();
+                playerPositions.clear();
+                positionsUpdatedAt=0;
                 loadPrices();
                 scanUntil = 0;
                 autoIndex = -1;
@@ -107,6 +118,26 @@ public class OniMarketClient implements ClientModInitializer {
         } catch(Exception ex) { System.err.println("[OniMarket] "+ex.getMessage()); }
     }
     private static void scan(String raw) {
+        if (raw.equals("[ONIMARKET:BEGIN]")) {
+            playerPositions.clear();
+            positionsUpdatedAt=0;
+            return;
+        }
+        if (raw.startsWith("[ONIMARKET:POS]")) {
+            try {
+                String[] parts = raw.substring("[ONIMARKET:POS]".length()).split("\\|",5);
+                if(parts.length==5 && parts[0].matches("[A-Za-z0-9_]{1,16}")) {
+                    PlayerPos p = new PlayerPos(parts[0],parts[1],
+                        Integer.parseInt(parts[2]), Integer.parseInt(parts[3]), Integer.parseInt(parts[4]));
+                    if(playerPositions.size()<500) playerPositions.put(p.name,p);
+                }
+            } catch (RuntimeException ignored) { }
+            return;
+        }
+        if (raw.equals("[ONIMARKET:END]")) {
+            positionsUpdatedAt=System.currentTimeMillis();
+            return;
+        }
         String item = lastItem;
         Matcher named = Pattern.compile("(?:item|produto)\\s*[:=-]\\s*([\\p{L}0-9_ -]{2,35})", Pattern.CASE_INSENSITIVE).matcher(raw);
         if (named.find()) item = named.group(1).trim();
@@ -149,69 +180,196 @@ public class OniMarketClient implements ClientModInitializer {
         return String.format(Locale.US, "%.2f", v);
     }
     private static class MarketScreen extends Screen {
-        private String status = "Use /shop ou /preco no servidor.";
-        private EditBox itemField;
+        private static boolean playersTab = false;
+        private static boolean onlyProfit = false;
+        private static int sortMode=0;
+        private static String searchText="";
+        private static int pricePage=0;
+        private static int playersPage=0;
+        private EditBox filterBox;
+        private EditBox priceItemBox;
+        private String status="Abra /shop e percorra as páginas para coletar os itens.";
+        private int startX, panelW, rowsPerPage;
+
         MarketScreen() { super(Component.literal("OniMarket")); }
         @Override protected void init() {
-            int x = width/2-105;
-            itemField = new EditBox(font, x, height/2-109, 210, 20, Component.literal("Item para /preco"));
-            itemField.setMaxLength(64);
-            addRenderableWidget(itemField);
-            addRenderableWidget(Button.builder(Component.literal("Abrir /shop"), b -> send("shop")).bounds(x, height/2-75,210,20).build());
-            addRenderableWidget(Button.builder(Component.literal("Consultar /preco"), b -> {
-                String item = itemField.getValue().trim().replace("/", "");
-                if(item.isBlank()) { status = "Digite um item antes de consultar."; return; }
-                lastItem = item;
-                send("preco "+item);
-            }).bounds(x,height/2-48,210,20).build());
-            addRenderableWidget(Button.builder(Component.literal("Pesquisar itens coletados"), b -> {
-                queue = new ArrayList<>(prices.keySet());
-                queue.sort(String::compareToIgnoreCase);
-                autoIndex = queue.isEmpty() ? -1 : 0;
-                nextAutoQuery = System.currentTimeMillis();
-                status = queue.isEmpty() ? "Abra /shop e explore os itens primeiro." : "Pesquisa iniciada: ate 12 itens, 5s por consulta.";
-                if (autoIndex >= 0) onClose();
-            }).bounds(x,height/2-21,210,20).build());
-            addRenderableWidget(Button.builder(Component.literal("Fechar"), b -> onClose()).bounds(x,height/2+123,210,20).build());
+            panelW = Math.min(760, width-20);
+            startX = (width-panelW)/2;
+            rowsPerPage=Math.max(1,(height-189)/16);
+            int x=startX;
+            addRenderableWidget(Button.builder(Component.literal("PREÇOS"), b -> {
+                playersTab=false; Minecraft.getInstance().setScreen(new MarketScreen());
+            }).bounds(x+8,22,Math.min(120,panelW/3),20).build());
+            addRenderableWidget(Button.builder(Component.literal("JOGADORES"), b -> {
+                playersTab=true; Minecraft.getInstance().setScreen(new MarketScreen());
+            }).bounds(x+Math.min(138,panelW/3+14),22,Math.min(120,panelW/3),20).build());
+            addRenderableWidget(Button.builder(Component.literal("X"), b -> onClose())
+                .bounds(x+panelW-30,22,22,20).build());
+
+            filterBox=new EditBox(font,x+8,49,Math.max(100,Math.min(260,panelW/3)),20,Component.literal("Pesquisar"));
+            filterBox.setMaxLength(70);
+            filterBox.setValue(searchText);
+            addRenderableWidget(filterBox);
+
+            if (!playersTab) {
+                int fx=x+Math.max(115,Math.min(270,panelW/3)+12);
+                addRenderableWidget(Button.builder(Component.literal(sortLabel()), b -> {
+                    sortMode=(sortMode+1)%4;
+                    b.setMessage(Component.literal(sortLabel()));
+                    pricePage=0;
+                }).bounds(fx,49,Math.max(75,Math.min(145,panelW/4)),20).build());
+                int profitX=fx+Math.max(75,Math.min(145,panelW/4))+5;
+                if (profitX+95<x+panelW)
+                    addRenderableWidget(Button.builder(Component.literal(profitLabel()), b -> {
+                        onlyProfit=!onlyProfit; pricePage=0;
+                        b.setMessage(Component.literal(profitLabel()));
+                    }).bounds(profitX,49,Math.min(130,x+panelW-profitX-8),20).build());
+                addRenderableWidget(Button.builder(Component.literal("/shop"), b -> send("shop"))
+                    .bounds(x+8,76,75,20).build());
+                priceItemBox=new EditBox(font,x+88,76,Math.max(75,Math.min(245,panelW/3)),20,Component.literal("Item para /preco"));
+                priceItemBox.setMaxLength(64);
+                addRenderableWidget(priceItemBox);
+                int queryX=x+93+Math.max(75,Math.min(245,panelW/3));
+                if(queryX+75<x+panelW) addRenderableWidget(Button.builder(Component.literal("/preco"), b -> {
+                    String item=priceItemBox.getValue().trim().replace("/","");
+                    if(item.isBlank()) { status="Digite o nome do item."; return; }
+                    lastItem=item; send("preco "+item);
+                }).bounds(queryX,76,75,20).build());
+                int findX=queryX+80;
+                if(findX+80<x+panelW) addRenderableWidget(Button.builder(Component.literal("Pesquisar"), b -> {
+                    queue=new ArrayList<>(prices.keySet());
+                    queue.sort(String::compareToIgnoreCase);
+                    autoIndex=queue.isEmpty()?-1:0;
+                    nextAutoQuery=System.currentTimeMillis();
+                    status=queue.isEmpty()?"Explore /shop primeiro.":"Consultando até 12 itens coletados.";
+                    if(autoIndex>=0) onClose();
+                }).bounds(findX,76,Math.min(106,x+panelW-findX-8),20).build());
+            } else {
+                addRenderableWidget(Button.builder(Component.literal("Atualizar coordenadas"), b -> send("onimarketplayers"))
+                    .bounds(x+8,76,190,20).build());
+            }
+            addRenderableWidget(Button.builder(Component.literal("◀ Anterior"), b -> {
+                if(playersTab) playersPage=Math.max(0,playersPage-1);
+                else pricePage=Math.max(0,pricePage-1);
+            }).bounds(x+8,height-36,110,20).build());
+            addRenderableWidget(Button.builder(Component.literal("Próximo ▶"), b -> {
+                if(playersTab) playersPage++;
+                else pricePage++;
+            }).bounds(x+124,height-36,110,20).build());
         }
+
+        private String sortLabel() {
+            return switch(sortMode) {
+                case 1 -> "Compra menor";
+                case 2 -> "Venda maior";
+                case 3 -> "Nome A-Z";
+                default -> "Lucro maior";
+            };
+        }
+        private String profitLabel() { return onlyProfit?"Apenas lucro: SIM":"Apenas lucro: NÃO"; }
+
         private void send(String command) {
-            Minecraft mc = Minecraft.getInstance();
-            if (command.equals("shop")) scanUntil = System.currentTimeMillis()+180000;
-            if(mc.player != null && mc.player.connection != null) {
-                mc.player.connection.sendCommand(command);
-                status = "Comando /"+command+" enviado. Confira a resposta.";
-            }
+            Minecraft mc=Minecraft.getInstance();
+            if(mc.getConnection()==null) {status="Conecte-se ao servidor.";return;}
+            if(command.equals("shop")) scanUntil=System.currentTimeMillis()+180000;
+            mc.getConnection().sendCommand(command);
+            status="Enviado /"+command;
         }
-        @Override public void render(GuiGraphics g, int mouseX, int mouseY, float delta) {
+
+        @Override public void render(GuiGraphics g,int mouseX,int mouseY,float delta) {
+            g.fill(startX,8,startX+panelW,height-8,0xD9141923);
             super.render(g,mouseX,mouseY,delta);
-            g.drawCenteredString(font, "ONIMARKET • ANALISADOR", width/2,height/2-132,0xFFFFFF);
-            g.drawCenteredString(font,status,width/2,height/2+13,0xDDDDDD);
-            g.drawCenteredString(font, "Itens registrados: "+prices.size()+" | "+serverName,width/2,height/2+23,0xBBBBBB);
-            List<Map.Entry<String,Prices>> list = new ArrayList<>(prices.entrySet());
-            list.sort((a,b) -> {
-                double pa = (a.getValue().buy < 0 || a.getValue().sell < 0) ? -Double.MAX_VALUE : a.getValue().sell-a.getValue().buy;
-                double pb = (b.getValue().buy < 0 || b.getValue().sell < 0) ? -Double.MAX_VALUE : b.getValue().sell-b.getValue().buy;
-                return Double.compare(pb,pa);
-            });
-            int x = Math.max(6, width/2-155);
-            g.drawString(font, "ITEM", x, height/2+38, 0xAAAAAA);
-            g.drawString(font, "COMPRA", x+105, height/2+38, 0xAAAAAA);
-            g.drawString(font, "VENDA", x+170, height/2+38, 0xAAAAAA);
-            g.drawString(font, "LUCRO", x+235, height/2+38, 0xAAAAAA);
-            int y = height/2+53;
-            for(int i=0;i<Math.min(4,list.size());i++) {
-                var e=list.get(i);
-                Prices p=e.getValue();
-                double profit=p.sell-p.buy;
-                String item = e.getKey();
-                while(item.length()>2 && font.width(item)>100) item=item.substring(0,item.length()-2)+"…";
-                g.drawString(font,item,x,y,0xEEEEEE);
-                g.drawString(font,fmt(p.buy),x+105,y,0xFFCB6B);
-                g.drawString(font,fmt(p.sell),x+170,y,0x85D5FF);
-                g.drawString(font,p.buy<0||p.sell<0?"--":fmt(profit),x+235,y,p.buy<0||p.sell<0?0x999999:profit>0?0x55FF88:0xFF7777);
-                y+=14;
+            g.drawCenteredString(font,"ONIMARKET | "+(playersTab?"ADMINISTRAÇÃO":"ECONOMIA"),width/2,10,0xFFFFFF);
+            String current=filterBox==null?"":filterBox.getValue();
+            if(!searchText.equals(current)) {
+                searchText=current;
+                pricePage=0;playersPage=0;
             }
-            if (list.size()>4) g.drawCenteredString(font, "Mostrando 4 de "+list.size()+" itens",width/2,height/2+110,0xAAAAAA);
+            if(playersTab) drawPlayers(g);
+            else drawPrices(g);
         }
+
+        private void drawPrices(GuiGraphics g) {
+            int x=startX;
+            String filter=searchText.toLowerCase(Locale.ROOT);
+            List<Map.Entry<String,Prices>> list=new ArrayList<>(prices.entrySet());
+            list.removeIf(e -> !e.getKey().toLowerCase(Locale.ROOT).contains(filter)
+                || (onlyProfit && (e.getValue().buy<0 || e.getValue().sell<0 || e.getValue().sell<=e.getValue().buy)));
+            Comparator<Map.Entry<String,Prices>> byProfit=Comparator.comparingDouble(e->{
+                Prices p=e.getValue();return p.buy>=0 && p.sell>=0 ? p.sell-p.buy : -Double.MAX_VALUE;
+            });
+            switch(sortMode) {
+                case 1 -> list.sort(Comparator.comparingDouble(e->e.getValue().buy>=0?e.getValue().buy:Double.MAX_VALUE));
+                case 2 -> list.sort(Comparator.comparingDouble((Map.Entry<String,Prices> e)->e.getValue().sell).reversed());
+                case 3 -> list.sort(Map.Entry.comparingByKey(String.CASE_INSENSITIVE_ORDER));
+                default -> list.sort(byProfit.reversed());
+            }
+            int pages=Math.max(1,(list.size()+rowsPerPage-1)/rowsPerPage);
+            pricePage=Math.min(pricePage,pages-1);
+            g.drawString(font,"ITEM / BLOCO",x+10,109,0xDDDDDD);
+            int buy=x+(int)(panelW*.45), sell=x+(int)(panelW*.63), gain=x+(int)(panelW*.81);
+            g.drawString(font,"COMPRA",buy,109,0xFFCA7B);
+            g.drawString(font,"VENDA",sell,109,0x89CBFF);
+            g.drawString(font,"LUCRO",gain,109,0x83F4A1);
+            g.fill(x+8,122,x+panelW-8,123,0xFF47576A);
+            int first=pricePage*rowsPerPage;
+            for(int j=0;j<rowsPerPage && first+j<list.size();j++) {
+                var e=list.get(first+j);
+                int y=128+j*16;
+                if(j%2==0) g.fill(x+8,y-2,x+panelW-8,y+13,0x2AFFFFFF);
+                Prices p=e.getValue();
+                String name=shortText(e.getKey(),Math.max(80,buy-x-16));
+                g.drawString(font,name,x+10,y,0xEEEEEE);
+                g.drawString(font,fmt(p.buy),buy,y,0xFFCA7B);
+                g.drawString(font,fmt(p.sell),sell,y,0x89CBFF);
+                double profit=p.sell-p.buy;
+                g.drawString(font,p.buy<0||p.sell<0?"--":fmtSigned(profit),gain,y,
+                    p.buy<0||p.sell<0?0x999999:profit>0?0x63E18C:0xF48787);
+            }
+            if(list.isEmpty()) g.drawCenteredString(font,"Nenhum item coletado. Abra /shop e navegue pelas páginas.",width/2,150,0xCCCCCC);
+            String footer=list.size()+" de "+prices.size()+" itens | página "+(pricePage+1)+"/"+pages+" | "+serverName;
+            g.drawCenteredString(font,footer,width/2,height-61,0xCCCCCC);
+            g.drawCenteredString(font,status,width/2,height-49,0xAAAAAA);
+        }
+
+        private void drawPlayers(GuiGraphics g) {
+            int x=startX;
+            g.drawString(font,"NICK",x+10,109,0xDDDDDD);
+            int worldX=x+(int)(panelW*.30), cx=x+(int)(panelW*.58),
+                cy=x+(int)(panelW*.72), cz=x+(int)(panelW*.85);
+            g.drawString(font,"MUNDO",worldX,109,0xDDDDDD);
+            g.drawString(font,"X",cx,109,0xFFCA7B);
+            g.drawString(font,"Y",cy,109,0x89CBFF);
+            g.drawString(font,"Z",cz,109,0x83F4A1);
+            g.fill(x+8,122,x+panelW-8,123,0xFF47576A);
+            List<PlayerPos> list=new ArrayList<>(playerPositions.values());
+            list.removeIf(p -> !p.name.toLowerCase(Locale.ROOT).contains(searchText.toLowerCase(Locale.ROOT)));
+            list.sort(Comparator.comparing(p->p.name.toLowerCase(Locale.ROOT)));
+            int pages=Math.max(1,(list.size()+rowsPerPage-1)/rowsPerPage);
+            playersPage=Math.min(playersPage,pages-1);
+            int first=playersPage*rowsPerPage;
+            for(int j=0;j<rowsPerPage && first+j<list.size();j++) {
+                PlayerPos p=list.get(first+j);
+                int y=128+j*16;
+                if(j%2==0)g.fill(x+8,y-2,x+panelW-8,y+13,0x2AFFFFFF);
+                g.drawString(font,shortText(p.name,worldX-x-16),x+10,y,0xEEEEEE);
+                g.drawString(font,shortText(p.world,cx-worldX-10),worldX,y,0xBBBBBB);
+                g.drawString(font,Integer.toString(p.x),cx,y,0xFFCA7B);
+                g.drawString(font,Integer.toString(p.y),cy,y,0x89CBFF);
+                g.drawString(font,Integer.toString(p.z),cz,y,0x83F4A1);
+            }
+            String status=positionsUpdatedAt==0
+                ?"Instale OniMarket-Admin no servidor Paper; permissão: onimarket.admin"
+                :list.size()+" jogadores | página "+(playersPage+1)+"/"+pages+
+                (System.currentTimeMillis()-positionsUpdatedAt>120000?" | ATUALIZE OS DADOS":" | atualizado");
+            g.drawCenteredString(font,status,width/2,height-58,0xCCCCCC);
+            g.drawCenteredString(font,"Coordenadas só são enviadas ao administrador autorizado.",width/2,height-46,0xAAAAAA);
+        }
+        private String shortText(String value,int maxWidth) {
+            if(maxWidth<25)return "...";
+            while(value.length()>1 && font.width(value)>maxWidth) value=value.substring(0,value.length()-1);
+            return value;
+        }
+        private String fmtSigned(double v) {return (v>0?"+":"")+fmt(v);}
     }
 }
