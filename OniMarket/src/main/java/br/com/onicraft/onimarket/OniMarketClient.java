@@ -220,7 +220,7 @@ public class OniMarketClient implements ClientModInitializer {
         private static int playersPage=0;
         private EditBox filterBox;
         private EditBox priceItemBox;
-        private String status="Abra /shop e percorra as páginas para coletar os itens.";
+        private String status="Catálogo de referência disponível; percorra /shop para obter preços atuais.";
         private int startX, panelW, rowsPerPage;
 
         MarketScreen() { super(Component.literal("OniMarket")); }
@@ -331,12 +331,12 @@ public class OniMarketClient implements ClientModInitializer {
             String filter=searchText.toLowerCase(Locale.ROOT);
             List<Map.Entry<String,Prices>> list=new ArrayList<>(prices.entrySet());
             list.removeIf(e -> !e.getKey().toLowerCase(Locale.ROOT).contains(filter)
-                || (onlyProfit && (e.getValue().buy<0 || e.getValue().sell<0 || e.getValue().sell<=e.getValue().buy)));
+                || (onlyProfit && (e.getValue().buy<=0 || e.getValue().sell<=0 || e.getValue().sell<=e.getValue().buy)));
             Comparator<Map.Entry<String,Prices>> byProfit=Comparator.comparingDouble(e->{
-                Prices p=e.getValue();return p.buy>=0 && p.sell>=0 ? p.sell-p.buy : -Double.MAX_VALUE;
+                Prices p=e.getValue();return p.buy>0 && p.sell>0 ? p.sell-p.buy : -Double.MAX_VALUE;
             });
             switch(sortMode) {
-                case 1 -> list.sort(Comparator.comparingDouble(e->e.getValue().buy>=0?e.getValue().buy:Double.MAX_VALUE));
+                case 1 -> list.sort(Comparator.comparingDouble(e->e.getValue().buy>0?e.getValue().buy:Double.MAX_VALUE));
                 case 2 -> list.sort(Comparator.comparingDouble((Map.Entry<String,Prices> e)->e.getValue().sell).reversed());
                 case 3 -> list.sort(Map.Entry.comparingByKey(String.CASE_INSENSITIVE_ORDER));
                 default -> list.sort(byProfit.reversed());
@@ -357,11 +357,11 @@ public class OniMarketClient implements ClientModInitializer {
                 Prices p=e.getValue();
                 String name=shortText((p.reference?"*":"")+e.getKey(),Math.max(80,buy-x-16));
                 g.drawString(font,name,x+10,y,0xEEEEEE);
-                g.drawString(font,fmt(p.buy),buy,y,0xFFCA7B);
-                g.drawString(font,fmt(p.sell),sell,y,0x89CBFF);
+                g.drawString(font,p.buy>0?fmt(p.buy):"--",buy,y,0xFFCA7B);
+                g.drawString(font,p.sell>0?fmt(p.sell):"--",sell,y,0x89CBFF);
                 double profit=p.sell-p.buy;
-                g.drawString(font,p.buy<0||p.sell<0?"--":fmtSigned(profit),gain,y,
-                    p.buy<0||p.sell<0?0x999999:profit>0?0x63E18C:0xF48787);
+                g.drawString(font,p.buy<=0||p.sell<=0?"--":fmtSigned(profit),gain,y,
+                    p.buy<=0||p.sell<=0?0x999999:profit>0?0x63E18C:0xF48787);
             }
             if(list.isEmpty()) g.drawCenteredString(font,"Nenhum item coletado. Abra /shop e navegue pelas páginas.",width/2,150,0xCCCCCC);
             long referenceCount=prices.values().stream().filter(p->p.reference).count();
