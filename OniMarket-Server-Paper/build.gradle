@@ -1,6 +1,6 @@
 plugins { id 'java' }
 group = 'br.com.onicraft'
-version = '1.3.0'
+version = '1.4.0'
 base { archivesName = 'OniMarket-Admin-Paper-1.21.11' }
 repositories {
     mavenCentral()
