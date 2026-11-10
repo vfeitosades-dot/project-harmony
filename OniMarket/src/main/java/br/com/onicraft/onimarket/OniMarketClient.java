@@ -102,12 +102,12 @@ public class OniMarketClient implements ClientModInitializer {
         if(client.level==null || client.getConnection()==null) return;
         Map<String,PlayerPos> snapshot=new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         for(PlayerInfo info:client.getConnection().getListedOnlinePlayers()) {
-            String nick=info.getProfile().getName();
+            String nick=info.getProfile().name();
             if(nick!=null && !nick.isBlank()) {
                 snapshot.put(nick,new PlayerPos(nick,"fora do alcance",0,0,0,false));
             }
         }
-        String dimension=client.level.dimension().location().toString();
+        String dimension=client.level.dimension().identifier().toString();
         for(AbstractClientPlayer player:client.level.players()) {
             String nick=player.getName().getString();
             if(nick==null || nick.isBlank())continue;
