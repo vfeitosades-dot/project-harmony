@@ -1,20 +1,21 @@
-# OniMarket 1.5.0 — mod único Fabric 1.21.11
+# OniMarket 1.6 — Fabric 1.21.11 (somente o cliente)
 
-Este projeto é um **mod somente para o cliente**. Não exige plugin na host, nem OP, nem modificar o servidor.
+**JAR único.** Não precisa instalar plugin no servidor.
 
 ## Instalação
-1. Instale Fabric Loader e Fabric API compatíveis com Minecraft Java 1.21.11.
-2. Remova versões antigas do OniMarket de `mods/` para evitar mods duplicados.
-3. Coloque **somente** `OniMarket-1.21.11-1.5.0.jar` em `.minecraft/mods/`.
-4. Inicie o jogo e pressione **P**, ou use o comando local `/onimarketui`.
+- Minecraft Java 1.21.11, Java 21, Fabric Loader e Fabric API
+- Remova **todas** as versões anteriores de OniMarket da pasta `.minecraft/mods`.
+- Coloque `OniMarket-1.21.11-1.6.0.jar` na mesma pasta.
+- Entre no servidor, pressione **P** ou use `/onimarketui`.
 
-## Economia
-A aba PREÇOS mostra todos os produtos que conseguiu reconhecer em lojas GUI e mensagens. Cada linha possui compra, venda e lucro por unidade. Quando o servidor não divulga algum valor, mostra **--**; preços nunca são inventados. As lojas podem ter formatos diferentes — visite suas páginas após usar `/shop` para coletar os valores.
+## Aba ECONOMIA
+O mod carrega **242 itens de referência** do projeto ONICRAFT 5.1, mesmo antes de acessar a loja. **Esses valores não são garantidos como atuais**: são identificados com um asterisco (*) e o rodapé indica quantos são referência.
+Abra `/shop` e percorra as páginas. As descrições de itens do inventário são analisadas e os preços reais passam a substituir os valores de referência, que deixam de ter o asterisco. Se uma compra ou venda não estiver disponível, mostra `--`. A comparação só usa preços conhecidos e positivos.
 
-## Jogadores — limitações importantes
-A aba JOGADORES mostra os nicks na lista TAB do servidor, e coordenadas X/Y/Z **somente de jogadores que estão carregados no cliente**, ou seja, geralmente os que estão próximos, na mesma dimensão. Para pessoas distantes, os valores aparecem como `--` e o estado 'fora do alcance'.
+**Não é possível garantir o preço atual de todas as páginas sem o servidor enviar os dados.** O mod não compra ou vende nada automaticamente.
 
-**Não há forma de um mod exclusivamente instalado no PC obter as coordenadas globais de outros jogadores se o servidor não enviar esses dados.** O plugin Paper antigo não é usado nesta versão.
+## Aba JOGADORES
+Mostra os nicks disponíveis na lista TAB e, no mínimo, o seu próprio jogador. X/Y/Z são mostrados somente para entidades de jogadores que o cliente realmente tem carregadas. Para jogadores distantes, `--` significa coordenadas desconhecidas. Nenhum plugin é necessário.
 
-## Arquivos
-Basta instalar um único arquivo JAR. A versão é para Java 21, Fabric 1.21.11.
+## Diagnóstico
+Se o conteúdo real da loja não for capturado, o rodapé mostra a última janela analisada e o número de capturas. Ao informar um erro, compartilhe o arquivo `.minecraft/logs/latest.log` e, se possível, uma imagem de `/shop` com o item selecionado.
