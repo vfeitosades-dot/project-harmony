@@ -220,6 +220,11 @@ public class OniMarketClient implements ClientModInitializer {
         private static int playersPage=0;
         private EditBox filterBox;
         private EditBox priceItemBox;
+        private static final int MAX_AUTOCOMPLETE = 6;
+        private final List<Button> autocompleteButtons = new ArrayList<>();
+        private final List<Button> shopActionButtons = new ArrayList<>();
+        private List<String> autocompleteResults = List.of();
+        private boolean autocompleteOpen = false;
         private String status="Catálogo de referência disponível; percorra /shop para obter preços atuais.";
         private int startX, panelW, rowsPerPage;
 
@@ -230,10 +235,11 @@ public class OniMarketClient implements ClientModInitializer {
             rowsPerPage=Math.max(1,(height-189)/16);
             int x=startX;
             addRenderableWidget(Button.builder(Component.literal("PREÇOS"), b -> {
-                playersTab=false; Minecraft.getInstance().setScreen(new MarketScreen());
+                playersTab=false; searchText=""; Minecraft.getInstance().setScreen(new MarketScreen());
             }).bounds(x+8,22,Math.min(120,panelW/3),20).build());
             addRenderableWidget(Button.builder(Component.literal("JOGADORES"), b -> {
                 playersTab=true;
+                searchText="";
                 refreshPlayers(Minecraft.getInstance());
                 Minecraft.getInstance().setScreen(new MarketScreen());
             }).bounds(x+Math.min(138,panelW/3+14),22,Math.min(120,panelW/3),20).build());
@@ -258,29 +264,29 @@ public class OniMarketClient implements ClientModInitializer {
                         onlyProfit=!onlyProfit; pricePage=0;
                         b.setMessage(Component.literal(profitLabel()));
                     }).bounds(profitX,49,Math.min(130,x+panelW-profitX-8),20).build());
-                addRenderableWidget(Button.builder(Component.literal("/shop"), b -> send("shop"))
-                    .bounds(x+8,76,75,20).build());
+                shopActionButtons.add(addRenderableWidget(Button.builder(Component.literal("/shop"), b -> send("shop"))
+                    .bounds(x+8,76,75,20).build()));
                 priceItemBox=new EditBox(font,x+88,76,Math.max(75,Math.min(245,panelW/3)),20,Component.literal("Item para /preco"));
                 priceItemBox.setMaxLength(64);
                 addRenderableWidget(priceItemBox);
                 int queryX=x+93+Math.max(75,Math.min(245,panelW/3));
-                if(queryX+75<x+panelW) addRenderableWidget(Button.builder(Component.literal("/preco"), b -> {
+                if(queryX+75<x+panelW) shopActionButtons.add(addRenderableWidget(Button.builder(Component.literal("/preco"), b -> {
                     String item=priceItemBox.getValue().trim().replace("/","");
                     if(item.isBlank()) { status="Digite o nome do item."; return; }
                     lastItem=item; send("preco "+item);
-                }).bounds(queryX,76,75,20).build());
+                }).bounds(queryX,76,75,20).build()));
                 int findX=queryX+80;
-                if(findX+80<x+panelW) addRenderableWidget(Button.builder(Component.literal("Pesquisar"), b -> {
+                if(findX+80<x+panelW) shopActionButtons.add(addRenderableWidget(Button.builder(Component.literal("Pesquisar"), b -> {
                     queue=new ArrayList<>(prices.keySet());
                     queue.sort(String::compareToIgnoreCase);
                     autoIndex=queue.isEmpty()?-1:0;
                     nextAutoQuery=System.currentTimeMillis();
                     status=queue.isEmpty()?"Explore /shop primeiro.":"Consultando até 12 itens coletados.";
                     if(autoIndex>=0) onClose();
-                }).bounds(findX,76,Math.min(106,x+panelW-findX-8),20).build());
+                }).bounds(findX,76,Math.min(106,x+panelW-findX-8),20).build()));
             } else {
-                addRenderableWidget(Button.builder(Component.literal("Atualizar jogadores"), b -> { refreshPlayers(Minecraft.getInstance()); status="Lista local atualizada."; })
-                    .bounds(x+8,76,190,20).build());
+                shopActionButtons.add(addRenderableWidget(Button.builder(Component.literal("Atualizar jogadores"), b -> { refreshPlayers(Minecraft.getInstance()); status="Lista local atualizada."; })
+                    .bounds(x+8,76,190,20).build()));
             }
             addRenderableWidget(Button.builder(Component.literal("◀ Anterior"), b -> {
                 if(playersTab) playersPage=Math.max(0,playersPage-1);
@@ -290,6 +296,48 @@ public class OniMarketClient implements ClientModInitializer {
                 if(playersTab) playersPage++;
                 else pricePage++;
             }).bounds(x+124,height-36,110,20).build());
+
+            // O menu de sugestões é colocado sobre as ações enquanto o usuário digita.
+            // Os botões de ação são ocultados durante a escolha, evitando cliques acidentais.
+            int suggestionWidth=Math.max(100,Math.min(260,panelW/3));
+            int maxRows=Math.min(MAX_AUTOCOMPLETE,Math.max(1,(height-160)/20));
+            for(int i=0;i<maxRows;i++) {
+                final int index=i;
+                Button option=Button.builder(Component.empty(),button -> {
+                    if(index>=autocompleteResults.size())return;
+                    String selected=autocompleteResults.get(index);
+                    filterBox.setValue(selected);
+                    searchText=selected;
+                    pricePage=0; playersPage=0;
+                    autocompleteOpen=false;
+                    filterBox.setFocused(false);
+                    updateAutocomplete();
+                }).bounds(x+8,73+i*21,suggestionWidth,20).build();
+                option.visible=false;
+                autocompleteButtons.add(option);
+                addRenderableWidget(option);
+            }
+        }
+
+        private void updateAutocomplete() {
+            if(filterBox==null)return;
+            boolean hasQuery=autocompleteOpen && !filterBox.getValue().isBlank();
+            Collection<String> source=playersTab ? playerPositions.keySet() : prices.keySet();
+            autocompleteResults=hasQuery
+                ? SearchSuggestions.find(source,filterBox.getValue(),autocompleteButtons.size())
+                : List.of();
+            boolean popup=!autocompleteResults.isEmpty();
+            for(int i=0;i<autocompleteButtons.size();i++) {
+                Button button=autocompleteButtons.get(i);
+                button.visible=popup && i<autocompleteResults.size();
+                if(button.visible) {
+                    String item=autocompleteResults.get(i);
+                    String display=playersTab ? item : SearchSuggestions.displayName(item);
+                    button.setMessage(Component.literal((i+1)+". "+shortText(display,Math.max(75,Math.min(260,panelW/3)-22))));
+                }
+            }
+            for(Button button:shopActionButtons)button.visible=!popup;
+            if(priceItemBox!=null)priceItemBox.visible=!popup;
         }
 
         private String sortLabel() {
@@ -315,22 +363,29 @@ public class OniMarketClient implements ClientModInitializer {
 
         @Override public void render(GuiGraphics g,int mouseX,int mouseY,float delta) {
             g.fill(startX,8,startX+panelW,height-8,0xD9141923);
-            super.render(g,mouseX,mouseY,delta);
-            g.drawCenteredString(font,"ONIMARKET | "+(playersTab?"JOGADORES":"ECONOMIA"),width/2,10,0xFFFFFF);
             String current=filterBox==null?"":filterBox.getValue();
             if(!searchText.equals(current)) {
                 searchText=current;
                 pricePage=0;playersPage=0;
+                autocompleteOpen=!current.isBlank();
+                updateAutocomplete();
             }
             if(playersTab) drawPlayers(g);
             else drawPrices(g);
+            if(autocompleteOpen && !autocompleteResults.isEmpty()) {
+                int w=Math.max(100,Math.min(260,panelW/3));
+                g.fill(startX+5,70,startX+11+w,75+autocompleteResults.size()*21,0xF4182231);
+            }
+            g.drawCenteredString(font,"ONIMARKET | "+(playersTab?"JOGADORES":"ECONOMIA"),width/2,10,0xFFFFFF);
+            // Desenhar os widgets por último mantém as sugestões visíveis acima da tabela.
+            super.render(g,mouseX,mouseY,delta);
         }
 
         private void drawPrices(GuiGraphics g) {
             int x=startX;
-            String filter=searchText.toLowerCase(Locale.ROOT);
+            String filter=searchText;
             List<Map.Entry<String,Prices>> list=new ArrayList<>(prices.entrySet());
-            list.removeIf(e -> !e.getKey().toLowerCase(Locale.ROOT).contains(filter)
+            list.removeIf(e -> !SearchSuggestions.matches(e.getKey(),filter)
                 || (onlyProfit && (e.getValue().buy<=0 || e.getValue().sell<=0 || e.getValue().sell<=e.getValue().buy)));
             Comparator<Map.Entry<String,Prices>> byProfit=Comparator.comparingDouble(e->{
                 Prices p=e.getValue();return p.buy>0 && p.sell>0 ? p.sell-p.buy : -Double.MAX_VALUE;
@@ -382,7 +437,7 @@ public class OniMarketClient implements ClientModInitializer {
             g.drawString(font,"Z",cz,109,0x83F4A1);
             g.fill(x+8,122,x+panelW-8,123,0xFF47576A);
             List<PlayerPos> list=new ArrayList<>(playerPositions.values());
-            list.removeIf(p -> !p.name.toLowerCase(Locale.ROOT).contains(searchText.toLowerCase(Locale.ROOT)));
+            list.removeIf(p -> !SearchSuggestions.matches(p.name,searchText));
             list.sort(Comparator.comparing(p->p.name.toLowerCase(Locale.ROOT)));
             int pages=Math.max(1,(list.size()+rowsPerPage-1)/rowsPerPage);
             playersPage=Math.min(playersPage,pages-1);
