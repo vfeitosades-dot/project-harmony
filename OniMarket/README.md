@@ -1,11 +1,11 @@
-# OniMarket 1.6 — Fabric 1.21.11 (somente o cliente)
+# OniMarket 1.7 — Fabric 1.21.11 (somente o cliente)
 
 **JAR único.** Não precisa instalar plugin no servidor.
 
 ## Instalação
 - Minecraft Java 1.21.11, Java 21, Fabric Loader e Fabric API
 - Remova **todas** as versões anteriores de OniMarket da pasta `.minecraft/mods`.
-- Coloque `OniMarket-1.21.11-1.6.0.jar` na mesma pasta.
+- Coloque `OniMarket-1.21.11-1.7.0.jar` na mesma pasta.
 - Entre no servidor, pressione **P** ou use `/onimarketui`.
 
 ## Aba ECONOMIA
@@ -19,3 +19,6 @@ Mostra os nicks disponíveis na lista TAB e, no mínimo, o seu próprio jogador.
 
 ## Diagnóstico
 Se o conteúdo real da loja não for capturado, o rodapé mostra a última janela analisada e o número de capturas. Ao informar um erro, compartilhe o arquivo `.minecraft/logs/latest.log` e, se possível, uma imagem de `/shop` com o item selecionado.
+
+## Pesquisa com sugestões (1.7)
+No menu (tecla P), digite qualquer parte do nome de um item no campo de pesquisa. O catálogo é filtrado ao vivo e até seis sugestões aparecem imediatamente abaixo do campo. Clique em uma opção para selecioná-la. Itens que começam com o texto digitado aparecem primeiro. Os nomes também aceitam buscas em português para itens comuns (ex.: `diamante`, `ferro`, `pedra`). A aba JOGADORES também aceita busca instantânea por nick.
