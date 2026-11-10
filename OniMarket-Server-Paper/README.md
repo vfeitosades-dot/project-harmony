@@ -1,15 +1,15 @@
-# OniMarket Admin — Paper 1.21.11
+# OniMarket - complemento de coordenadas para Paper 1.21.11
 
-Este plugin foi feito para instalar no **servidor Paper** (não é um mod de cliente).
+**Todos os jogadores** podem executar `/onimarketplayers`, sem OP e sem permissão de administrador.
 
 ## Instalação
-Coloque `OniMarket-Admin-Paper-1.21.11-1.2.0.jar` na pasta `plugins/` do servidor e reinicie.
-Instale o mod Fabric OniMarket no seu computador.
-Entre como OP ou conceda a permissão `onimarket.admin` a um usuário de confiança.
-No menu do OniMarket (tecla P), abra **JOGADORES** e use **Atualizar coordenadas**.
+1. Coloque `OniMarket-Admin-Paper-1.21.11-1.3.0.jar` na pasta `plugins/` do servidor Paper.
+2. Reinicie o servidor. Instale o mod Fabric OniMarket no cliente Minecraft 1.21.11.
+3. Pressione **P** -> **JOGADORES** -> **Atualizar coordenadas**. Os nicks, mundos e as coordenadas X/Y/Z aparecerão no painel.
 
-## Privacidade e funcionamento
-Apenas quem tem a permissão `onimarket.admin` consegue executar `/onimarketplayers`.
-O servidor envia as coordenadas atuais somente para o solicitante autorizado por mensagens individuais. Jogadores comuns não recebem a lista.
-A informação muda com a movimentação; pressione **Atualizar coordenadas** para ver as posições recentes.
-Compatibilidade com servidores Fabric, Forge, Spigot ou outros não foi implementada neste complemento.
+## Transparência para jogadores
+Como as coordenadas podem revelar bases ou esconderijos, avise claramente nas regras, MOTD e no spawn que o servidor publica as coordenadas dos jogadores online. O recurso é instalado voluntariamente pelo operador do servidor.
+
+**Limitação:** o comando também pode ser executado diretamente no chat por jogadores que não tenham o mod. Quem tiver o mod verá as posições formatadas na tabela; sem o mod, aparecerão as mensagens de dados brutas no chat.
+
+As posições são um retrato do instante da consulta. Para atualizar, clique novamente no botão. Há limite de uma consulta a cada 2 segundos por usuário.
