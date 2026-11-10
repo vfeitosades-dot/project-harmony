@@ -296,6 +296,16 @@ public class OniMarketClient implements ClientModInitializer {
                 if(playersTab) playersPage++;
                 else pricePage++;
             }).bounds(x+124,height-36,110,20).build());
+            if(panelW>=340) {
+                addRenderableWidget(Button.builder(Component.literal("Limpar busca"), b -> {
+                    searchText="";
+                    autocompleteOpen=false;
+                    pricePage=0; playersPage=0;
+                    filterBox.setValue("");
+                    filterBox.setFocused(false);
+                    updateAutocomplete();
+                }).bounds(x+240,height-36,Math.min(110,panelW-250),20).build());
+            }
 
             // O menu de sugestões é colocado sobre as ações enquanto o usuário digita.
             // Os botões de ação são ocultados durante a escolha, evitando cliques acidentais.
@@ -362,23 +372,34 @@ public class OniMarketClient implements ClientModInitializer {
         }
 
         @Override public void render(GuiGraphics g,int mouseX,int mouseY,float delta) {
-            g.fill(startX,8,startX+panelW,height-8,0xD9141923);
+            // Minecraft 1.21.11: Screen.render desenha o fundo opaco. Nos builds
+            // antigos ele era chamado no final e cobria TODA a tabela!
+            // 1) fundo/controles do Minecraft
+            super.render(g,mouseX,mouseY,delta);
+
+            // 2) tabela, cabeçalhos, valores e diagnósticos DEPOIS do fundo
+            g.fill(startX+5,100,startX+panelW-5,height-42,0xE419202C);
             String current=filterBox==null?"":filterBox.getValue();
             if(!searchText.equals(current)) {
                 searchText=current;
-                pricePage=0;playersPage=0;
+                pricePage=0;
+                playersPage=0;
                 autocompleteOpen=!current.isBlank();
                 updateAutocomplete();
             }
             if(playersTab) drawPlayers(g);
             else drawPrices(g);
+            g.drawCenteredString(font,"ONIMARKET 1.8 | "+(playersTab?"JOGADORES":"ECONOMIA"),width/2,10,0xFFFFFF);
+
+            // 3) opções de autocomplete sobrepostas à tabela, por último
             if(autocompleteOpen && !autocompleteResults.isEmpty()) {
                 int w=Math.max(100,Math.min(260,panelW/3));
-                g.fill(startX+5,70,startX+11+w,75+autocompleteResults.size()*21,0xF4182231);
+                g.fill(startX+5,70,startX+11+w,
+                    75+autocompleteResults.size()*21,0xFF151E2C);
+                for(Button option:autocompleteButtons) {
+                    if(option.visible)option.render(g,mouseX,mouseY,delta);
+                }
             }
-            g.drawCenteredString(font,"ONIMARKET | "+(playersTab?"JOGADORES":"ECONOMIA"),width/2,10,0xFFFFFF);
-            // Desenhar os widgets por último mantém as sugestões visíveis acima da tabela.
-            super.render(g,mouseX,mouseY,delta);
         }
 
         private void drawPrices(GuiGraphics g) {
@@ -418,7 +439,10 @@ public class OniMarketClient implements ClientModInitializer {
                 g.drawString(font,p.buy<=0||p.sell<=0?"--":fmtSigned(profit),gain,y,
                     p.buy<=0||p.sell<=0?0x999999:profit>0?0x63E18C:0xF48787);
             }
-            if(list.isEmpty()) g.drawCenteredString(font,"Nenhum item coletado. Abra /shop e navegue pelas páginas.",width/2,150,0xCCCCCC);
+            if(list.isEmpty()) g.drawCenteredString(font,
+                prices.isEmpty() ? "Sem catálogo carregado: reinicie o Minecraft com o mod." :
+                "Nenhum item combina com a pesquisa. Clique em Limpar busca.",
+                width/2,145,0xFFCB7D);
             long referenceCount=prices.values().stream().filter(p->p.reference).count();
             String footer=list.size()+" itens | "+referenceCount+" referência, "+
                 (prices.size()-referenceCount)+" atualizados | página "+(pricePage+1)+"/"+pages;
@@ -452,6 +476,10 @@ public class OniMarketClient implements ClientModInitializer {
                 g.drawString(font,p.visible?Integer.toString(p.y):"--",cy,y,p.visible?0x89CBFF:0x888888);
                 g.drawString(font,p.visible?Integer.toString(p.z):"--",cz,y,p.visible?0x83F4A1:0x888888);
             }
+            if(list.isEmpty()) g.drawCenteredString(font,
+                playerPositions.isEmpty() ? "Sem conexão ao mundo: entre em um servidor." :
+                "Nenhum jogador combina com a pesquisa. Clique em Limpar busca.",
+                width/2,145,0xFFCB7D);
             long loaded=list.stream().filter(p->p.visible).count();
             g.drawCenteredString(font,list.size()+" online | "+loaded+" com coordenadas visíveis | página "+
                 (playersPage+1)+"/"+pages,width/2,height-58,0xCCCCCC);
