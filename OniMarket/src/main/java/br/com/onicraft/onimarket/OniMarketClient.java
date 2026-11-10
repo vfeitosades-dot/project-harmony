@@ -359,11 +359,11 @@ public class OniMarketClient implements ClientModInitializer {
                 g.drawString(font,Integer.toString(p.z),cz,y,0x83F4A1);
             }
             String status=positionsUpdatedAt==0
-                ?"Instale OniMarket-Admin no servidor Paper; permissão: onimarket.admin"
+                ?"Instale o complemento Paper no servidor para ver as coordenadas"
                 :list.size()+" jogadores | página "+(playersPage+1)+"/"+pages+
                 (System.currentTimeMillis()-positionsUpdatedAt>120000?" | ATUALIZE OS DADOS":" | atualizado");
             g.drawCenteredString(font,status,width/2,height-58,0xCCCCCC);
-            g.drawCenteredString(font,"Coordenadas só são enviadas ao administrador autorizado.",width/2,height-46,0xAAAAAA);
+            g.drawCenteredString(font,"Coordenadas do servidor - visíveis a todos com o mod.",width/2,height-46,0xAAAAAA);
         }
         private String shortText(String value,int maxWidth) {
             if(maxWidth<25)return "...";
