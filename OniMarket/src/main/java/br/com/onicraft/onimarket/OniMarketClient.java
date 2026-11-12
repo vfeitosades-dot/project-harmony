@@ -563,7 +563,7 @@ public class OniMarketClient implements ClientModInitializer {
             if(aiTab) drawAi(g);
             else if(playersTab) drawPlayers(g);
             else drawPrices(g);
-            g.drawCenteredString(font,"ONIMARKET 1.9 | "+(aiTab?"IA DE LUCRO":playersTab?"JOGADORES":"ECONOMIA"),width/2,10,0xFFFFFF);
+            g.drawCenteredString(font,"ONIMARKET 2.0 | "+(aiTab?"IA DE LUCRO":playersTab?"JOGADORES":"ECONOMIA"),width/2,10,0xFFFFFF);
 
             // 3) opções de autocomplete sobrepostas à tabela, por último
             if(autocompleteOpen && !autocompleteResults.isEmpty()) {
