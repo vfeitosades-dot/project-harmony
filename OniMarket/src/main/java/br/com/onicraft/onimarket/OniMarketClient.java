@@ -140,7 +140,10 @@ public class OniMarketClient implements ClientModInitializer {
         aiPages=0;
         aiPageHash=0;
         aiSeenPages.clear();
-        observedPrices.clear(); // descarta valores antigos: somente este escaneamento
+        observedPrices.clear(); // nova análise: apenas /shop desta sessão
+        for(Prices p:prices.values()) {
+            p.reference=true; // histórico fica marcado e não entra nos cálculos
+        }
         opportunities=List.of();
         observations=0;
         aiStarted=System.currentTimeMillis();
@@ -172,35 +175,67 @@ public class OniMarketClient implements ClientModInitializer {
         }
         return count==0?0:hash;
     }
+    private static ShopNavigator.Page currentPage(AbstractContainerScreen<?> screen) {
+        List<Slot> slots=screen.getMenu().slots;
+        int upper=slots.size()>36?slots.size()-36:slots.size();
+        // ONICRAFT reserva o slot 46 para "Pagina X/Y".
+        if(ShopNavigator.isOnicraft(screen.getTitle().getString()) && upper>46){
+            var page=ShopNavigator.page(slots.get(46).getItem().getHoverName().getString());
+            if(page!=null)return page;
+        }
+        for(int i=0;i<upper;i++){
+            ItemStack item=slots.get(i).getItem();
+            if(item.isEmpty())continue;
+            if(BuiltInRegistries.ITEM.getKey(item.getItem()).getPath().equals("book")) {
+                var page=ShopNavigator.page(item.getHoverName().getString());
+                if(page!=null)return page;
+            }
+        }
+        return null;
+    }
     private static int findSafeNextPage(AbstractContainerScreen<?> screen) {
         List<Slot> slots=screen.getMenu().slots;
-        int limit=slots.size()>36?slots.size()-36:slots.size();
-        for(int i=0;i<limit;i++) {
+        int upper=slots.size()>36?slots.size()-36:slots.size();
+        String title=screen.getTitle().getString();
+        if(!ShopNavigator.isShopTitle(title))return -1;
+        // Primeiro tenta o slot exato da loja ONICRAFT.
+        if(ShopNavigator.isOnicraft(title) && upper>53){
+            ItemStack arrow=slots.get(53).getItem();
+            if(!arrow.isEmpty() && ShopNavigator.isNextButton(53,
+                BuiltInRegistries.ITEM.getKey(arrow.getItem()).getPath(),
+                arrow.getHoverName().getString(),title))return slots.get(53).index;
+        }
+        // Alternativa conservadora para outras GUIs compatíveis.
+        for(int i=0;i<upper;i++){
             ItemStack stack=slots.get(i).getItem();
             if(stack.isEmpty())continue;
             String id=BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
-            if(!id.equals("arrow"))continue; // evita clicar itens de compra
-            String title=SearchSuggestions.normalize(stack.getHoverName().getString());
-            if(!(title.equals("proxima pagina") || title.equals("proxima")
-                || title.equals("pagina seguinte") || title.equals("next page")
-                || title.equals("next") || title.equals("avancar")))continue;
+            if(!ShopNavigator.isNextButton(i,id,stack.getHoverName().getString(),title))continue;
             ItemLore lore=stack.get(DataComponents.LORE);
-            boolean priced=false;
-            if(lore!=null) for(Component text:lore.lines()) {
-                PriceParser.Quote quote=PriceParser.parse(text.getString());
-                if(quote.buy()!=null || quote.sell()!=null)priced=true;
+            if(lore!=null) {
+                boolean mayTrade=false;
+                for(Component text:lore.lines()){
+                    PriceParser.Quote q=PriceParser.parse(text.getString());
+                    if(q.buy()!=null||q.sell()!=null){mayTrade=true;break;}
+                }
+                if(mayTrade)continue;
             }
-            if(!priced) return slots.get(i).index;
+            return slots.get(i).index;
         }
         return -1;
     }
     private static void autoScanTick(Minecraft client) {
         long now=System.currentTimeMillis();
-        if(now-aiStarted>120000){stopAiScan("Tempo limite de varredura");return;}
+        if(now-aiStarted>180000){stopAiScan("Tempo limite de varredura");return;}
         if(!(client.screen instanceof AbstractContainerScreen<?> screen)) {
             if(!aiShopOpened) {
-                if(now-aiStarted>8000)stopAiScan("A loja não abriu. Verifique /shop");
+                if(now-aiStarted>12000)stopAiScan("A loja não abriu. Confira /shop.");
             }else stopAiScan("Loja fechada");
+            return;
+        }
+        if(!ShopNavigator.isShopTitle(screen.getTitle().getString())){
+            if(now-aiStarted>12000 || aiShopOpened)
+                stopAiScan("Interface diferente de /shop: "+screen.getTitle().getString());
             return;
         }
         aiShopOpened=true;
@@ -223,8 +258,14 @@ public class OniMarketClient implements ClientModInitializer {
         aiPageHash=fingerprint;
         aiLastPageAt=now;
         opportunities=ProfitEngine.analyze(observedPrices);
-        aiStatus="Analisando "+aiPages+" página(s): "+observedPrices.size()+" itens com preços reais.";
-        if(aiPages>=24){stopAiScan("Limite de segurança: 24 páginas");return;}
+        ShopNavigator.Page pageInfo=currentPage(screen);
+        aiStatus="Lendo página "+(pageInfo==null?aiPages:pageInfo.current()+"/"+pageInfo.total())+
+            " | "+observedPrices.size()+" itens com preços do /shop";
+        if(pageInfo!=null && pageInfo.last()) {
+            stopAiScan("Última página da loja alcançada");
+            return;
+        }
+        if(aiPages>=64){stopAiScan("Limite de segurança: 64 páginas");return;}
         int nextSlot=findSafeNextPage(screen);
         if(nextSlot<0) {stopAiScan("Finalizado; sem próxima página segura");return;}
         // Apenas a SETA explicitamente rotulada como próxima página.
@@ -239,23 +280,29 @@ public class OniMarketClient implements ClientModInitializer {
     }
 
     private static void scanShop(Minecraft client) {
-        if (!(client.screen instanceof AbstractContainerScreen<?> screen)) return;
-        lastWindow=screen.getTitle().getString();
+        if(!(client.screen instanceof AbstractContainerScreen<?> screen))return;
+        String title=screen.getTitle().getString();
+        if(!ShopNavigator.isShopTitle(title))return; // nunca lê /sell ou inventários normais
+        lastWindow=title;
         List<Slot> slots=screen.getMenu().slots;
         int n=slots.size()>36 ? slots.size()-36 : slots.size();
-        for(int i=0;i<n;i++) {
+        if(ShopNavigator.isOnicraft(title))n=Math.min(45,n);
+        for(int i=0;i<n;i++){
             ItemStack stack=slots.get(i).getItem();
             if(stack.isEmpty())continue;
-            scannedSlots++;
+            String id=BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath().toUpperCase(Locale.ROOT);
+            if(id.equals("AIR"))continue;
+            if(ShopNavigator.isNextButton(i,id,stack.getHoverName().getString(),title))continue;
             ItemLore lore=stack.get(DataComponents.LORE);
             if(lore==null || lore.lines().isEmpty())continue;
-            String id=BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath().toUpperCase(Locale.ROOT);
-            Prices prev=prices.get(id);
-            double buy=prev==null?-1:prev.buy, sell=prev==null?-1:prev.sell;
-            boolean wasReference=prev!=null && prev.reference;
+            scannedSlots++;
+            Prices previous=prices.get(id);
+            double buy=previous==null?-1:previous.buy;
+            double sell=previous==null?-1:previous.sell;
+            boolean ref=previous!=null && previous.reference;
             for(Component line:lore.lines())scanPrice(id,line.getString());
             Prices current=prices.get(id);
-            if(current!=null && (buy!=current.buy || sell!=current.sell || wasReference!=current.reference))
+            if(current!=null && (current.buy!=buy || current.sell!=sell || ref!=current.reference))
                 capturedChanges++;
         }
     }
@@ -282,6 +329,7 @@ public class OniMarketClient implements ClientModInitializer {
                 String[] p=line.split("\t");
                 if(p.length!=3)continue;
                 Prices v=new Prices();v.buy=Double.parseDouble(p[1]);v.sell=Double.parseDouble(p[2]);
+                v.reference=true; // cache antigo, sem confirmação no /shop atual
                 prices.put(p[0],v);
             }
         }catch(Exception ex){System.err.println("[OniMarket] carregar: "+ex);}
@@ -295,7 +343,7 @@ public class OniMarketClient implements ClientModInitializer {
                     String[] p=line.split("\t");
                     if(p.length!=3 || p[0].startsWith("#") || prices.containsKey(p[0]))continue;
                     Prices v=new Prices();
-                    v.buy=Double.parseDouble(p[1]);v.sell=Double.parseDouble(p[2]);v.reference=true;
+                    v.buy=-1;v.sell=-1;v.reference=true; // só nomes; nenhum preço inventado
                     prices.put(p[0],v);
                 }
             }
