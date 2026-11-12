@@ -3,7 +3,6 @@ package br.com.onicraft.onimarket;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.minecraft.client.Minecraft;
@@ -31,13 +30,11 @@ import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
 import com.mojang.blaze3d.platform.InputConstants;
 import java.util.*;
-import java.util.regex.*;
 
 public class OniMarketClient implements ClientModInitializer {
     private static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(net.minecraft.resources.Identifier.fromNamespaceAndPath("onimarket", "general"));
     private static final KeyMapping KEY = KeyBindingHelper.registerKeyBinding(new KeyMapping("Abrir OniMarket", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_P, CATEGORY));
     private static final Map<String, Prices> prices = new HashMap<>();
-    private static String lastItem = "";
     private static final Map<String,ProfitEngine.Quote> observedPrices = new HashMap<>();
     private static List<ProfitEngine.Opportunity> opportunities = List.of();
     private static long observations = 0;
@@ -60,14 +57,10 @@ public class OniMarketClient implements ClientModInitializer {
         }
     }
     private static String serverName = "local";
-    private static long scanUntil = 0;
     private static int capturedChanges = 0;
     private static int scannedSlots = 0;
     private static String lastWindow = "Sem janela de loja";
-    private static long nextAutoQuery = 0;
-    private static int autoIndex = -1;
     private static int tick = 0;
-    private static List<String> queue = new ArrayList<>();
     private static class Prices { double buy = -1, sell = -1; boolean reference = false; }
     @Override public void onInitializeClient() {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
@@ -93,26 +86,18 @@ public class OniMarketClient implements ClientModInitializer {
                 positionsUpdatedAt=0;
                 loadPrices();
                 loadReferenceCatalog();
-                scanUntil = 0;
                 capturedChanges = 0;
                 scannedSlots = 0;
-                autoIndex = -1;
             }
             tick++;
             if(tick%2==0 && client.screen instanceof AbstractContainerScreen<?>)scanShop(client);
-            if(tick%10==0 && aiScanning)autoScanTick(client);
-            if (tick % 10 == 0 && client.level != null) refreshPlayers(client);
-            if (autoIndex >= 0 && System.currentTimeMillis() >= nextAutoQuery) {
-                if (autoIndex >= Math.min(12, queue.size())) { autoIndex = -1; savePrices(); }
-                else {
-                    lastItem = queue.get(autoIndex++);
-                    client.getConnection().sendCommand("preco " + lastItem.replace("/", "").replace("\\n", ""));
-                    nextAutoQuery = System.currentTimeMillis() + 5000;
-                }
+            if(tick%10==0) {
+                if(aiScanning)autoScanTick(client);
+                opportunities=ProfitEngine.analyze(observedPrices);
             }
+            if (tick % 10 == 0 && client.level != null) refreshPlayers(client);
             if (tick % 200 == 0) savePrices();
         });
-        ClientReceiveMessageEvents.GAME.register((message, overlay) -> { if(!overlay)scan(message.getString()); });
     }
     /**
      * Apenas informações recebidas normalmente pelo cliente.
@@ -316,12 +301,6 @@ public class OniMarketClient implements ClientModInitializer {
             }
         }catch(Exception ex){System.err.println("[OniMarket] referência: "+ex);}
     }
-    private static void scan(String raw) {
-        String item=lastItem;
-        Matcher named=Pattern.compile("(?iu)(?:item|produto)\\s*[:=-]\\s*([\\p{L}0-9_ -]{2,35})").matcher(raw);
-        if(named.find())item=named.group(1).trim();
-        if(!item.isBlank())scanPrice(item,raw);
-    }
     private static void scanPrice(String item,String raw) {
         if(item==null || item.isBlank() || raw==null)return;
         PriceParser.Quote q=PriceParser.parse(raw);
@@ -353,7 +332,6 @@ public class OniMarketClient implements ClientModInitializer {
         private static int pricePage=0;
         private static int playersPage=0;
         private EditBox filterBox;
-        private EditBox priceItemBox;
         private static final int MAX_AUTOCOMPLETE = 6;
         private final List<Button> autocompleteButtons = new ArrayList<>();
         private final List<Button> shopActionButtons = new ArrayList<>();
@@ -413,26 +391,16 @@ public class OniMarketClient implements ClientModInitializer {
                         onlyProfit=!onlyProfit; pricePage=0;
                         b.setMessage(Component.literal(profitLabel()));
                     }).bounds(profitX,49,Math.min(130,x+panelW-profitX-8),20).build());
-                shopActionButtons.add(addRenderableWidget(Button.builder(Component.literal("/shop"), b -> send("shop"))
-                    .bounds(x+8,76,75,20).build()));
-                priceItemBox=new EditBox(font,x+88,76,Math.max(75,Math.min(245,panelW/3)),20,Component.literal("Item para /preco"));
-                priceItemBox.setMaxLength(64);
-                addRenderableWidget(priceItemBox);
-                int queryX=x+93+Math.max(75,Math.min(245,panelW/3));
-                if(queryX+75<x+panelW) shopActionButtons.add(addRenderableWidget(Button.builder(Component.literal("/preco"), b -> {
-                    String item=priceItemBox.getValue().trim().replace("/","");
-                    if(item.isBlank()) { status="Digite o nome do item."; return; }
-                    lastItem=item; send("preco "+item);
-                }).bounds(queryX,76,75,20).build()));
-                int findX=queryX+80;
-                if(findX+80<x+panelW) shopActionButtons.add(addRenderableWidget(Button.builder(Component.literal("Pesquisar"), b -> {
-                    queue=new ArrayList<>(prices.keySet());
-                    queue.sort(String::compareToIgnoreCase);
-                    autoIndex=queue.isEmpty()?-1:0;
-                    nextAutoQuery=System.currentTimeMillis();
-                    status=queue.isEmpty()?"Explore /shop primeiro.":"Consultando até 12 itens coletados.";
-                    if(autoIndex>=0) onClose();
-                }).bounds(findX,76,Math.min(106,x+panelW-findX-8),20).build()));
+                shopActionButtons.add(addRenderableWidget(Button.builder(Component.literal("Abrir /shop"), b -> send("shop"))
+                    .bounds(x+8,76,142,20).build()));
+                shopActionButtons.add(addRenderableWidget(Button.builder(Component.literal("IA: varrer loja"), b ->
+                    startAiScan(Minecraft.getInstance())).bounds(x+158,76,165,20).build()));
+                if(panelW>465)shopActionButtons.add(addRenderableWidget(
+                    Button.builder(Component.literal("Ver oportunidades"), b -> {
+                        aiTab=true; playersTab=false; searchText="";
+                        opportunities=ProfitEngine.analyze(observedPrices);
+                        Minecraft.getInstance().setScreen(new MarketScreen());
+                    }).bounds(x+331,76,145,20).build()));
             } else {
                 shopActionButtons.add(addRenderableWidget(Button.builder(Component.literal("Atualizar jogadores"), b -> { refreshPlayers(Minecraft.getInstance()); status="Lista local atualizada."; })
                     .bounds(x+8,76,190,20).build()));
@@ -498,7 +466,6 @@ public class OniMarketClient implements ClientModInitializer {
                 }
             }
             for(Button button:shopActionButtons)button.visible=!popup;
-            if(priceItemBox!=null)priceItemBox.visible=!popup;
         }
 
         private String sortLabel() {
@@ -514,12 +481,8 @@ public class OniMarketClient implements ClientModInitializer {
         private void send(String command) {
             Minecraft mc=Minecraft.getInstance();
             if(mc.getConnection()==null) {status="Conecte-se ao servidor.";return;}
-            if(command.equals("shop")) {
-                scanUntil=System.currentTimeMillis()+20L*60*1000;
-                capturedChanges=0;
-            }
             mc.getConnection().sendCommand(command);
-            status="Enviado /"+command;
+            status="Abrindo /shop para leitura de preços.";
         }
 
         @Override public void render(GuiGraphics g,int mouseX,int mouseY,float delta) {
