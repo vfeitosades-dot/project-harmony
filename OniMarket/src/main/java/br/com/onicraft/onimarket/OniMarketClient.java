@@ -398,7 +398,8 @@ public class OniMarketClient implements ClientModInitializer {
     }
     private static class MarketScreen extends Screen {
         private static boolean playersTab = false;
-        private static boolean aiTab = false;
+        private static boolean aiTab = true; // abre diretamente em TODAS as oportunidades
+        private static int opportunityType = 0; // 0: revenda, 1: craft, 2: todos
         private static int aiPage = 0;
         private static boolean onlyProfit = false;
         private static int sortMode=0;
@@ -414,7 +415,7 @@ public class OniMarketClient implements ClientModInitializer {
         private String status="Catálogo de referência disponível; percorra /shop para obter preços atuais.";
         private int startX, panelW, rowsPerPage;
 
-        MarketScreen() { super(Component.literal("OniMarket")); }
+        MarketScreen() { super(Component.literal("OniMarket - Analisador do /shop")); }
         @Override protected void init() {
             panelW = Math.min(760, width-20);
             startX = (width-panelW)/2;
@@ -438,20 +439,33 @@ public class OniMarketClient implements ClientModInitializer {
             addRenderableWidget(Button.builder(Component.literal("X"), b -> onClose())
                 .bounds(x+panelW-30,22,22,20).build());
 
-            filterBox=new EditBox(font,x+8,49,Math.max(100,Math.min(260,panelW/3)),20,Component.literal("Pesquisar"));
+            filterBox=new EditBox(font,x+8,49,Math.max(100,Math.min(260,panelW/3)),20,Component.literal("Filtro opcional"));
             filterBox.setMaxLength(70);
             filterBox.setValue(searchText);
             addRenderableWidget(filterBox);
 
             if(aiTab) {
-                addRenderableWidget(Button.builder(Component.literal("Iniciar varredura /shop"), b ->
-                    startAiScan(Minecraft.getInstance())).bounds(x+8,76,190,20).build());
-                addRenderableWidget(Button.builder(Component.literal("Reanalisar"), b -> {
-                    opportunities=ProfitEngine.analyze(observedPrices); aiPage=0;
-                    status="Análise atualizada.";
-                }).bounds(x+204,76,110,20).build());
-                addRenderableWidget(Button.builder(Component.literal("Parar IA"), b ->
-                    stopAiScan("Parado manualmente")).bounds(x+320,76,95,20).build());
+                addRenderableWidget(Button.builder(Component.literal("Varrer /shop inteiro"), b ->
+                    startAiScan(Minecraft.getInstance())).bounds(x+8,76,Math.min(175,panelW/3),20).build());
+                addRenderableWidget(Button.builder(Component.literal("Atualizar resultados"), b -> {
+                    opportunities=ProfitEngine.analyze(observedPrices);aiPage=0;
+                }).bounds(x+187,76,Math.min(168,panelW/3),20).build());
+                if(panelW>550){
+                    addRenderableWidget(Button.builder(Component.literal("Cancelar"), b ->
+                        stopAiScan("Interrompido manualmente")).bounds(x+367,76,105,20).build());
+                }
+                int selectorX=x+Math.max(275,Math.min(260,panelW/3)+16);
+                int selectorW=Math.max(60,Math.min(118,(panelW-(selectorX-x)-22)/3-5));
+                addRenderableWidget(Button.builder(Component.literal("Revenda"), b -> {
+                    opportunityType=0;aiPage=0;
+                }).bounds(selectorX,49,selectorW,20).build());
+                addRenderableWidget(Button.builder(Component.literal("Craft"), b -> {
+                    opportunityType=1;aiPage=0;
+                }).bounds(selectorX+selectorW+5,49,selectorW,20).build());
+                if(selectorX+selectorW*3+15<x+panelW)
+                    addRenderableWidget(Button.builder(Component.literal("Todos"), b -> {
+                        opportunityType=2;aiPage=0;
+                    }).bounds(selectorX+(selectorW+5)*2,49,selectorW,20).build());
             } else if (!playersTab) {
                 int fx=x+Math.max(115,Math.min(270,panelW/3)+12);
                 addRenderableWidget(Button.builder(Component.literal(sortLabel()), b -> {
@@ -493,7 +507,7 @@ public class OniMarketClient implements ClientModInitializer {
                 addRenderableWidget(Button.builder(Component.literal("Limpar busca"), b -> {
                     searchText="";
                     autocompleteOpen=false;
-                    pricePage=0; playersPage=0;
+                    pricePage=0; playersPage=0; aiPage=0;
                     filterBox.setValue("");
                     filterBox.setFocused(false);
                     updateAutocomplete();
@@ -578,7 +592,7 @@ public class OniMarketClient implements ClientModInitializer {
             if(aiTab) drawAi(g);
             else if(playersTab) drawPlayers(g);
             else drawPrices(g);
-            g.drawCenteredString(font,"ONIMARKET 2.0 | "+(aiTab?"IA DE LUCRO":playersTab?"JOGADORES":"ECONOMIA"),width/2,10,0xFFFFFF);
+            g.drawCenteredString(font,"ONIMARKET 2.1 | "+(aiTab?"OPORTUNIDADES DO /SHOP":playersTab?"JOGADORES":"ECONOMIA"),width/2,10,0xFFFFFF);
 
             // 3) opções de autocomplete sobrepostas à tabela, por último
             if(autocompleteOpen && !autocompleteResults.isEmpty()) {
@@ -592,44 +606,54 @@ public class OniMarketClient implements ClientModInitializer {
         }
 
         private void drawAi(GuiGraphics g) {
-            int x=startX, w=panelW;
-            g.drawString(font,"TIPO / RESULTADO",x+10,111,0xDDDDDD);
-            int costX=x+(int)(w*.51), saleX=x+(int)(w*.68), gainX=x+(int)(w*.85);
-            g.drawString(font,"CUSTO",costX,111,0xF9BC75);
-            g.drawString(font,"VENDA",saleX,111,0x8ECBFF);
-            g.drawString(font,"LUCRO",gainX,111,0x70F7AD);
-            g.fill(x+8,122,x+w-8,123,0xFF47576A);
-            List<ProfitEngine.Opportunity> filtered=new ArrayList<>();
-            for(ProfitEngine.Opportunity op:opportunities) {
-                if(SearchSuggestions.matches(op.product(),searchText))
-                    filtered.add(op);
-            }
-            int maxRows=Math.max(1,(height-195)/32);
-            int pages=Math.max(1,(filtered.size()+maxRows-1)/maxRows);
+            int x=startX,w=panelW;
+            int buyX=x+(int)(w*.49),saleX=x+(int)(w*.66),profitX=x+(int)(w*.83);
+            List<ProfitEngine.Opportunity> all=new ArrayList<>(opportunities);
+            long resaleCount=all.stream().filter(o->o.kind().equals("REVENDA")).count();
+            long craftCount=all.stream().filter(o->o.kind().equals("CRAFT")).count();
+            all.removeIf(o -> (opportunityType==0 && !o.kind().equals("REVENDA"))
+                || (opportunityType==1 && !o.kind().equals("CRAFT"))
+                || !SearchSuggestions.matches(o.product(),searchText));
+            int maxRows=Math.max(1,(height-193)/30);
+            int pages=Math.max(1,(all.size()+maxRows-1)/maxRows);
             aiPage=Math.min(aiPage,pages-1);
-            for(int i=0;i<maxRows && aiPage*maxRows+i<filtered.size();i++) {
-                ProfitEngine.Opportunity op=filtered.get(aiPage*maxRows+i);
-                int y=128+i*32;
-                if(i%2==0)g.fill(x+8,y-3,x+w-8,y+28,0x223D566F);
-                String item=op.kind()+": "+op.product().replace('_',' ');
-                g.drawString(font,shortText(item,costX-x-20),x+10,y,0xE9F2FE);
-                g.drawString(font,fmt(op.cost()),costX,y,0xF9BC75);
-                g.drawString(font,fmt(op.revenue()),saleX,y,0x8ECBFF);
-                g.drawString(font,"+"+fmt(op.profit()),gainX,y,0x70F7AD);
-                g.drawString(font,shortText(op.steps(),w-28),x+10,y+12,0x9DAFC5);
+
+            g.drawString(font,"ITEM LUCRATIVO",x+10,108,0xEAF0F5);
+            g.drawString(font,"COMPRAR",buyX,108,0xFFD198);
+            g.drawString(font,"VENDER",saleX,108,0x9ED8FF);
+            g.drawString(font,"LUCRO",profitX,108,0x78F9A7);
+            g.fill(x+9,121,x+w-9,122,0xFF425065);
+
+            for(int i=0;i<maxRows && aiPage*maxRows+i<all.size();i++){
+                ProfitEngine.Opportunity deal=all.get(aiPage*maxRows+i);
+                int y=129+i*30;
+                if(i%2==0)g.fill(x+8,y-3,x+w-8,y+25,0x263A536F);
+                String name=(deal.kind().equals("REVENDA")?"VENDA  ":"CRAFT  ")+deal.product().replace('_',' ');
+                g.drawString(font,shortText(name,buyX-x-16),x+10,y,0xFAFDFF);
+                g.drawString(font,fmt(deal.cost()),buyX,y,0xFFD198);
+                g.drawString(font,fmt(deal.revenue()),saleX,y,0x9ED8FF);
+                g.drawString(font,"+"+fmt(deal.profit()),profitX,y,0x78F9A7);
+                String details=deal.kind().equals("CRAFT")?deal.steps():"Compra 1, venda 1  |  margem "+String.format(Locale.US,"%.1f%%",deal.margin());
+                g.drawString(font,shortText(details,w-24),x+10,y+12,0xB1BFD1);
             }
-            if(filtered.isEmpty())g.drawCenteredString(font,
-                observedPrices.isEmpty()
-                    ? "Sem preços atuais. Clique em Iniciar varredura /shop."
-                    : "Nenhum lucro comprovado com os preços coletados.",
-                width/2,150,0xFFCB7D);
-            g.drawCenteredString(font,aiStatus,width/2,height-61,0xDDDDDD);
+            long completedQuotes=observedPrices.values().stream().filter(p->p.buy()>0 && p.sell()>0).count();
+            if(all.isEmpty()){
+                String empty=observedPrices.isEmpty()
+                    ? "Sem preços do /shop. Use o botão Varrer /shop inteiro."
+                    : completedQuotes==0
+                      ? "Preços incompletos: nenhum item tem compra E venda."
+                      : (opportunityType==1
+                         ? "Nenhuma receita de craft lucrativa com os preços disponíveis."
+                         : "Nenhum item com lucro de revenda entre os preços lidos.");
+                g.drawCenteredString(font,empty,width/2,152,0xFFCE8D);
+            }
+            g.drawCenteredString(font,shortText(aiStatus,w-24),width/2,height-62,0xF3C97B);
+            String stats=seenItems.size()+" itens vistos | "+observedPrices.size()+" com algum preço | "+
+                completedQuotes+" com compra e venda | "+resaleCount+" revenda(s) | "+craftCount+" craft(s)";
+            g.drawCenteredString(font,shortText(stats,w-24),width/2,height-50,0xC0DAF5);
             g.drawCenteredString(font,
-                observedPrices.size()+" itens reais | "+opportunities.size()+
-                    " oportunidades | página "+(aiPage+1)+"/"+pages,width/2,height-49,0xA9C6E8);
-            g.drawCenteredString(font,
-                "Valores por operação; sem referências antigas, taxas ou preços inventados.",
-                width/2,height-16,0xFFCB7D);
+                "Mostrando "+all.size()+" resultados | "+(aiPage+1)+"/"+pages+
+                " | Somente preços atuais do /shop",width/2,height-16,0xA6B7C7);
         }
 
         private void drawPrices(GuiGraphics g) {
