@@ -16,6 +16,7 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemLore;
 import net.fabricmc.loader.api.FabricLoader;
@@ -37,6 +38,17 @@ public class OniMarketClient implements ClientModInitializer {
     private static final KeyMapping KEY = KeyBindingHelper.registerKeyBinding(new KeyMapping("Abrir OniMarket", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_P, CATEGORY));
     private static final Map<String, Prices> prices = new HashMap<>();
     private static String lastItem = "";
+    private static final Map<String,ProfitEngine.Quote> observedPrices = new HashMap<>();
+    private static List<ProfitEngine.Opportunity> opportunities = List.of();
+    private static long observations = 0;
+    private static boolean aiScanning = false;
+    private static boolean aiShopOpened = false;
+    private static boolean aiAwaitNext = false;
+    private static long aiStarted = 0, aiLastPageAt = 0;
+    private static int aiPages = 0, aiPageHash = 0;
+    private static final Set<Integer> aiSeenPages = new HashSet<>();
+    private static String aiStatus = "IA pronta: clique em Iniciar varredura.";
+
     private static final Map<String, PlayerPos> playerPositions = new LinkedHashMap<>();
     private static long positionsUpdatedAt = 0;
     private static class PlayerPos {
@@ -72,6 +84,11 @@ public class OniMarketClient implements ClientModInitializer {
                 savePrices();
                 serverName = name;
                 prices.clear();
+                observedPrices.clear();
+                opportunities=List.of();
+                observations=0;
+                aiScanning=false;
+                aiStatus="IA pronta: clique em Iniciar varredura.";
                 playerPositions.clear();
                 positionsUpdatedAt=0;
                 loadPrices();
@@ -83,6 +100,7 @@ public class OniMarketClient implements ClientModInitializer {
             }
             tick++;
             if(tick%2==0 && client.screen instanceof AbstractContainerScreen<?>)scanShop(client);
+            if(tick%10==0 && aiScanning)autoScanTick(client);
             if (tick % 10 == 0 && client.level != null) refreshPlayers(client);
             if (autoIndex >= 0 && System.currentTimeMillis() >= nextAutoQuery) {
                 if (autoIndex >= Math.min(12, queue.size())) { autoIndex = -1; savePrices(); }
@@ -127,6 +145,114 @@ public class OniMarketClient implements ClientModInitializer {
         playerPositions.putAll(snapshot);
         positionsUpdatedAt=System.currentTimeMillis();
     }
+    private static void startAiScan(Minecraft client) {
+        if(client.player==null || client.getConnection()==null) {
+            aiStatus="Entre no servidor antes de iniciar a varredura."; return;
+        }
+        aiScanning=true;
+        aiShopOpened=false;
+        aiAwaitNext=false;
+        aiPages=0;
+        aiPageHash=0;
+        aiSeenPages.clear();
+        observedPrices.clear(); // descarta valores antigos: somente este escaneamento
+        opportunities=List.of();
+        observations=0;
+        aiStarted=System.currentTimeMillis();
+        aiLastPageAt=aiStarted;
+        aiStatus="Abrindo /shop...";
+        client.getConnection().sendCommand("shop");
+        client.setScreen(null);
+    }
+    private static void stopAiScan(String reason) {
+        aiScanning=false;
+        aiAwaitNext=false;
+        opportunities=ProfitEngine.analyze(observedPrices);
+        aiStatus=reason+" | "+aiPages+" páginas, "+observedPrices.size()+
+            " itens, "+opportunities.size()+" oportunidades.";
+    }
+    private static int pageFingerprint(AbstractContainerScreen<?> screen) {
+        int total=screen.getMenu().slots.size();
+        int n=total>36?total-36:total;
+        int hash=17, count=0;
+        for(int i=0;i<n;i++){
+            ItemStack stack=screen.getMenu().slots.get(i).getItem();
+            if(stack.isEmpty())continue;
+            hash=31*hash+BuiltInRegistries.ITEM.getKey(stack.getItem()).hashCode();
+            hash=31*hash+stack.getHoverName().getString().hashCode();
+            ItemLore lore=stack.get(DataComponents.LORE);
+            if(lore!=null) for(Component line:lore.lines())
+                hash=31*hash+line.getString().hashCode();
+            count++;
+        }
+        return count==0?0:hash;
+    }
+    private static int findSafeNextPage(AbstractContainerScreen<?> screen) {
+        List<Slot> slots=screen.getMenu().slots;
+        int limit=slots.size()>36?slots.size()-36:slots.size();
+        for(int i=0;i<limit;i++) {
+            ItemStack stack=slots.get(i).getItem();
+            if(stack.isEmpty())continue;
+            String id=BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
+            if(!id.equals("arrow"))continue; // evita clicar itens de compra
+            String title=SearchSuggestions.normalize(stack.getHoverName().getString());
+            if(!(title.equals("proxima pagina") || title.equals("proxima")
+                || title.equals("pagina seguinte") || title.equals("next page")
+                || title.equals("next") || title.equals("avancar")))continue;
+            ItemLore lore=stack.get(DataComponents.LORE);
+            boolean priced=false;
+            if(lore!=null) for(Component text:lore.lines()) {
+                PriceParser.Quote quote=PriceParser.parse(text.getString());
+                if(quote.buy()!=null || quote.sell()!=null)priced=true;
+            }
+            if(!priced) return slots.get(i).index;
+        }
+        return -1;
+    }
+    private static void autoScanTick(Minecraft client) {
+        long now=System.currentTimeMillis();
+        if(now-aiStarted>120000){stopAiScan("Tempo limite de varredura");return;}
+        if(!(client.screen instanceof AbstractContainerScreen<?> screen)) {
+            if(!aiShopOpened) {
+                if(now-aiStarted>8000)stopAiScan("A loja não abriu. Verifique /shop");
+            }else stopAiScan("Loja fechada");
+            return;
+        }
+        aiShopOpened=true;
+        // varredura tem limite para nunca fazer clicagem sem controle
+        int fingerprint=pageFingerprint(screen);
+        if(fingerprint==0)return;
+        if(aiAwaitNext) {
+            if(fingerprint==aiPageHash) {
+                if(now-aiLastPageAt>5000)stopAiScan("Próxima página não respondeu");
+                return;
+            }
+            aiAwaitNext=false;
+        }
+        if(aiSeenPages.contains(fingerprint)){
+            stopAiScan("Página repetida; varredura concluída");
+            return;
+        }
+        aiSeenPages.add(fingerprint);
+        aiPages++;
+        aiPageHash=fingerprint;
+        aiLastPageAt=now;
+        opportunities=ProfitEngine.analyze(observedPrices);
+        aiStatus="Analisando "+aiPages+" página(s): "+observedPrices.size()+" itens com preços reais.";
+        if(aiPages>=24){stopAiScan("Limite de segurança: 24 páginas");return;}
+        int nextSlot=findSafeNextPage(screen);
+        if(nextSlot<0) {stopAiScan("Finalizado; sem próxima página segura");return;}
+        // Apenas a SETA explicitamente rotulada como próxima página.
+        // Nenhum clique sobre produtos, e nunca compra ou venda.
+        if(client.gameMode!=null && client.player!=null) {
+            client.gameMode.handleInventoryMouseClick(
+                screen.getMenu().containerId,nextSlot,0,ClickType.PICKUP,client.player);
+            aiAwaitNext=true;
+            aiLastPageAt=now;
+            aiStatus="Próxima página solicitada ("+aiPages+").";
+        }else stopAiScan("Cliente sem conexão");
+    }
+
     private static void scanShop(Minecraft client) {
         if (!(client.screen instanceof AbstractContainerScreen<?> screen)) return;
         lastWindow=screen.getTitle().getString();
@@ -201,9 +327,15 @@ public class OniMarketClient implements ClientModInitializer {
         PriceParser.Quote q=PriceParser.parse(raw);
         if(q.buy()==null && q.sell()==null)return;
         Prices p=prices.computeIfAbsent(item,k->new Prices());
-        if(p.reference) {p.buy=-1;p.sell=-1;p.reference=false;}
+        if(p.reference){p.buy=-1;p.sell=-1;p.reference=false;}
         if(q.buy()!=null)p.buy=q.buy();
         if(q.sell()!=null)p.sell=q.sell();
+        // A IA recebe SOMENTE dados observados nesta sessão, nunca o catálogo antigo.
+        ProfitEngine.Quote prev=observedPrices.getOrDefault(item,new ProfitEngine.Quote(-1,-1));
+        double buy=q.buy()==null?prev.buy():q.buy();
+        double sell=q.sell()==null?prev.sell():q.sell();
+        observedPrices.put(item,new ProfitEngine.Quote(buy,sell));
+        observations++;
     }
     private static String fmt(double v) {
         if (!Double.isFinite(v) || v < 0) return "--";
@@ -213,6 +345,8 @@ public class OniMarketClient implements ClientModInitializer {
     }
     private static class MarketScreen extends Screen {
         private static boolean playersTab = false;
+        private static boolean aiTab = false;
+        private static int aiPage = 0;
         private static boolean onlyProfit = false;
         private static int sortMode=0;
         private static String searchText="";
@@ -235,14 +369,20 @@ public class OniMarketClient implements ClientModInitializer {
             rowsPerPage=Math.max(1,(height-189)/16);
             int x=startX;
             addRenderableWidget(Button.builder(Component.literal("PREÇOS"), b -> {
-                playersTab=false; searchText=""; Minecraft.getInstance().setScreen(new MarketScreen());
+                playersTab=false; aiTab=false; searchText=""; Minecraft.getInstance().setScreen(new MarketScreen());
             }).bounds(x+8,22,Math.min(120,panelW/3),20).build());
             addRenderableWidget(Button.builder(Component.literal("JOGADORES"), b -> {
                 playersTab=true;
+                aiTab=false;
                 searchText="";
                 refreshPlayers(Minecraft.getInstance());
                 Minecraft.getInstance().setScreen(new MarketScreen());
             }).bounds(x+Math.min(138,panelW/3+14),22,Math.min(120,panelW/3),20).build());
+            addRenderableWidget(Button.builder(Component.literal("IA • LUCRO"), b -> {
+                playersTab=false; aiTab=true; searchText="";
+                opportunities=ProfitEngine.analyze(observedPrices);
+                Minecraft.getInstance().setScreen(new MarketScreen());
+            }).bounds(x+268,22,Math.min(125,Math.max(75,panelW-315)),20).build());
             addRenderableWidget(Button.builder(Component.literal("X"), b -> onClose())
                 .bounds(x+panelW-30,22,22,20).build());
 
@@ -251,7 +391,16 @@ public class OniMarketClient implements ClientModInitializer {
             filterBox.setValue(searchText);
             addRenderableWidget(filterBox);
 
-            if (!playersTab) {
+            if(aiTab) {
+                addRenderableWidget(Button.builder(Component.literal("Iniciar varredura /shop"), b ->
+                    startAiScan(Minecraft.getInstance())).bounds(x+8,76,190,20).build());
+                addRenderableWidget(Button.builder(Component.literal("Reanalisar"), b -> {
+                    opportunities=ProfitEngine.analyze(observedPrices); aiPage=0;
+                    status="Análise atualizada.";
+                }).bounds(x+204,76,110,20).build());
+                addRenderableWidget(Button.builder(Component.literal("Parar IA"), b ->
+                    stopAiScan("Parado manualmente")).bounds(x+320,76,95,20).build());
+            } else if (!playersTab) {
                 int fx=x+Math.max(115,Math.min(270,panelW/3)+12);
                 addRenderableWidget(Button.builder(Component.literal(sortLabel()), b -> {
                     sortMode=(sortMode+1)%4;
@@ -289,11 +438,13 @@ public class OniMarketClient implements ClientModInitializer {
                     .bounds(x+8,76,190,20).build()));
             }
             addRenderableWidget(Button.builder(Component.literal("◀ Anterior"), b -> {
-                if(playersTab) playersPage=Math.max(0,playersPage-1);
+                if(aiTab) aiPage=Math.max(0,aiPage-1);
+                else if(playersTab) playersPage=Math.max(0,playersPage-1);
                 else pricePage=Math.max(0,pricePage-1);
             }).bounds(x+8,height-36,110,20).build());
             addRenderableWidget(Button.builder(Component.literal("Próximo ▶"), b -> {
-                if(playersTab) playersPage++;
+                if(aiTab) aiPage++;
+                else if(playersTab) playersPage++;
                 else pricePage++;
             }).bounds(x+124,height-36,110,20).build());
             if(panelW>=340) {
@@ -387,9 +538,10 @@ public class OniMarketClient implements ClientModInitializer {
                 autocompleteOpen=!current.isBlank();
                 updateAutocomplete();
             }
-            if(playersTab) drawPlayers(g);
+            if(aiTab) drawAi(g);
+            else if(playersTab) drawPlayers(g);
             else drawPrices(g);
-            g.drawCenteredString(font,"ONIMARKET 1.8 | "+(playersTab?"JOGADORES":"ECONOMIA"),width/2,10,0xFFFFFF);
+            g.drawCenteredString(font,"ONIMARKET 1.9 | "+(aiTab?"IA DE LUCRO":playersTab?"JOGADORES":"ECONOMIA"),width/2,10,0xFFFFFF);
 
             // 3) opções de autocomplete sobrepostas à tabela, por último
             if(autocompleteOpen && !autocompleteResults.isEmpty()) {
@@ -400,6 +552,47 @@ public class OniMarketClient implements ClientModInitializer {
                     if(option.visible)option.render(g,mouseX,mouseY,delta);
                 }
             }
+        }
+
+        private void drawAi(GuiGraphics g) {
+            int x=startX, w=panelW;
+            g.drawString(font,"TIPO / RESULTADO",x+10,111,0xDDDDDD);
+            int costX=x+(int)(w*.51), saleX=x+(int)(w*.68), gainX=x+(int)(w*.85);
+            g.drawString(font,"CUSTO",costX,111,0xF9BC75);
+            g.drawString(font,"VENDA",saleX,111,0x8ECBFF);
+            g.drawString(font,"LUCRO",gainX,111,0x70F7AD);
+            g.fill(x+8,122,x+w-8,123,0xFF47576A);
+            List<ProfitEngine.Opportunity> filtered=new ArrayList<>();
+            for(ProfitEngine.Opportunity op:opportunities) {
+                if(SearchSuggestions.matches(op.product(),searchText))
+                    filtered.add(op);
+            }
+            int maxRows=Math.max(1,(height-195)/32);
+            int pages=Math.max(1,(filtered.size()+maxRows-1)/maxRows);
+            aiPage=Math.min(aiPage,pages-1);
+            for(int i=0;i<maxRows && aiPage*maxRows+i<filtered.size();i++) {
+                ProfitEngine.Opportunity op=filtered.get(aiPage*maxRows+i);
+                int y=128+i*32;
+                if(i%2==0)g.fill(x+8,y-3,x+w-8,y+28,0x223D566F);
+                String item=op.kind()+": "+op.product().replace('_',' ');
+                g.drawString(font,shortText(item,costX-x-20),x+10,y,0xE9F2FE);
+                g.drawString(font,fmt(op.cost()),costX,y,0xF9BC75);
+                g.drawString(font,fmt(op.revenue()),saleX,y,0x8ECBFF);
+                g.drawString(font,"+"+fmt(op.profit()),gainX,y,0x70F7AD);
+                g.drawString(font,shortText(op.steps(),w-28),x+10,y+12,0x9DAFC5);
+            }
+            if(filtered.isEmpty())g.drawCenteredString(font,
+                observedPrices.isEmpty()
+                    ? "Sem preços atuais. Clique em Iniciar varredura /shop."
+                    : "Nenhum lucro comprovado com os preços coletados.",
+                width/2,150,0xFFCB7D);
+            g.drawCenteredString(font,aiStatus,width/2,height-61,0xDDDDDD);
+            g.drawCenteredString(font,
+                observedPrices.size()+" itens reais | "+opportunities.size()+
+                    " oportunidades | página "+(aiPage+1)+"/"+pages,width/2,height-49,0xA9C6E8);
+            g.drawCenteredString(font,
+                "Valores por operação; sem referências antigas, taxas ou preços inventados.",
+                width/2,height-16,0xFFCB7D);
         }
 
         private void drawPrices(GuiGraphics g) {
