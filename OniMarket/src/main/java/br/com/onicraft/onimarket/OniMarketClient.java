@@ -160,6 +160,7 @@ public class OniMarketClient implements ClientModInitializer {
         client.getConnection().sendCommand("shop");
     }
     private static void stopAiScan(String reason) {
+        boolean wasScanning=aiScanning;
         aiScanning=false;
         aiAwaitNext=false;
         opportunities=ProfitEngine.analyze(observedPrices);
@@ -167,6 +168,17 @@ public class OniMarketClient implements ClientModInitializer {
         long craft=opportunities.stream().filter(o->o.kind().equals("CRAFT")).count();
         aiStatus=reason+" | "+aiPages+" pág., "+seenItems.size()+" itens; "+
             resale+" revenda(s) e "+craft+" craft(s) com lucro.";
+        if(wasScanning){
+            Minecraft client=Minecraft.getInstance();
+            if(client.player!=null && client.getConnection()!=null &&
+                !(client.screen instanceof MarketScreen)){
+                MarketScreen.playersTab=false;
+                MarketScreen.aiTab=true;
+                MarketScreen.aiPage=0;
+                MarketScreen.searchText="";
+                client.setScreen(new MarketScreen());
+            }
+        }
     }
     private static int pageFingerprint(AbstractContainerScreen<?> screen) {
         int total=screen.getMenu().slots.size();
@@ -318,7 +330,7 @@ public class OniMarketClient implements ClientModInitializer {
             String id=BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath().toUpperCase(Locale.ROOT);
             if(id.equals("AIR"))continue;
             if(ShopNavigator.isNextButton(i,id,stack.getHoverName().getString(),title))continue;
-            if(ShopNavigator.isOnicraft(title))seenItems.add(id);
+            seenItems.add(id);
             ItemLore lore=stack.get(DataComponents.LORE);
             if(lore==null || lore.lines().isEmpty())continue;
             scannedSlots++;
@@ -614,6 +626,8 @@ public class OniMarketClient implements ClientModInitializer {
             all.removeIf(o -> (opportunityType==0 && !o.kind().equals("REVENDA"))
                 || (opportunityType==1 && !o.kind().equals("CRAFT"))
                 || !SearchSuggestions.matches(o.product(),searchText));
+            long completedQuotes=observedPrices.values().stream()
+                .filter(p->p.buy()>0 && p.sell()>0).count();
             int maxRows=Math.max(1,(height-193)/30);
             int pages=Math.max(1,(all.size()+maxRows-1)/maxRows);
             aiPage=Math.min(aiPage,pages-1);
@@ -637,7 +651,6 @@ public class OniMarketClient implements ClientModInitializer {
                 String details=deal.kind().equals("CRAFT")?deal.steps():"Compra 1, venda 1  |  margem "+String.format(Locale.US,"%.1f%%",deal.margin());
                 g.drawString(font,shortText(details,w-24),x+10,y+12,0xB1BFD1);
             }
-            long completedQuotes=observedPrices.values().stream().filter(p->p.buy()>0 && p.sell()>0).count();
             // Caso o servidor não tenha lucros, ainda exiba preços reais para
             // mostrar que TODAS as páginas foram analisadas. Nunca chame prejuízo de lucro.
             if(all.isEmpty() && opportunityType!=1 && completedQuotes>0){
