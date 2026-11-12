@@ -1,40 +1,38 @@
-# OniMarket 1.9 — Fabric 1.21.11 (somente o cliente)
+# OniMarket 2.0 - leitura automática somente de /shop
 
-**JAR único.** Não precisa instalar plugin no servidor.
+**Um único mod cliente Fabric 1.21.11; não precisa de plugin no servidor.**
 
 ## Instalação
-- Minecraft Java 1.21.11, Java 21, Fabric Loader e Fabric API
-- Remova **todas** as versões anteriores de OniMarket da pasta `.minecraft/mods`.
-- Coloque `OniMarket-1.21.11-1.9.0.jar` na mesma pasta.
-- Entre no servidor, pressione **P** ou use `/onimarketui`.
+1. Use Minecraft Java 1.21.11, Java 21, Fabric Loader e Fabric API.
+2. Exclua TODOS os `OniMarket*.jar` anteriores da pasta `.minecraft/mods`.
+3. Coloque `OniMarket-1.21.11-2.0.0.jar` em `mods/`.
+4. Entre no servidor e pressione **P**; alternativa: `/onimarketui`.
 
-## Aba ECONOMIA
-O mod carrega **242 itens de referência** do projeto ONICRAFT 5.1, mesmo antes de acessar a loja. **Esses valores não são garantidos como atuais**: são identificados com um asterisco (*) e o rodapé indica quantos são referência.
-Abra `/shop` e percorra as páginas. As descrições de itens do inventário são analisadas e os preços reais passam a substituir os valores de referência, que deixam de ter o asterisco. Se uma compra ou venda não estiver disponível, mostra `--`. A comparação só usa preços conhecidos e positivos.
+## Varredura automática do /shop
+- Abra **IA • LUCRO** e clique **Iniciar varredura /shop**, ou no menu **PREÇOS**, clique **IA: varrer loja**.
+- O mod executa somente o comando `/shop`. **Não envia `/preco`**, não usa a fila antiga de consultas, não compra nem vende produtos.
+- Reconhece a loja do plugin ONICRAFT: janela **ONICRAFT | Loja**, 45 itens por página, marcador **Pagina X/Y** no slot 46 e seta **Proxima pagina** no slot 53.
+- Lê **Comprar: N** e **Vender: N** dos textos dos itens; **indisponivel** equivale a não negociável. Espera o inventário estabilizar antes de avançar de página.
+- Só clica no botão de navegação **com nome explícito**. Não clica em produtos, compras, vendas ou itens da janela de administração. Para outras lojas com GUI diferente, a navegação pode exigir adaptação.
+- Limites de segurança: 64 páginas, 180 segundos, sem transações automáticas.
 
-**Não é possível garantir o preço atual de todas as páginas sem o servidor enviar os dados.** O mod não compra ou vende nada automaticamente.
+## IA • LUCRO
+O motor analítico compara as cotações coletadas **da loja nesta sessão** para encontrar:
+- **REVENDA**: comprar 1 unidade por menos do que a loja paga na venda.
+- **CRAFT**: adquirir ingredientes, criar a quantidade indicada por uma receita conhecida e vender o resultado por mais do que o custo dos ingredientes.
 
-## Aba JOGADORES
-Mostra os nicks disponíveis na lista TAB e, no mínimo, o seu próprio jogador. X/Y/Z são mostrados somente para entidades de jogadores que o cliente realmente tem carregadas. Para jogadores distantes, `--` significa coordenadas desconhecidas. Nenhum plugin é necessário.
+A tabela mostra **tipo, item, materiais, custo, venda e lucro** por operação. Não são feitas previsões inventadas. Custos extras e taxas do servidor não são incluídos.
+
+**Importante:** o próprio plugin ONICRAFT possui proteções que impedem muitos negócios com lucro. Se a varredura terminar e nenhuma oportunidade aparecer, isso pode significar que **não há lucro real** nos preços publicados; não é automaticamente um defeito do leitor.
+
+## Aba PREÇOS
+Os 242 itens do catálogo antigo são incluídos só como **nomes de referência**, com `--` até que o scanner leia o preço atual no `/shop`. Preços antigos armazenados no computador recebem a marca `*` de histórico e não entram nos cálculos de IA.
+
+## Jogadores
+Lista nicks conhecidos pelo cliente Minecraft e as posições de jogadores carregados. Jogadores distantes não expõem coordenadas ao mod sem cooperação do servidor.
 
 ## Diagnóstico
-Se o conteúdo real da loja não for capturado, o rodapé mostra a última janela analisada e o número de capturas. Ao informar um erro, compartilhe o arquivo `.minecraft/logs/latest.log` e, se possível, uma imagem de `/shop` com o item selecionado.
+Abra `/shop` e observe o título da GUI. A aba IA informa quantas páginas e itens foram lidos e se parou por fim da loja, página repetida ou botão não reconhecido. Se necessário, envie `.minecraft/logs/latest.log` e uma imagem da loja aberta.
 
-## Pesquisa com sugestões (1.9)
-No menu (tecla P), digite qualquer parte do nome de um item no campo de pesquisa. O catálogo é filtrado ao vivo e até seis sugestões aparecem imediatamente abaixo do campo. Clique em uma opção para selecioná-la. Itens que começam com o texto digitado aparecem primeiro. Os nomes também aceitam buscas em português para itens comuns (ex.: `diamante`, `ferro`, `pedra`). A aba JOGADORES também aceita busca instantânea por nick.
-
-## Correção da tabela vazia (1.9)
-Foi corrigida a ordem de renderização no Minecraft 1.21.11: primeiro o fundo/widgets, depois o conteúdo da tabela (em versões anteriores o fundo era desenhado por cima dos textos). Os resultados da busca e os nomes dos jogadores ficam visíveis, com aviso explícito quando o filtro não encontra correspondência. Há botão **Limpar busca** no rodapé e as sugestões continuam aparecendo por cima da tabela.
-
-## IA de lucro (v1.9)
-
-Abra a tecla **P** -> **IA • LUCRO** -> **Iniciar varredura /shop**.
-
-- O cliente usa `/shop` para abrir a interface e analisa preços que o servidor enviar.
-- Para avançar de página, o leitor só clica em itens do tipo *seta* rotulados inequivocamente como "Próxima página" ou "Next Page". A varredura tem limite de 24 páginas e 120 segundos. Se a GUI usar outro nome ou botão, a varredura termina com um diagnóstico — não tenta comprar produtos nem deduzir botões.
-- A seção IA compara preços efetivamente coletados nesta sessão para detectar **REVENDA** (comprar por menos e vender por mais) e **CRAFT** (custo dos ingredientes vs venda da quantidade produzida) a partir de receitas básicas predefinidas.
-- Cada oportunidade mostra tipo, produto, custo, receita, lucro e materiais necessários. Os números valem por operação e não incluem taxas, combustível, custos extras ou limites do servidor.
-- **Nunca** usa os preços dos 242 itens de referência para recomendar lucro. Se não houver preços reais suficientes, o menu diz que não há oportunidades verificadas.
-- É um analisador de regras matemáticas offline, não um modelo de IA treinado. Não há promessa de lucro ou compatibilidade automática com todas as lojas: isso depende do formato de GUI e das mensagens do servidor.
-
-Retorne ao menu com **P** depois que a varredura terminar e veja **IA • LUCRO**.
+## Testes
+O GitHub Actions compila o cliente 1.21.11, valida a presença do JAR e executa testes do parser, navegação e cálculo de lucro. O funcionamento real dentro da sua host precisa ser validado no jogo.
