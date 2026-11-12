@@ -1,0 +1,123 @@
+name: Build ONICRAFT 5.3 QA
+on:
+  push:
+    paths:
+      - 'downloads/onicraft-v53/source.b64'
+      - '.github/workflows/build-onicraft-v53.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14.3'
+      - name: Unpack source
+        run: |
+          mkdir -p /tmp/oniv53/code
+          base64 -d downloads/onicraft-v53/source.b64 > /tmp/oniv53/source.zip
+          unzip -q /tmp/oniv53/source.zip -d /tmp/oniv53/code
+          test -f /tmp/oniv53/code/src/main/java/br/com/onicraft/Sidebar.java
+      - name: Static QA
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/oniv53/code
+          grep -Fq 'objective.numberFormat(NumberFormat.blank())' src/main/java/br/com/onicraft/Sidebar.java
+          grep -Fq 'io.papermc.paper.scoreboard.numbers.NumberFormat' src/main/java/br/com/onicraft/Sidebar.java
+          grep -Fq 'p.getGameMode()==GameMode.CREATIVE' src/main/java/br/com/onicraft/Auctions.java
+          grep -Fq 'version: 5.3.0-beta' src/main/resources/plugin.yml
+          test -s src/main/resources/maps/ONICRAFT_Lobby_Japones.schem
+      - name: Compile against official Paper API
+        id: compile
+        shell: bash
+        run: |
+          set +e
+          cd /tmp/oniv53/code
+          gradle --no-daemon clean build --stacktrace > /tmp/oniv53/build.log 2>&1
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          tail -n 90 /tmp/oniv53/build.log
+          exit 0
+      - name: Check JAR resources
+        if: steps.compile.outputs.exit_code == '0'
+        run: |
+          jar tf /tmp/oniv53/code/build/libs/ONICRAFT-5.3.0-beta.jar | grep -q 'br/com/onicraft/Sidebar.class'
+          jar tf /tmp/oniv53/code/build/libs/ONICRAFT-5.3.0-beta.jar | grep -q 'br/com/onicraft/VisualHUD.class'
+          jar tf /tmp/oniv53/code/build/libs/ONICRAFT-5.3.0-beta.jar | grep -q 'maps/ONICRAFT_Lobby_Japones.schem'
+          jar tf /tmp/oniv53/code/build/libs/ONICRAFT-5.3.0-beta.jar | grep -q 'plugin.yml'
+          javap -classpath /tmp/oniv53/code/build/libs/ONICRAFT-5.3.0-beta.jar -c -p br.com.onicraft.Sidebar | grep -q 'NumberFormat.blank'
+      - name: Test startup on real Paper server
+        if: steps.compile.outputs.exit_code == '0'
+        id: smoke
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/oniv53/server/plugins
+          cp /tmp/oniv53/code/build/libs/ONICRAFT-5.3.0-beta.jar /tmp/oniv53/server/plugins/
+          printf 'eula=true\n' > /tmp/oniv53/server/eula.txt
+          curl -fsSL --retry 3 -A 'ONICRAFT-QA/5.3' 'https://fill.papermc.io/v3/projects/paper/versions/1.21.11/builds?channel=STABLE' > /tmp/oniv53/paper.json
+          url=$(jq -r '[.[] | select(.channel == "STABLE") | .downloads."server:default".url][0] // empty' /tmp/oniv53/paper.json)
+          test -n "$url"
+          curl -fsSL --retry 3 -A 'ONICRAFT-QA/5.3' "$url" -o /tmp/oniv53/server/paper.jar
+          cd /tmp/oniv53/server
+          mkfifo /tmp/oniv53/input
+          java -Xms256M -Xmx1400M -jar paper.jar --nogui < /tmp/oniv53/input > /tmp/oniv53/server.log 2>&1 &
+          pid=$!
+          exec 3> /tmp/oniv53/input
+          ready=0
+          for i in $(seq 1 110); do
+            if grep -q 'Done (' /tmp/oniv53/server.log; then ready=1; break; fi
+            if ! kill -0 "$pid" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          printf 'onicraft status\n' >&3
+          printf 'onicraft doctor\n' >&3
+          printf 'mapa listar\n' >&3
+          printf 'shop list\n' >&3
+          sleep 3
+          printf 'stop\n' >&3
+          exec 3>&-
+          for i in $(seq 1 15); do
+            if ! kill -0 "$pid" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          kill "$pid" 2>/dev/null || true
+          wait "$pid" || true
+          test "$ready" = 1
+          grep -q 'ONICRAFT v5.3' /tmp/oniv53/server.log
+          grep -q 'ONICRAFT_Lobby_Japones' /tmp/oniv53/server.log
+          grep -q 'ONICRAFT 5.3.0-beta ativo' /tmp/oniv53/server.log
+          test -s plugins/ONICRAFT/maps/ONICRAFT_Lobby_Japones.schem
+          ! grep -Eiq 'Error occurred while enabling ONICRAFT|Falha ao iniciar o ONICRAFTPlugin|Exception in thread' /tmp/oniv53/server.log
+      - name: Export build and logs
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p downloads/onicraft-v53
+          if test -f /tmp/oniv53/build.log; then tail -n 500 /tmp/oniv53/build.log > downloads/onicraft-v53/build-log.txt; fi
+          if test -f /tmp/oniv53/server.log; then tail -n 270 /tmp/oniv53/server.log > downloads/onicraft-v53/server-test-log.txt; fi
+          if [[ "${{ steps.compile.outputs.exit_code }}" == '0' ]]; then
+            cp /tmp/oniv53/code/build/libs/ONICRAFT-5.3.0-beta.jar downloads/onicraft-v53/ONICRAFT-5.3.0-beta.jar
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A downloads/onicraft-v53/
+          if ! git diff --cached --quiet; then
+            git commit -m 'Build ONICRAFT v5.3 scoreboard hide-numbers and QA fixes'
+            git push
+          fi
+      - name: Require compilation
+        if: steps.compile.outputs.exit_code != '0'
+        run: exit 1
