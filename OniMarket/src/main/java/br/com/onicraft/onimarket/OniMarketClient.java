@@ -42,7 +42,9 @@ public class OniMarketClient implements ClientModInitializer {
     private static boolean aiShopOpened = false;
     private static boolean aiAwaitNext = false;
     private static long aiStarted = 0, aiLastPageAt = 0;
-    private static long aiOpenWaitStart = 0;
+    // /shop é enviado alguns ticks DEPOIS da tela do OniMarket fechar.
+    private static boolean aiPendingOpen = false;
+    private static int aiOpenAtTick = -1;
     private static final Set<String> seenItems = new HashSet<>();
     private static int aiPages = 0, aiPageHash = 0, aiPendingHash = 0;
     private static long aiPendingSince = 0;
@@ -84,6 +86,7 @@ public class OniMarketClient implements ClientModInitializer {
                 opportunities=List.of();
                 observations=0;
                 aiScanning=false;
+                aiPendingOpen=false;
                 aiStatus="IA pronta: clique em Iniciar varredura.";
                 playerPositions.clear();
                 positionsUpdatedAt=0;
@@ -93,6 +96,16 @@ public class OniMarketClient implements ClientModInitializer {
                 scannedSlots = 0;
             }
             tick++;
+            if(aiScanning && aiPendingOpen && tick>=aiOpenAtTick){
+                aiPendingOpen=false;
+                client.getConnection().sendCommand("shop");
+                aiStatus="Comando /shop enviado. Lendo a loja...";
+                System.out.println("[OniMarket] /shop enviado com o menu fechado; iniciou varredura.");
+            }
+            if(aiScanning && tick%30==0){
+                client.player.displayClientMessage(Component.literal(
+                    "OniMarket • "+aiStatus+" • P = ver painel"),true);
+            }
             if(tick%2==0 && client.screen instanceof AbstractContainerScreen<?>)scanShop(client);
             if(tick%10==0) {
                 if(aiScanning)autoScanTick(client);
@@ -154,31 +167,33 @@ public class OniMarketClient implements ClientModInitializer {
         observations=0;
         aiStarted=System.currentTimeMillis();
         aiLastPageAt=aiStarted;
-        aiOpenWaitStart=aiStarted;
         aiStatus="Abrindo /shop e analisando TODOS os itens...";
-        client.setScreen(null); // feche o painel ANTES de enviar /shop
-        client.getConnection().sendCommand("shop");
+        aiPendingOpen=true;
+        aiOpenAtTick=tick+4;
+        client.setScreen(null); // primeiro fecha o painel; o comando vai após 4 ticks
+        System.out.println("[OniMarket] Programado /shop após fechar o painel (4 ticks).");
     }
     private static void stopAiScan(String reason) {
         boolean wasScanning=aiScanning;
         aiScanning=false;
+        aiPendingOpen=false;
         aiAwaitNext=false;
         opportunities=ProfitEngine.analyze(observedPrices);
         long resale=opportunities.stream().filter(o->o.kind().equals("REVENDA")).count();
         long craft=opportunities.stream().filter(o->o.kind().equals("CRAFT")).count();
         aiStatus=reason+" | "+aiPages+" pág., "+seenItems.size()+" itens; "+
             resale+" revenda(s) e "+craft+" craft(s) com lucro.";
-        if(wasScanning){
+        System.out.println("[OniMarket] Varredura finalizada: "+aiStatus);
+        if(wasScanning) {
             Minecraft client=Minecraft.getInstance();
-            if(client.player!=null && client.getConnection()!=null &&
-                !(client.screen instanceof MarketScreen)){
-                MarketScreen.playersTab=false;
-                MarketScreen.aiTab=true;
-                MarketScreen.aiPage=0;
-                MarketScreen.searchText="";
-                client.setScreen(new MarketScreen());
+            if(client.player!=null){
+                client.player.displayClientMessage(Component.literal(
+                    "§aOniMarket: "+aiStatus+" §e| Pressione P para resultados."),false);
             }
         }
+        // NUNCA abra outra tela daqui. setScreen(MarketScreen) fechava o /shop
+        // em qualquer finalização, dando a impressão de que a varredura travou.
+        // A GUI original só fecha por ação voluntária do jogador/servidor.
     }
     private static int pageFingerprint(AbstractContainerScreen<?> screen) {
         int total=screen.getMenu().slots.size();
@@ -248,6 +263,7 @@ public class OniMarketClient implements ClientModInitializer {
     private static void autoScanTick(Minecraft client) {
         long now=System.currentTimeMillis();
         if(now-aiStarted>180000){stopAiScan("Tempo limite de varredura");return;}
+        if(aiPendingOpen)return;
         if(!(client.screen instanceof AbstractContainerScreen<?> screen)) {
             // Muitos servidores fecham/reabrem o baú ao trocar de página.
             // Não finalize a análise durante esse intervalo temporário.
@@ -297,6 +313,7 @@ public class OniMarketClient implements ClientModInitializer {
         ShopNavigator.Page pageInfo=currentPage(screen);
         aiStatus="Página "+(pageInfo==null?Integer.toString(aiPages):pageInfo.current()+"/"+pageInfo.total())+
             " | "+seenItems.size()+" itens vistos | "+observedPrices.size()+" precificados";
+        System.out.println("[OniMarket] "+aiStatus+"; título="+screen.getTitle().getString());
         if(pageInfo!=null && pageInfo.last()) {
             stopAiScan("Última página da loja alcançada");
             return;
