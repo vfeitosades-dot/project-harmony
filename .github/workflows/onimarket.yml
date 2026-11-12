@@ -92,7 +92,7 @@ jobs:
           for name in required:
               assert name.casefold() in s.casefold(), f"Falta recurso: {name}"
           assert 'Minecraft client=Minecraft.getInstance();' in s
-          assert 'p.sell()>p.buy()' in Path('src/main/java/br/com/onicraft/onimarket/ProfitEngine.java').read_text(), 'Análise de revenda ausente'
+          assert 'q.sell()>q.buy()' in Path('src/main/java/br/com/onicraft/onimarket/ProfitEngine.java').read_text(), 'Análise de revenda ausente'
           print("Dashboard, todos os itens, paginação e resultado pós-varredura: OK")
           PY
       - name: Build mod Fabric
