@@ -37,6 +37,28 @@ jobs:
           mkdir -p /tmp/onimarket-profit-tests
           javac -encoding UTF-8 -d /tmp/onimarket-profit-tests src/main/java/br/com/onicraft/onimarket/ProfitEngine.java src/test/java/br/com/onicraft/onimarket/ProfitEngineSmoke.java
           java -cp /tmp/onimarket-profit-tests br.com.onicraft.onimarket.ProfitEngineSmoke
+      - name: Testar navegação /shop ONICRAFT
+        working-directory: OniMarket
+        run: |
+          mkdir -p /tmp/onimarket-shop-tests
+          javac -encoding UTF-8 -d /tmp/onimarket-shop-tests src/main/java/br/com/onicraft/onimarket/ShopNavigator.java src/test/java/br/com/onicraft/onimarket/ShopNavigatorSmoke.java
+          java -cp /tmp/onimarket-shop-tests br.com.onicraft.onimarket.ShopNavigatorSmoke
+      - name: Verificar que o mod só consulta /shop
+        working-directory: OniMarket
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('src/main/java/br/com/onicraft/onimarket/OniMarketClient.java').read_text()
+          assert 'sendCommand("preco' not in s
+          assert '"/preco"' not in s
+          assert 'ClientReceiveMessageEvents' not in s
+          assert 'ShopNavigator.isShopTitle(title)' in s
+          assert 'ShopNavigator.isNextButton' in s
+          assert 'aiPendingSince' in s
+          assert 'ONIMARKET 2.0' in s
+          print("Somente /shop, sem /preco e com navegação segura: OK")
+          PY
       - name: Verificar 242 itens de referência
         working-directory: OniMarket
         run: |
@@ -62,15 +84,16 @@ jobs:
         working-directory: OniMarket
         shell: bash
         run: |
-          jar tf build/libs/OniMarket-1.21.11-1.9.0.jar > /tmp/onimarket-files.txt
+          jar tf build/libs/OniMarket-1.21.11-2.0.0.jar > /tmp/onimarket-files.txt
           grep -q 'OniMarketClient.class' /tmp/onimarket-files.txt
           grep -q 'PriceParser.class' /tmp/onimarket-files.txt
           grep -q 'SearchSuggestions.class' /tmp/onimarket-files.txt
           grep -q 'ProfitEngine.class' /tmp/onimarket-files.txt
+          grep -q 'ShopNavigator.class' /tmp/onimarket-files.txt
           grep -q 'fabric.mod.json' /tmp/onimarket-files.txt
           grep -q 'onimarket_reference_prices.tsv' /tmp/onimarket-files.txt
       - uses: actions/upload-artifact@v4
         with:
           name: OniMarket-1.21.11-Standalone-JAR
-          path: OniMarket/build/libs/OniMarket-1.21.11-1.9.0.jar
+          path: OniMarket/build/libs/OniMarket-1.21.11-2.0.0.jar
           if-no-files-found: error
