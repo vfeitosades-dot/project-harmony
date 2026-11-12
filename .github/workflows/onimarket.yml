@@ -31,6 +31,12 @@ jobs:
           mkdir -p /tmp/onimarket-search-tests
           javac -encoding UTF-8 -d /tmp/onimarket-search-tests src/main/java/br/com/onicraft/onimarket/SearchSuggestions.java src/test/java/br/com/onicraft/onimarket/SearchSuggestionsSmoke.java
           java -cp /tmp/onimarket-search-tests br.com.onicraft.onimarket.SearchSuggestionsSmoke
+      - name: Testar analise de lucro, revenda e craft
+        working-directory: OniMarket
+        run: |
+          mkdir -p /tmp/onimarket-profit-tests
+          javac -encoding UTF-8 -d /tmp/onimarket-profit-tests src/main/java/br/com/onicraft/onimarket/ProfitEngine.java src/test/java/br/com/onicraft/onimarket/ProfitEngineSmoke.java
+          java -cp /tmp/onimarket-profit-tests br.com.onicraft.onimarket.ProfitEngineSmoke
       - name: Verificar 242 itens de referência
         working-directory: OniMarket
         run: |
@@ -56,14 +62,15 @@ jobs:
         working-directory: OniMarket
         shell: bash
         run: |
-          jar tf build/libs/OniMarket-1.21.11-1.8.0.jar > /tmp/onimarket-files.txt
+          jar tf build/libs/OniMarket-1.21.11-1.9.0.jar > /tmp/onimarket-files.txt
           grep -q 'OniMarketClient.class' /tmp/onimarket-files.txt
           grep -q 'PriceParser.class' /tmp/onimarket-files.txt
           grep -q 'SearchSuggestions.class' /tmp/onimarket-files.txt
+          grep -q 'ProfitEngine.class' /tmp/onimarket-files.txt
           grep -q 'fabric.mod.json' /tmp/onimarket-files.txt
           grep -q 'onimarket_reference_prices.tsv' /tmp/onimarket-files.txt
       - uses: actions/upload-artifact@v4
         with:
           name: OniMarket-1.21.11-Standalone-JAR
-          path: OniMarket/build/libs/OniMarket-1.21.11-1.8.0.jar
+          path: OniMarket/build/libs/OniMarket-1.21.11-1.9.0.jar
           if-no-files-found: error
