@@ -35,6 +35,16 @@ public final class ProfitEngineSmoke {
         a=ProfitEngine.analyze(p);
         require(a.stream().anyMatch(o->o.product().equals("BAMBOO_BLOCK")&&o.kind().equals("CRAFT")
             &&o.profit()==11),"bambu 9 por 1 e venda 20 = 11 de lucro");
-        System.out.println("OniMarket ProfitEngine: 11 testes OK");
+        // Verifica a varredura de centenas de itens sem pesquisar nada individualmente.
+        p.clear();
+        for(int i=0;i<240;i++)p.put("BLOCK_"+i,new ProfitEngine.Quote(100,25));
+        p.put("LUCRO_A",new ProfitEngine.Quote(20,35));
+        p.put("LUCRO_B",new ProfitEngine.Quote(45,120));
+        a=ProfitEngine.analyze(p);
+        require(a.stream().filter(o->o.kind().equals("REVENDA")).count()==2,
+            "deve achar ambos os itens lucrativos entre 242 ofertas");
+        require(a.stream().anyMatch(o->o.product().equals("LUCRO_A")),"lucro A presente");
+        require(a.stream().anyMatch(o->o.product().equals("LUCRO_B")),"lucro B presente");
+        System.out.println("OniMarket ProfitEngine: testes de 242 itens + 14 casos OK");
     }
 }
