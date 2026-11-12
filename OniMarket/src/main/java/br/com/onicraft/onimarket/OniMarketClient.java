@@ -42,6 +42,8 @@ public class OniMarketClient implements ClientModInitializer {
     private static boolean aiShopOpened = false;
     private static boolean aiAwaitNext = false;
     private static long aiStarted = 0, aiLastPageAt = 0;
+    private static long aiOpenWaitStart = 0;
+    private static final Set<String> seenItems = new HashSet<>();
     private static int aiPages = 0, aiPageHash = 0, aiPendingHash = 0;
     private static long aiPendingSince = 0;
     private static final Set<Integer> aiSeenPages = new HashSet<>();
@@ -143,7 +145,8 @@ public class OniMarketClient implements ClientModInitializer {
         aiPendingHash=0;
         aiPendingSince=0;
         aiSeenPages.clear();
-        observedPrices.clear(); // nova análise: apenas /shop desta sessão
+        observedPrices.clear(); // somente os valores desta nova varredura
+        seenItems.clear();
         for(Prices p:prices.values()) {
             p.reference=true; // histórico fica marcado e não entra nos cálculos
         }
@@ -151,7 +154,8 @@ public class OniMarketClient implements ClientModInitializer {
         observations=0;
         aiStarted=System.currentTimeMillis();
         aiLastPageAt=aiStarted;
-        aiStatus="Abrindo /shop...";
+        aiOpenWaitStart=aiStarted;
+        aiStatus="Abrindo /shop e analisando TODOS os itens...";
         client.setScreen(null); // feche o painel ANTES de enviar /shop
         client.getConnection().sendCommand("shop");
     }
@@ -159,8 +163,10 @@ public class OniMarketClient implements ClientModInitializer {
         aiScanning=false;
         aiAwaitNext=false;
         opportunities=ProfitEngine.analyze(observedPrices);
-        aiStatus=reason+" | "+aiPages+" páginas, "+observedPrices.size()+
-            " itens, "+opportunities.size()+" oportunidades.";
+        long resale=opportunities.stream().filter(o->o.kind().equals("REVENDA")).count();
+        long craft=opportunities.stream().filter(o->o.kind().equals("CRAFT")).count();
+        aiStatus=reason+" | "+aiPages+" pág., "+seenItems.size()+" itens; "+
+            resale+" revenda(s) e "+craft+" craft(s) com lucro.";
     }
     private static int pageFingerprint(AbstractContainerScreen<?> screen) {
         int total=screen.getMenu().slots.size();
@@ -231,14 +237,20 @@ public class OniMarketClient implements ClientModInitializer {
         long now=System.currentTimeMillis();
         if(now-aiStarted>180000){stopAiScan("Tempo limite de varredura");return;}
         if(!(client.screen instanceof AbstractContainerScreen<?> screen)) {
-            if(!aiShopOpened) {
-                if(now-aiStarted>12000)stopAiScan("A loja não abriu. Confira /shop.");
-            }else stopAiScan("Loja fechada");
+            // Muitos servidores fecham/reabrem o baú ao trocar de página.
+            // Não finalize a análise durante esse intervalo temporário.
+            if(aiAwaitNext) {
+                if(now-aiLastPageAt>9000)stopAiScan("A próxima página não abriu.");
+            } else if(!aiShopOpened) {
+                if(now-aiStarted>12000)stopAiScan("O /shop não abriu. Verifique o comando.");
+            } else if(now-aiLastPageAt>4500) {
+                stopAiScan("Loja fechada. Abra P para ver resultados coletados.");
+            }
             return;
         }
         if(!ShopNavigator.isShopTitle(screen.getTitle().getString())){
-            if(now-aiStarted>12000 || aiShopOpened)
-                stopAiScan("Interface diferente de /shop: "+screen.getTitle().getString());
+            if(aiAwaitNext && now-aiLastPageAt<=9000)return;
+            stopAiScan("Janela incompatível: "+screen.getTitle().getString());
             return;
         }
         aiShopOpened=true;
@@ -264,14 +276,15 @@ public class OniMarketClient implements ClientModInitializer {
             stopAiScan("Página repetida; varredura concluída");
             return;
         }
+        scanShop(client); // leitura final da página ANTES de qualquer clique
         aiSeenPages.add(fingerprint);
         aiPages++;
         aiPageHash=fingerprint;
         aiLastPageAt=now;
         opportunities=ProfitEngine.analyze(observedPrices);
         ShopNavigator.Page pageInfo=currentPage(screen);
-        aiStatus="Lendo página "+(pageInfo==null?aiPages:pageInfo.current()+"/"+pageInfo.total())+
-            " | "+observedPrices.size()+" itens com preços do /shop";
+        aiStatus="Página "+(pageInfo==null?Integer.toString(aiPages):pageInfo.current()+"/"+pageInfo.total())+
+            " | "+seenItems.size()+" itens vistos | "+observedPrices.size()+" precificados";
         if(pageInfo!=null && pageInfo.last()) {
             stopAiScan("Última página da loja alcançada");
             return;
@@ -285,6 +298,7 @@ public class OniMarketClient implements ClientModInitializer {
             client.gameMode.handleInventoryMouseClick(
                 screen.getMenu().containerId,nextSlot,0,ClickType.PICKUP,client.player);
             aiAwaitNext=true;
+            aiPendingHash=0;
             aiLastPageAt=now;
             aiStatus="Próxima página solicitada ("+aiPages+").";
         }else stopAiScan("Cliente sem conexão");
@@ -304,6 +318,7 @@ public class OniMarketClient implements ClientModInitializer {
             String id=BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath().toUpperCase(Locale.ROOT);
             if(id.equals("AIR"))continue;
             if(ShopNavigator.isNextButton(i,id,stack.getHoverName().getString(),title))continue;
+            if(ShopNavigator.isOnicraft(title))seenItems.add(id);
             ItemLore lore=stack.get(DataComponents.LORE);
             if(lore==null || lore.lines().isEmpty())continue;
             scannedSlots++;
