@@ -16,6 +16,10 @@ public final class PriceParserSmoke {
         close(PriceParser.parse("buy: $45 / sell: $75").buy(),45);
         close(PriceParser.parse("buy: $45 / sell: $75").sell(),75);
         close(PriceParser.parse("§aVender por: R$ 1.450").sell(),1450);
-        System.out.println("OniMarket parser: 11 testes OK");
+        close(PriceParser.parse("Comprar: 55").buy(),55);
+        close(PriceParser.parse("Vender: 10").sell(),10);
+        close(PriceParser.parse("Comprar: indisponivel").buy(),0);
+        close(PriceParser.parse("Vender: indisponivel").sell(),0);
+        System.out.println("OniMarket parser: 15 testes OK (inclui a loja ONICRAFT)");
     }
 }
