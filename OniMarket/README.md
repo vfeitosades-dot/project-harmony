@@ -1,38 +1,32 @@
-# OniMarket 2.0 - leitura automática somente de /shop
+# OniMarket 2.1 — analisador de TODAS as ofertas do /shop
 
-**Um único mod cliente Fabric 1.21.11; não precisa de plugin no servidor.**
+Mod único de cliente Fabric 1.21.11. Não precisa de plugin na host.
 
-## Instalação
-1. Use Minecraft Java 1.21.11, Java 21, Fabric Loader e Fabric API.
-2. Exclua TODOS os `OniMarket*.jar` anteriores da pasta `.minecraft/mods`.
-3. Coloque `OniMarket-1.21.11-2.0.0.jar` em `mods/`.
-4. Entre no servidor e pressione **P**; alternativa: `/onimarketui`.
+## Instalar
+1. Remova todos os JARs anteriores `OniMarket*.jar` da pasta `.minecraft/mods`.
+2. Tenha Minecraft Java 1.21.11, Java 21, Fabric Loader e Fabric API.
+3. Instale `OniMarket-1.21.11-2.1.0.jar`.
+4. Entre no servidor e pressione **P** (ou execute o comando cliente `/onimarketui`).
 
-## Varredura automática do /shop
-- Abra **IA • LUCRO** e clique **Iniciar varredura /shop**, ou no menu **PREÇOS**, clique **IA: varrer loja**.
-- O mod executa somente o comando `/shop`. **Não envia `/preco`**, não usa a fila antiga de consultas, não compra nem vende produtos.
-- Reconhece a loja do plugin ONICRAFT: janela **ONICRAFT | Loja**, 45 itens por página, marcador **Pagina X/Y** no slot 46 e seta **Proxima pagina** no slot 53.
-- Lê **Comprar: N** e **Vender: N** dos textos dos itens; **indisponivel** equivale a não negociável. Espera o inventário estabilizar antes de avançar de página.
-- Só clica no botão de navegação **com nome explícito**. Não clica em produtos, compras, vendas ou itens da janela de administração. Para outras lojas com GUI diferente, a navegação pode exigir adaptação.
-- Limites de segurança: 64 páginas, 180 segundos, sem transações automáticas.
+## Menu
+A aba **IA • LUCRO** abre por padrão e procura **todos** os itens rentáveis; você não precisa digitar um item nem usar /preco. 
+- **Varrer /shop inteiro**: abre /shop, percorre as páginas quando reconhece uma seta de próxima página e lê os preços dos itens.
+- **Revenda**: TODAS as operações com compra positiva e venda maior que compra, classificadas por lucro.
+- **Craft**: receitas conhecidas cujos ingredientes podem ser comprados por menos do que a loja paga no produto final.
+- **Todos**: une as duas modalidades.
+- **PREÇOS**: lista todos os preços coletados, inclusive os que dariam prejuízo.
+- **JOGADORES**: mostra nicks e posições apenas dos jogadores carregados no cliente.
 
-## IA • LUCRO
-O motor analítico compara as cotações coletadas **da loja nesta sessão** para encontrar:
-- **REVENDA**: comprar 1 unidade por menos do que a loja paga na venda.
-- **CRAFT**: adquirir ingredientes, criar a quantidade indicada por uma receita conhecida e vender o resultado por mais do que o custo dos ingredientes.
+Quando a varredura termina, o próprio menu reabre com os resultados. O rodapé informa páginas visitadas, itens, preços de compra/venda conhecidos, quantidade de revendas e crafts lucrativos.
 
-A tabela mostra **tipo, item, materiais, custo, venda e lucro** por operação. Não são feitas previsões inventadas. Custos extras e taxas do servidor não são incluídos.
+**Se houver ZERO oportunidades**, o menu mostra os preços coletados e alguns exemplos negativos, em vez de ficar vazio. Não inventa lucro.
 
-**Importante:** o próprio plugin ONICRAFT possui proteções que impedem muitos negócios com lucro. Se a varredura terminar e nenhuma oportunidade aparecer, isso pode significar que **não há lucro real** nos preços publicados; não é automaticamente um defeito do leitor.
+## Compatibilidade
+Reconhece a estrutura real da loja no código-fonte ONICRAFT v4: título "ONICRAFT | Loja", 45 itens por página, botão de próxima página no slot 53 e marcador de página no 46. Permite até 64 páginas e 180 segundos. Não clica em produtos nem efetua transações.
 
-## Aba PREÇOS
-Os 242 itens do catálogo antigo são incluídos só como **nomes de referência**, com `--` até que o scanner leia o preço atual no `/shop`. Preços antigos armazenados no computador recebem a marca `*` de histórico e não entram nos cálculos de IA.
+O catálogo padrão do ONICRAFT v4 tem 242 itens: 214 com compra mais cara que venda e 28 indisponíveis para comprar. Portanto, não existe compra e revenda direta lucrativa nessa configuração original. Se o dono editar os preços no servidor, o mod procura oportunidades usando os preços **atuais** lidos da GUI.
 
-## Jogadores
-Lista nicks conhecidos pelo cliente Minecraft e as posições de jogadores carregados. Jogadores distantes não expõem coordenadas ao mod sem cooperação do servidor.
+## Limitações
+Os números refletem o /shop recebido pelo cliente e podem mudar se o servidor alterar preços, taxas ou regras. O mod não consegue descobrir dados que a host não envia. O cálculo de craft considera receitas pré-mapeadas, não todas as receitas de todos os mods. A compilação e os testes automatizados não substituem um teste conectado ao servidor real.
 
-## Diagnóstico
-Abra `/shop` e observe o título da GUI. A aba IA informa quantas páginas e itens foram lidos e se parou por fim da loja, página repetida ou botão não reconhecido. Se necessário, envie `.minecraft/logs/latest.log` e uma imagem da loja aberta.
-
-## Testes
-O GitHub Actions compila o cliente 1.21.11, valida a presença do JAR e executa testes do parser, navegação e cálculo de lucro. O funcionamento real dentro da sua host precisa ser validado no jogo.
+Se o mod não mostrar resultados, envie print de /shop aberto e `.minecraft/logs/latest.log`.
