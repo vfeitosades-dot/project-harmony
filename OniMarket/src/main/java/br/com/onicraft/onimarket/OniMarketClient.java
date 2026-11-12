@@ -42,7 +42,8 @@ public class OniMarketClient implements ClientModInitializer {
     private static boolean aiShopOpened = false;
     private static boolean aiAwaitNext = false;
     private static long aiStarted = 0, aiLastPageAt = 0;
-    private static int aiPages = 0, aiPageHash = 0;
+    private static int aiPages = 0, aiPageHash = 0, aiPendingHash = 0;
+    private static long aiPendingSince = 0;
     private static final Set<Integer> aiSeenPages = new HashSet<>();
     private static String aiStatus = "IA pronta: clique em Iniciar varredura.";
 
@@ -139,6 +140,8 @@ public class OniMarketClient implements ClientModInitializer {
         aiAwaitNext=false;
         aiPages=0;
         aiPageHash=0;
+        aiPendingHash=0;
+        aiPendingSince=0;
         aiSeenPages.clear();
         observedPrices.clear(); // nova análise: apenas /shop desta sessão
         for(Prices p:prices.values()) {
@@ -149,8 +152,8 @@ public class OniMarketClient implements ClientModInitializer {
         aiStarted=System.currentTimeMillis();
         aiLastPageAt=aiStarted;
         aiStatus="Abrindo /shop...";
+        client.setScreen(null); // feche o painel ANTES de enviar /shop
         client.getConnection().sendCommand("shop");
-        client.setScreen(null);
     }
     private static void stopAiScan(String reason) {
         aiScanning=false;
@@ -244,11 +247,19 @@ public class OniMarketClient implements ClientModInitializer {
         if(fingerprint==0)return;
         if(aiAwaitNext) {
             if(fingerprint==aiPageHash) {
-                if(now-aiLastPageAt>5000)stopAiScan("Próxima página não respondeu");
+                if(now-aiLastPageAt>7000)stopAiScan("Próxima página não respondeu");
                 return;
             }
             aiAwaitNext=false;
         }
+        // Aguarde a página ficar estável: abertura da GUI e itens podem
+        // chegar em pacotes diferentes. Evita pular páginas sem ler preços.
+        if(fingerprint!=aiPendingHash) {
+            aiPendingHash=fingerprint;
+            aiPendingSince=now;
+            return;
+        }
+        if(now-aiPendingSince<350)return;
         if(aiSeenPages.contains(fingerprint)){
             stopAiScan("Página repetida; varredura concluída");
             return;
