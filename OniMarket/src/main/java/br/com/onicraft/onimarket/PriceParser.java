@@ -39,6 +39,10 @@ public final class PriceParser {
         return new Quote(buy,sell);
     }
     private static Double findAmount(String seg) {
+        // O ONICRAFT mostra "Comprar: indisponivel" e "Vender: indisponivel".
+        // Zero significa indisponível e nunca gera recomendação de lucro.
+        if(seg.contains("indisponivel") || seg.contains("nao disponivel") || seg.contains("unavailable"))
+            return 0.0;
         if(seg.length()>160) seg=seg.substring(0,160);
         Matcher m=VALUE.matcher(seg);
         String value=null;
