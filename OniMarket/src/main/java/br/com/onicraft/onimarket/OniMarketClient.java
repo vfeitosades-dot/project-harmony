@@ -618,7 +618,8 @@ public class OniMarketClient implements ClientModInitializer {
             int pages=Math.max(1,(all.size()+maxRows-1)/maxRows);
             aiPage=Math.min(aiPage,pages-1);
 
-            g.drawString(font,"ITEM LUCRATIVO",x+10,108,0xEAF0F5);
+            g.drawString(font,all.isEmpty() && opportunityType!=1 && completedQuotes>0
+                ? "NENHUMA REVENDA LUCRATIVA" : "ITEM LUCRATIVO",x+10,108,0xEAF0F5);
             g.drawString(font,"COMPRAR",buyX,108,0xFFD198);
             g.drawString(font,"VENDER",saleX,108,0x9ED8FF);
             g.drawString(font,"LUCRO",profitX,108,0x78F9A7);
@@ -637,14 +638,37 @@ public class OniMarketClient implements ClientModInitializer {
                 g.drawString(font,shortText(details,w-24),x+10,y+12,0xB1BFD1);
             }
             long completedQuotes=observedPrices.values().stream().filter(p->p.buy()>0 && p.sell()>0).count();
-            if(all.isEmpty()){
+            // Caso o servidor não tenha lucros, ainda exiba preços reais para
+            // mostrar que TODAS as páginas foram analisadas. Nunca chame prejuízo de lucro.
+            if(all.isEmpty() && opportunityType!=1 && completedQuotes>0){
+                List<Map.Entry<String,ProfitEngine.Quote>> near=new ArrayList<>();
+                for(var entry:observedPrices.entrySet()) {
+                    ProfitEngine.Quote q=entry.getValue();
+                    if(q.buy()>0 && q.sell()>0 &&
+                        SearchSuggestions.matches(entry.getKey(),searchText)) near.add(entry);
+                }
+                near.sort(Comparator.comparingDouble(
+                    (Map.Entry<String,ProfitEngine.Quote> entry)->
+                        entry.getValue().sell()-entry.getValue().buy()).reversed());
+                for(int j=0;j<Math.min(maxRows,near.size());j++){
+                    var entry=near.get(j);
+                    int y=129+j*30;
+                    if(j%2==0)g.fill(x+8,y-3,x+w-8,y+25,0x263A536F);
+                    double loss=entry.getValue().sell()-entry.getValue().buy();
+                    g.drawString(font,shortText(entry.getKey().replace('_',' '),buyX-x-16),
+                        x+10,y,0xD6DFE9);
+                    g.drawString(font,fmt(entry.getValue().buy()),buyX,y,0xFFD198);
+                    g.drawString(font,fmt(entry.getValue().sell()),saleX,y,0x9ED8FF);
+                    g.drawString(font,fmt(loss),profitX,y,0xF08A85);
+                    g.drawString(font,"Não lucrativo (exemplo entre os itens analisados)",
+                        x+10,y+12,0xA0AAB5);
+                }
+            } else if(all.isEmpty()){
                 String empty=observedPrices.isEmpty()
-                    ? "Sem preços do /shop. Use o botão Varrer /shop inteiro."
+                    ? "Nenhum preço encontrado: confira se o /shop abriu."
                     : completedQuotes==0
-                      ? "Preços incompletos: nenhum item tem compra E venda."
-                      : (opportunityType==1
-                         ? "Nenhuma receita de craft lucrativa com os preços disponíveis."
-                         : "Nenhum item com lucro de revenda entre os preços lidos.");
+                      ? "Os itens não mostram ambos os preços de compra e venda."
+                      : "Sem oportunidades de craft com os valores coletados.";
                 g.drawCenteredString(font,empty,width/2,152,0xFFCE8D);
             }
             g.drawCenteredString(font,shortText(aiStatus,w-24),width/2,height-62,0xF3C97B);
