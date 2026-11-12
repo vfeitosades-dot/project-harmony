@@ -56,7 +56,7 @@ jobs:
           assert 'ShopNavigator.isShopTitle(title)' in s
           assert 'ShopNavigator.isNextButton' in s
           assert 'aiPendingSince' in s
-          assert 'ONIMARKET 2.1' in s
+          assert 'ONIMARKET 2.2' in s
           print("Somente /shop, sem /preco e com navegação segura: OK")
           PY
       - name: Verificar 242 itens de referência
@@ -95,6 +95,28 @@ jobs:
           assert 'q.sell()>q.buy()' in Path('src/main/java/br/com/onicraft/onimarket/ProfitEngine.java').read_text(), 'Análise de revenda ausente'
           print("Dashboard, todos os itens, paginação e resultado pós-varredura: OK")
           PY
+      - name: Garantir que o scanner nao feche o /shop
+        working-directory: OniMarket
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          src=Path('src/main/java/br/com/onicraft/onimarket/OniMarketClient.java').read_text()
+          begin=src.index('    private static void stopAiScan(String reason) {')
+          end=src.index('    private static int pageFingerprint(',begin)
+          stop=src[begin:end]
+          assert '.setScreen(' not in stop, 'stopAiScan ainda fecha a tela /shop'
+          start=src.index('    private static void startAiScan(Minecraft client) {')
+          stop_start=src[start:begin]
+          assert 'aiOpenAtTick=tick+4;' in stop_start, 'O /shop precisa ser enviado alguns ticks depois'
+          assert 'aiPendingOpen=true' in stop_start
+          assert 'if(aiScanning && aiPendingOpen && tick>=aiOpenAtTick)' in src
+          assert 'client.getConnection().sendCommand("shop");' in src
+          assert '[OniMarket] Varredura finalizada:' in stop
+          assert 'aiScanning=false;' in stop
+          assert 'client.player.displayClientMessage' in src
+          print("Fluxo de abertura e finalizacao sem fechamento de GUI: OK")
+          PY
       - name: Build mod Fabric
         working-directory: OniMarket
         run: gradle clean build --no-daemon
@@ -102,7 +124,7 @@ jobs:
         working-directory: OniMarket
         shell: bash
         run: |
-          jar tf build/libs/OniMarket-1.21.11-2.1.0.jar > /tmp/onimarket-files.txt
+          jar tf build/libs/OniMarket-1.21.11-2.2.0.jar > /tmp/onimarket-files.txt
           grep -q 'OniMarketClient.class' /tmp/onimarket-files.txt
           grep -q 'PriceParser.class' /tmp/onimarket-files.txt
           grep -q 'SearchSuggestions.class' /tmp/onimarket-files.txt
@@ -113,5 +135,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: OniMarket-1.21.11-Standalone-JAR
-          path: OniMarket/build/libs/OniMarket-1.21.11-2.1.0.jar
+          path: OniMarket/build/libs/OniMarket-1.21.11-2.2.0.jar
           if-no-files-found: error
