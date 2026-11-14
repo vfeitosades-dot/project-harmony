@@ -42,10 +42,14 @@ jobs:
           path: ONICLIENT/ONICLIENT-1.21.11.jar
           if-no-files-found: error
       - name: Disponibilizar JAR na branch
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
         run: |
+          cp ONICLIENT/ONICLIENT-1.21.11.jar /tmp/oniclient-build.jar
+          git fetch origin oniclient-fabric-1.21.11
+          git checkout -B oniclient-fabric-1.21.11 origin/oniclient-fabric-1.21.11
+          cp /tmp/oniclient-build.jar ONICLIENT/ONICLIENT-1.21.11.jar
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
-          git add ONICLIENT/ONICLIENT-1.21.11.jar
-          git commit -m "build: publicar ONICLIENT Fabric 1.21.11" || exit 0
-          git push
+          git add -f ONICLIENT/ONICLIENT-1.21.11.jar
+          git commit -m "build: atualizar ONICLIENT Fabric 1.21.11" || exit 0
+          git push origin oniclient-fabric-1.21.11
