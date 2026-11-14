@@ -1,0 +1,1 @@
+{"required":true,"minVersion":"0.8","package":"br.oniclient.mixin","compatibilityLevel":"JAVA_21","client":["XrayBlockMixin"],"injectors":{"defaultRequire":1}}
