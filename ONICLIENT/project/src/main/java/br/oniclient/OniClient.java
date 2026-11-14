@@ -7,6 +7,9 @@ import com.google.gson.reflect.TypeToken;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
+import net.fabricmc.fabric.api.client.screen.v1.ScreenKeyboardEvents;
+import net.fabricmc.fabric.api.client.screen.v1.Screens;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.fabricmc.loader.api.FabricLoader;
@@ -50,6 +53,9 @@ public final class OniClient implements ClientModInitializer {
     private int ticks;
     public static String lastShop="Nenhuma loja";
     public static int lastFound=0;
+    public static String lastDiagnostic="Sem diagnostico";
+    public static int lastSlots=0;
+    public static int lastLores=0;
     public static String oreResult="";
     private static String serverName="";
     public static final class Quote {
@@ -65,6 +71,19 @@ public final class OniClient implements ClientModInitializer {
         xray=bind("xray",GLFW.GLFW_KEY_X);
         scan=bind("scan",GLFW.GLFW_KEY_P);
         ClientTickEvents.END_CLIENT_TICK.register(this::tick);
+        // A tecla normal do Minecraft nao chega ao mod durante menus de bau.
+        // Registramos os eventos de teclado do proprio menu e um botao acessivel.
+        ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
+            if (!(screen instanceof AbstractContainerScreen<?>)) return;
+            Screens.getButtons(screen).add(
+                Button.builder(Component.literal("ONI: ESCANEAR (P)"), b -> {
+                    scanOpenShop(client);
+                    b.setMessage(Component.literal("ONI: "+lastFound+" / "+lastSlots));
+                }).bounds(Math.max(4,scaledWidth-155),4,151,20).build());
+            ScreenKeyboardEvents.beforeKeyPress(screen).register((s,key) -> {
+                if (key.key()==GLFW.GLFW_KEY_P) scanOpenShop(client);
+            });
+        });
         HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT,
           Identifier.fromNamespaceAndPath("oniclient","hud"),(g,t)->{
             Minecraft mc=Minecraft.getInstance();
@@ -89,10 +108,7 @@ public final class OniClient implements ClientModInitializer {
         while(menu.consumeClick())mc.setScreen(new Panel(0));
         while(night.consumeClick())NIGHT=!NIGHT;
         while(xray.consumeClick())toggleXray(mc);
-        while(scan.consumeClick()){
-            int count=capture(mc,true);
-            mc.player.displayClientMessage(Component.literal("ONICLIENT: "+count+" itens escaneados."),true);
-        }
+        while(scan.consumeClick())scanOpenShop(mc);
         if(NIGHT&&ticks%40==0){
             var effect=mc.player.getEffect(MobEffects.NIGHT_VISION);
             if(effect==null||effect.getDuration()<100)mc.player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION,240,0,true,false,false));
@@ -130,13 +146,15 @@ public final class OniClient implements ClientModInitializer {
         String title=screen.getTitle().getString();
         if(!forced&&!SHOP.matcher(title).find())return 0;
         lastShop=title;
-        int count=0;
-        for(Slot slot:mc.player.containerMenu.slots){
+        int count=0, slots=0, lores=0;
+        for(Slot slot:screen.getMenu().slots){
             if(slot.container==mc.player.getInventory())continue;
             var stack=slot.getItem();
             if(stack.isEmpty())continue;
+            slots++;
             ItemLore lore=stack.get(DataComponents.LORE);
             if(lore==null)continue;
+            lores++;
             double buy=Double.NaN,sell=Double.NaN;
             for(Component line:lore.lines()){
                 String text=line.getString();
@@ -153,7 +171,46 @@ public final class OniClient implements ClientModInitializer {
             q.updated=System.currentTimeMillis();count++;
         }
         lastFound=count;
+        lastSlots=slots;
+        lastLores=lores;
+        lastDiagnostic="Itens: "+slots+" | descricoes: "+lores+" | precos: "+count;
         return count;
+    }
+    private static void scanOpenShop(Minecraft mc) {
+        if(mc.player==null)return;
+        if(!(mc.screen instanceof AbstractContainerScreen<?>)){
+            mc.player.displayClientMessage(Component.literal("[ONI] Abra /shop e mantenha a loja aberta para escanear."),false);
+            return;
+        }
+        int count=capture(mc,true);
+        if(count>0){
+            mc.player.displayClientMessage(Component.literal("[ONI] "+count+" itens com preco detectados nesta pagina. Abra outras categorias para completar."),false);
+            save();
+        }else{
+            String file=writeDiagnostic(mc);
+            mc.player.displayClientMessage(Component.literal("[ONI] Nenhum preco encontrado. "+lastDiagnostic+". Diagnostico: "+file),false);
+        }
+    }
+    private static String writeDiagnostic(Minecraft mc){
+        if(!(mc.screen instanceof AbstractContainerScreen<?> screen))return "Abra uma loja";
+        Path path=FabricLoader.getInstance().getConfigDir().resolve("oniclient-shop-diagnostico.txt");
+        try{
+            Files.createDirectories(path.getParent());
+            try(Writer w=Files.newBufferedWriter(path,StandardCharsets.UTF_8)){
+                w.write("ONICLIENT DIAGNOSTICO - Fabric 1.21.11\n");
+                w.write("Tela: "+screen.getTitle().getString()+"\n");
+                w.write("Slots com itens: "+lastSlots+"; com lore: "+lastLores+"; precos detectados: "+lastFound+"\n");
+                for(Slot slot:screen.getMenu().slots){
+                    if(slot.container==mc.player.getInventory())continue;
+                    var stack=slot.getItem();
+                    if(stack.isEmpty())continue;
+                    w.write("\nItem: "+BuiltInRegistries.ITEM.getKey(stack.getItem())+" | "+stack.getHoverName().getString()+" | tamanho "+stack.getCount()+"\n");
+                    ItemLore lore=stack.get(DataComponents.LORE);
+                    if(lore!=null)for(Component line:lore.lines())w.write("  "+line.getString()+"\n");
+                }
+            }
+            return path.toString();
+        }catch(IOException ex){return "Falha ao salvar: "+ex.getMessage();}
     }
     private static double price(Pattern p,String text){
         Matcher m=p.matcher(text);
@@ -216,7 +273,7 @@ public final class OniClient implements ClientModInitializer {
                 addRenderableWidget(Button.builder(Component.literal("Radar de minerios: "+RADAR),b->{RADAR=!RADAR;reload();}).bounds(x+15,y+123,220,20).build());
                 addRenderableWidget(Button.builder(Component.literal("HUD: "+HUD),b->{HUD=!HUD;reload();}).bounds(x+15,y+149,220,20).build());
             }
-            if(page==1)addRenderableWidget(Button.builder(Component.literal("Escanear loja aberta (P)"),b->capture(minecraft,true)).bounds(x+15,y+174,210,20).build());
+            if(page==1)addRenderableWidget(Button.builder(Component.literal("Abrir /shop e escanear com P"),b->{onClose();minecraft.player.displayClientMessage(Component.literal("[ONI] Abra o /shop e clique no botao ONI no canto superior direito."),false);}).bounds(x+15,y+174,235,20).build());
             addRenderableWidget(Button.builder(Component.literal("FECHAR"),b->onClose()).bounds(x+302,y+201,90,19).build());
         }
         private void reload(){minecraft.setScreen(new Panel(page));}
@@ -232,7 +289,7 @@ public final class OniClient implements ClientModInitializer {
                 line(g,"Itens cadastrados: "+PRICES.size()+" | Negocios lucrativos: "+deals().size(),x+15,t+23,0xFFE6F0FA);
                 line(g,"Ultima tela: "+lastShop+" | Itens reconhecidos: "+lastFound,x+15,t+43,0xFFC1CFDF);
                 line(g,"RSHIFT Menu | P Escanear | N Visao noturna | X X-Ray",x+15,t+72,0xFFC1CFDF);
-                line(g,"Analise apenas dados visiveis do /shop. Nao compra sozinho.",x+15,t+92,0xFFF2D78B);
+                line(g,"Abra /shop e use ONI: ESCANEAR (P) no canto superior.",x+15,t+92,0xFFF2D78B);
             } else if(page==1){
                 line(g,"LUCROS (compra / venda por item)",x+15,t,0xFF6CFFD7);
                 List<Deal> list=deals();
