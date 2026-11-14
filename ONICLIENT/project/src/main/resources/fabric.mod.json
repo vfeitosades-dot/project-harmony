@@ -1,0 +1,11 @@
+{
+  "schemaVersion":1,
+  "id":"oniclient",
+  "version":"${version}",
+  "name":"ONICLIENT - Semi Anarquia",
+  "description":"Client Fabric 1.21.11 com loja, analise local, X-Ray, visao noturna e HUD.",
+  "environment":"client",
+  "entrypoints":{"client":["br.oniclient.OniClient"]},
+  "mixins":["oniclient.mixins.json"],
+  "depends":{"fabricloader":">=0.18.0","minecraft":"1.21.11","java":">=21","fabric-api":"*"}
+}
