@@ -5,6 +5,11 @@ on:
     paths:
       - 'ONICLIENT/**'
       - '.github/workflows/oniclient-build.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'ONICLIENT/**'
+      - '.github/workflows/oniclient-build.yml'
   workflow_dispatch:
 permissions:
   contents: write
@@ -20,11 +25,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.14'
-      - name: Descompactar codigo
-        run: |
-          mkdir -p ONICLIENT/project
-          base64 --decode ONICLIENT/oni-source.tar.xz.b64 | tar -xJ -C ONICLIENT/project
-      - name: Compilar JAR
+      - name: Compilar Fabric mod
         working-directory: ONICLIENT/project
         run: gradle --no-daemon clean build
       - name: Verificar JAR Fabric e copiar
@@ -40,7 +41,8 @@ jobs:
           name: ONICLIENT-1.21.11-JAR
           path: ONICLIENT/ONICLIENT-1.21.11.jar
           if-no-files-found: error
-      - name: Disponibilizar o JAR na branch
+      - name: Disponibilizar JAR na branch
+        if: github.event_name == 'push'
         run: |
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
