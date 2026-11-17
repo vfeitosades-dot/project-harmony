@@ -1,0 +1,82 @@
+VÉRTICE — PROTOCOLO ZERO
+FPS tático solo | Protótipo original | Godot 4.6.3
+
+COMO JOGAR NO WINDOWS
+1. Extraia o arquivo ZIP em uma pasta.
+2. Abra Vertice.exe. Não precisa instalar Godot, Python ou outras ferramentas.
+3. Clique em INICIAR OPERAÇÃO ou pressione Enter.
+O executável contém os recursos do jogo e funciona sem internet.
+
+OBJETIVO
+Conclua 3 operações no mapa Estação Aurora.
+Elimine os 4 / 5 / 6 sentinelas de cada operação e alcance o reator A.
+A menos de 2,8 metros dele, segure F durante 4 segundos para desarmá-lo.
+Cada operação tem 110 segundos. O cronômetro continua durante o desarme.
+Vida e escudo são restaurados ao avançar de operação.
+
+CONTROLES
+W A S D           Mover
+Mouse             Olhar
+Botão esquerdo    Atirar (segure para fogo automático)
+Botão direito     Mirar com zoom
+R                 Recarregar
+Espaço            Pular
+Shift             Andar devagar
+Q                 Dash na direção do movimento (7s de recarga)
+E                 Pulso: revela inimigos por 5s (16s de recarga)
+F                 Segurar para desarmar após eliminar os sentinelas
+Esc               Pausar / continuar
+Enter             Iniciar / continuar / próxima operação / tentar novamente
+F11               Tela cheia / janela
+- / =             Diminuir / aumentar sensibilidade do mouse
+M                 Ativar / silenciar som
+Alt+F4            Fechar
+
+DICAS
+O V-25 tem 25 tiros por carregador. Tiros no corpo causam 34 de dano;
+um tiro na cabeça elimina um sentinela. Parar de andar e usar a mira
+reduz a dispersão. Use as caixas para cortar a linha de visão.
+Eliminações devolvem munição de reserva. Se toda a munição acabar,
+R prepara um carregador de emergência com uma recarga mais demorada.
+O radar mostra inimigos próximos; o pulso revela todos temporariamente.
+
+REQUISITOS
+Windows 10/11 de 64 bits recomendado, teclado e mouse.
+Placa de vídeo com suporte a OpenGL 3.3 e drivers atualizados.
+Reserve aproximadamente 110 MB para os arquivos extraídos.
+Não foi medido um requisito mínimo de CPU, RAM ou taxa de quadros.
+
+ESCOPO E VALIDAÇÃO
+Protótipo solo offline, com um mapa, um rifle, dois poderes e três operações.
+Não inclui multiplayer, matchmaking, agentes selecionáveis ou campanha longa.
+Modelos geométricos, arena, interface e efeitos sonoros criados para este jogo.
+Inspiração em FPS táticos como Valorant; sem afiliação com a Riot Games.
+Não usa modelos, mapas, personagens, logos ou sons extraídos de Valorant.
+Desenvolvido inteiramente em ambiente Cloud, sem acessar arquivos do seu PC.
+
+Testes: execução em Godot/Linux e exportação Linux; verificação visual de menu,
+arena, movimento, pulso e pausa. Testes automatizados de spawn, tiro em parede,
+recarga, eliminação, raycast de headshot, escudo, desarme e resultados das operações.
+Executável Windows x64 exportado e inspecionado; não executado em Windows real.
+O ambiente Cloud não disponibilizou saída de áudio; os WAV foram gerados e
+validados como recursos, mas a mixagem não foi avaliada por escuta.
+
+PROJETO EDITÁVEL
+O arquivo Vertice-Projeto-Godot.zip contém os arquivos-fonte.
+Importe project.godot no Godot 4.6.3 ou compatível.
+Para exportar, instale os templates oficiais pelo editor Godot.
+As definições de exportação do projeto usam os templates padrão.
+
+REFERÊNCIAS PESQUISADAS (17/11/2026)
+https://playvalorant.com/pt-br/arsenal/
+Referência para a categoria rifle, silhueta e leitura visual de armas táticas.
+https://playvalorant.com/pt-br/maps/
+Referência para organização em rotas, pátios, coberturas e identidade de setores.
+https://kenney.nl/assets/blaster-kit
+Referência de biblioteca pública de modelos estilizados de armas.
+Nenhum modelo dessas páginas foi incorporado; a geometria é original e procedural.
+
+LICENÇAS
+O motor Godot utiliza licença MIT. Consulte GODOT-LICENSE.txt e
+GODOT-COPYRIGHT.txt para os avisos do motor e suas dependências.
+Código e recursos originais deste projeto: licença MIT, incluída no projeto-fonte.

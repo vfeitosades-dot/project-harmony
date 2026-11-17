@@ -1,0 +1,4 @@
+[gd_resource format=3 type="AudioBusLayout"]
+[resource]
+bus/0/name = &"Master"
+bus/0/volume_db = -5.0
